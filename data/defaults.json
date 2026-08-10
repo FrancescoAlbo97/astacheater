@@ -1,0 +1,84 @@
+{
+  "slotWeights": {
+    "method": "Minimi quadrati con vincolo di uguaglianza (Σw=11) via sistema KKT, poi proiezione isotona per ruolo (PAVA, non crescente/non negativa), poi riscalatura a somma=11. Feature: rango per v_j (=38·pt·fm, §6.1), termine sommato 38·fm_j (NON v_j: vedi nota).",
+    "note": "Termine sommato = 38·fm_j (senza pt) per evitare di scontare due volte la titolarità: il peso w_ρ,t assorbe già, tramite il fit, la probabilità di copertura dello slot t-esimo (effetto ridondanza fra riserve dello stesso ruolo). Vedi test/value-surrogate.test.ts.",
+    "sampleCount": 3000,
+    "lineupSimIterationsPerSample": 400,
+    "seed": 42,
+    "r2Constrained": 0.8417112059918838,
+    "r2UnconstrainedDiagnostic": 0.9678,
+    "r2Caveat": "R² vincolato (0.84 circa) è sotto la soglia nominale di §6.2 (0.97) su rose di composizione i.i.d. pienamente casuale; il modello non vincolato raggiunge ~0.97. Segnalato come richiesto da §6.2. Vedi commento in testa a test/value-surrogate.test.ts.",
+    "weights": {
+      "P": [
+        0.35590851222530145,
+        0.2032261315849497,
+        0.2032261315849497
+      ],
+      "D": [
+        0.523709727966055,
+        0.523709727966055,
+        0.523709727966055,
+        0.523709727966055,
+        0.523709727966055,
+        0.49816078451206264,
+        0.49816078451206264,
+        0
+      ],
+      "C": [
+        0.6442857851498909,
+        0.6442857851498909,
+        0.6442857851498909,
+        0.6442857851498909,
+        0.606581899393058,
+        0.606581899393058,
+        0.26731098189365854,
+        0
+      ],
+      "A": [
+        0.6779772626476879,
+        0.6779772626476879,
+        0.6779772626476879,
+        0.3122434853616031,
+        0.21897582116639389,
+        0
+      ]
+    }
+  },
+  "priceModel": {
+    "method": "Calibrazione self-play a punto fisso (§9.4): media pesata 0.35 allRational / 0.65 realisticMix.",
+    "auctionsPerIteration": 150,
+    "maxIterations": 4,
+    "priceCurves": {
+      "P": {
+        "A": 1.5189128823333722,
+        "theta": 2.152814935760167
+      },
+      "D": {
+        "A": 1.4663930299021417,
+        "theta": 2.0322492605407345
+      },
+      "C": {
+        "A": 1.4396685448080415,
+        "theta": 2.0757547051391536
+      },
+      "A": {
+        "A": 1.3467138257700615,
+        "theta": 3.363255289398014
+      }
+    },
+    "budgetShares": {
+      "P": 0.09519324611297941,
+      "D": 0.22061733095081637,
+      "C": 0.23730097371048225,
+      "A": 0.44688844922572196
+    },
+    "allRational": {
+      "iterations": 4,
+      "converged": false
+    },
+    "realisticMix": {
+      "iterations": 4,
+      "converged": false
+    }
+  }
+}

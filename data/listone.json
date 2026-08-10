@@ -1,0 +1,3019 @@
+{
+  "season": "2026/27",
+  "updatedAt": "2026-08-09",
+  "source": "Ricostruzione best-effort del listone Serie A 2026/27, raccolta il 09/08/2026. Elenco delle 20 squadre verificato incrociando Sky Sport (sport.sky.it), Gianluca Di Marzio (gianlucadimarzio.com) e Wikipedia: retrocesse dalla Serie A 2025/26 Cremonese, Hellas Verona e Pisa; promosse dalla Serie B 2025/26 Venezia (campione), Frosinone (secondo) e Monza (vincitore playoff). Rose e ruoli (classificazione classica Fantacalcio P/D/C/A, non ruolo tattico) estratti dal listone ufficiale Fantacalcio.it 'Quotazioni Fantacalcio 2026/27' (modalita Classic), pubblicato il 04/08/2026 e consultato il 09/08/2026 (https://www.fantacalcio.it/quotazioni-fantacalcio), tramite parsing diretto dei data-attribute della tabella HTML pubblica (nome, squadra, ruolo). Il mercato estivo 2026 risultava ancora aperto alla data di raccolta: alcuni trasferimenti recenti, ruoli di giocatori marginali o nuovi arrivi da club esteri potrebbero non essere riflessi. Copertura: 502 giocatori su 20 squadre (media 25/squadra), nessun punteggio incluso. IMPORTANTE: questo listone e' una base di partenza e DEVE essere verificato e aggiornato a mano nei giorni immediatamente precedenti l'asta reale (mercato chiuso, ultimi trasferimenti, nuovi svincolati), come richiesto dalla specifica di progetto (README §8.1 e §13/fase F13).",
+  "players": [
+    {
+      "id": "atalanta-carnesecchi",
+      "name": "Carnesecchi",
+      "team": "Atalanta",
+      "role": "P"
+    },
+    {
+      "id": "atalanta-rossi-f",
+      "name": "Rossi F.",
+      "team": "Atalanta",
+      "role": "P"
+    },
+    {
+      "id": "atalanta-sportiello",
+      "name": "Sportiello",
+      "team": "Atalanta",
+      "role": "P"
+    },
+    {
+      "id": "atalanta-vismara",
+      "name": "Vismara",
+      "team": "Atalanta",
+      "role": "P"
+    },
+    {
+      "id": "atalanta-ahanor",
+      "name": "Ahanor",
+      "team": "Atalanta",
+      "role": "D"
+    },
+    {
+      "id": "atalanta-bellanova",
+      "name": "Bellanova",
+      "team": "Atalanta",
+      "role": "D"
+    },
+    {
+      "id": "atalanta-bernasconi",
+      "name": "Bernasconi",
+      "team": "Atalanta",
+      "role": "D"
+    },
+    {
+      "id": "atalanta-djimsiti",
+      "name": "Djimsiti",
+      "team": "Atalanta",
+      "role": "D"
+    },
+    {
+      "id": "atalanta-hien",
+      "name": "Hien",
+      "team": "Atalanta",
+      "role": "D"
+    },
+    {
+      "id": "atalanta-kolasinac",
+      "name": "Kolasinac",
+      "team": "Atalanta",
+      "role": "D"
+    },
+    {
+      "id": "atalanta-kossounou",
+      "name": "Kossounou",
+      "team": "Atalanta",
+      "role": "D"
+    },
+    {
+      "id": "atalanta-scalvini",
+      "name": "Scalvini",
+      "team": "Atalanta",
+      "role": "D"
+    },
+    {
+      "id": "atalanta-zappacosta",
+      "name": "Zappacosta",
+      "team": "Atalanta",
+      "role": "D"
+    },
+    {
+      "id": "atalanta-de-roon",
+      "name": "De Roon",
+      "team": "Atalanta",
+      "role": "C"
+    },
+    {
+      "id": "atalanta-ederson-d-s",
+      "name": "Ederson D.S.",
+      "team": "Atalanta",
+      "role": "C"
+    },
+    {
+      "id": "atalanta-gaetano",
+      "name": "Gaetano",
+      "team": "Atalanta",
+      "role": "C"
+    },
+    {
+      "id": "atalanta-pasalic",
+      "name": "Pasalic",
+      "team": "Atalanta",
+      "role": "C"
+    },
+    {
+      "id": "atalanta-samardzic",
+      "name": "Samardzic",
+      "team": "Atalanta",
+      "role": "C"
+    },
+    {
+      "id": "atalanta-sulemana-i",
+      "name": "Sulemana I.",
+      "team": "Atalanta",
+      "role": "C"
+    },
+    {
+      "id": "atalanta-zalewski",
+      "name": "Zalewski",
+      "team": "Atalanta",
+      "role": "C"
+    },
+    {
+      "id": "atalanta-de-ketelaere",
+      "name": "De Ketelaere",
+      "team": "Atalanta",
+      "role": "A"
+    },
+    {
+      "id": "atalanta-krstovic",
+      "name": "Krstovic",
+      "team": "Atalanta",
+      "role": "A"
+    },
+    {
+      "id": "atalanta-raspadori",
+      "name": "Raspadori",
+      "team": "Atalanta",
+      "role": "A"
+    },
+    {
+      "id": "atalanta-scamacca",
+      "name": "Scamacca",
+      "team": "Atalanta",
+      "role": "A"
+    },
+    {
+      "id": "atalanta-sulemana-k",
+      "name": "Sulemana K.",
+      "team": "Atalanta",
+      "role": "A"
+    },
+    {
+      "id": "bologna-happonen",
+      "name": "Happonen",
+      "team": "Bologna",
+      "role": "P"
+    },
+    {
+      "id": "bologna-pessina-mas",
+      "name": "Pessina Mas.",
+      "team": "Bologna",
+      "role": "P"
+    },
+    {
+      "id": "bologna-skorupski",
+      "name": "Skorupski",
+      "team": "Bologna",
+      "role": "P"
+    },
+    {
+      "id": "bologna-alhassane",
+      "name": "Alhassane",
+      "team": "Bologna",
+      "role": "D"
+    },
+    {
+      "id": "bologna-casale",
+      "name": "Casale",
+      "team": "Bologna",
+      "role": "D"
+    },
+    {
+      "id": "bologna-de-silvestri",
+      "name": "De Silvestri",
+      "team": "Bologna",
+      "role": "D"
+    },
+    {
+      "id": "bologna-heggem",
+      "name": "Heggem",
+      "team": "Bologna",
+      "role": "D"
+    },
+    {
+      "id": "bologna-helland",
+      "name": "Helland",
+      "team": "Bologna",
+      "role": "D"
+    },
+    {
+      "id": "bologna-holm",
+      "name": "Holm",
+      "team": "Bologna",
+      "role": "D"
+    },
+    {
+      "id": "bologna-lucumi",
+      "name": "Lucumì",
+      "team": "Bologna",
+      "role": "D"
+    },
+    {
+      "id": "bologna-miranda-j",
+      "name": "Miranda J.",
+      "team": "Bologna",
+      "role": "D"
+    },
+    {
+      "id": "bologna-vitik",
+      "name": "Vitik",
+      "team": "Bologna",
+      "role": "D"
+    },
+    {
+      "id": "bologna-zortea",
+      "name": "Zortea",
+      "team": "Bologna",
+      "role": "D"
+    },
+    {
+      "id": "bologna-amondarain",
+      "name": "Amondarain",
+      "team": "Bologna",
+      "role": "C"
+    },
+    {
+      "id": "bologna-bernardeschi",
+      "name": "Bernardeschi",
+      "team": "Bologna",
+      "role": "C"
+    },
+    {
+      "id": "bologna-cambiaghi",
+      "name": "Cambiaghi",
+      "team": "Bologna",
+      "role": "C"
+    },
+    {
+      "id": "bologna-dominguez-b",
+      "name": "Dominguez B.",
+      "team": "Bologna",
+      "role": "C"
+    },
+    {
+      "id": "bologna-el-azzouzi-o",
+      "name": "El Azzouzi O.",
+      "team": "Bologna",
+      "role": "C"
+    },
+    {
+      "id": "bologna-ferguson",
+      "name": "Ferguson",
+      "team": "Bologna",
+      "role": "C"
+    },
+    {
+      "id": "bologna-moro-n",
+      "name": "Moro N.",
+      "team": "Bologna",
+      "role": "C"
+    },
+    {
+      "id": "bologna-odgaard",
+      "name": "Odgaard",
+      "team": "Bologna",
+      "role": "C"
+    },
+    {
+      "id": "bologna-orsolini",
+      "name": "Orsolini",
+      "team": "Bologna",
+      "role": "C"
+    },
+    {
+      "id": "bologna-pobega",
+      "name": "Pobega",
+      "team": "Bologna",
+      "role": "C"
+    },
+    {
+      "id": "bologna-rowe",
+      "name": "Rowe",
+      "team": "Bologna",
+      "role": "C"
+    },
+    {
+      "id": "bologna-dallinga",
+      "name": "Dallinga",
+      "team": "Bologna",
+      "role": "A"
+    },
+    {
+      "id": "bologna-dovbyk",
+      "name": "Dovbyk",
+      "team": "Bologna",
+      "role": "A"
+    },
+    {
+      "id": "cagliari-caprile",
+      "name": "Caprile",
+      "team": "Cagliari",
+      "role": "P"
+    },
+    {
+      "id": "cagliari-ciocci",
+      "name": "Ciocci",
+      "team": "Cagliari",
+      "role": "P"
+    },
+    {
+      "id": "cagliari-sherri",
+      "name": "Sherri",
+      "team": "Cagliari",
+      "role": "P"
+    },
+    {
+      "id": "cagliari-idrissi-r",
+      "name": "Idrissi R.",
+      "team": "Cagliari",
+      "role": "D"
+    },
+    {
+      "id": "cagliari-kofler",
+      "name": "Kofler",
+      "team": "Cagliari",
+      "role": "D"
+    },
+    {
+      "id": "cagliari-mina",
+      "name": "Mina",
+      "team": "Cagliari",
+      "role": "D"
+    },
+    {
+      "id": "cagliari-obert",
+      "name": "Obert",
+      "team": "Cagliari",
+      "role": "D"
+    },
+    {
+      "id": "cagliari-raterink",
+      "name": "Raterink",
+      "team": "Cagliari",
+      "role": "D"
+    },
+    {
+      "id": "cagliari-rodriguez-ju",
+      "name": "Rodriguez Ju.",
+      "team": "Cagliari",
+      "role": "D"
+    },
+    {
+      "id": "cagliari-zappa",
+      "name": "Zappa",
+      "team": "Cagliari",
+      "role": "D"
+    },
+    {
+      "id": "cagliari-ze-pedro",
+      "name": "Zè Pedro",
+      "team": "Cagliari",
+      "role": "D"
+    },
+    {
+      "id": "cagliari-adopo",
+      "name": "Adopo",
+      "team": "Cagliari",
+      "role": "C"
+    },
+    {
+      "id": "cagliari-deiola",
+      "name": "Deiola",
+      "team": "Cagliari",
+      "role": "C"
+    },
+    {
+      "id": "cagliari-fazzini",
+      "name": "Fazzini",
+      "team": "Cagliari",
+      "role": "C"
+    },
+    {
+      "id": "cagliari-felici",
+      "name": "Felici",
+      "team": "Cagliari",
+      "role": "C"
+    },
+    {
+      "id": "cagliari-liteta",
+      "name": "Liteta",
+      "team": "Cagliari",
+      "role": "C"
+    },
+    {
+      "id": "cagliari-prati",
+      "name": "Prati",
+      "team": "Cagliari",
+      "role": "C"
+    },
+    {
+      "id": "cagliari-romano",
+      "name": "Romano",
+      "team": "Cagliari",
+      "role": "C"
+    },
+    {
+      "id": "cagliari-winks",
+      "name": "Winks",
+      "team": "Cagliari",
+      "role": "C"
+    },
+    {
+      "id": "cagliari-albarracin",
+      "name": "Albarracin",
+      "team": "Cagliari",
+      "role": "A"
+    },
+    {
+      "id": "cagliari-borrelli",
+      "name": "Borrelli",
+      "team": "Cagliari",
+      "role": "A"
+    },
+    {
+      "id": "cagliari-esposito-se",
+      "name": "Esposito Se.",
+      "team": "Cagliari",
+      "role": "A"
+    },
+    {
+      "id": "cagliari-maldini",
+      "name": "Maldini",
+      "team": "Cagliari",
+      "role": "A"
+    },
+    {
+      "id": "cagliari-mendy-p",
+      "name": "Mendy P.",
+      "team": "Cagliari",
+      "role": "A"
+    },
+    {
+      "id": "cagliari-mutandwa",
+      "name": "Mutandwa",
+      "team": "Cagliari",
+      "role": "A"
+    },
+    {
+      "id": "cagliari-trepy",
+      "name": "Trepy",
+      "team": "Cagliari",
+      "role": "A"
+    },
+    {
+      "id": "como-butez",
+      "name": "Butez",
+      "team": "Como",
+      "role": "P"
+    },
+    {
+      "id": "como-tornqvist",
+      "name": "Tornqvist",
+      "team": "Como",
+      "role": "P"
+    },
+    {
+      "id": "como-vigorito",
+      "name": "Vigorito",
+      "team": "Como",
+      "role": "P"
+    },
+    {
+      "id": "como-couto",
+      "name": "Couto",
+      "team": "Como",
+      "role": "D"
+    },
+    {
+      "id": "como-cuenca-a",
+      "name": "Cuenca A.",
+      "team": "Como",
+      "role": "D"
+    },
+    {
+      "id": "como-goldaniga",
+      "name": "Goldaniga",
+      "team": "Como",
+      "role": "D"
+    },
+    {
+      "id": "como-kaiki",
+      "name": "Kaiki",
+      "team": "Como",
+      "role": "D"
+    },
+    {
+      "id": "como-kempf",
+      "name": "Kempf",
+      "team": "Como",
+      "role": "D"
+    },
+    {
+      "id": "como-ramon",
+      "name": "Ramon",
+      "team": "Como",
+      "role": "D"
+    },
+    {
+      "id": "como-smolcic-i",
+      "name": "Smolcic I.",
+      "team": "Como",
+      "role": "D"
+    },
+    {
+      "id": "como-valle",
+      "name": "Valle",
+      "team": "Como",
+      "role": "D"
+    },
+    {
+      "id": "como-van-der-brempt",
+      "name": "Van Der Brempt",
+      "team": "Como",
+      "role": "D"
+    },
+    {
+      "id": "como-addai",
+      "name": "Addai",
+      "team": "Como",
+      "role": "C"
+    },
+    {
+      "id": "como-baturina",
+      "name": "Baturina",
+      "team": "Como",
+      "role": "C"
+    },
+    {
+      "id": "como-caqueret",
+      "name": "Caqueret",
+      "team": "Como",
+      "role": "C"
+    },
+    {
+      "id": "como-da-cunha",
+      "name": "Da Cunha",
+      "team": "Como",
+      "role": "C"
+    },
+    {
+      "id": "como-fadera",
+      "name": "Fadera",
+      "team": "Como",
+      "role": "C"
+    },
+    {
+      "id": "como-lahdo",
+      "name": "Lahdo",
+      "team": "Como",
+      "role": "C"
+    },
+    {
+      "id": "como-liberali",
+      "name": "Liberali",
+      "team": "Como",
+      "role": "C"
+    },
+    {
+      "id": "como-milla",
+      "name": "Milla",
+      "team": "Como",
+      "role": "C"
+    },
+    {
+      "id": "como-paz-n",
+      "name": "Paz N.",
+      "team": "Como",
+      "role": "C"
+    },
+    {
+      "id": "como-perrone",
+      "name": "Perrone",
+      "team": "Como",
+      "role": "C"
+    },
+    {
+      "id": "como-rodriguez-je",
+      "name": "Rodriguez Je.",
+      "team": "Como",
+      "role": "C"
+    },
+    {
+      "id": "como-azon",
+      "name": "Azon",
+      "team": "Como",
+      "role": "A"
+    },
+    {
+      "id": "como-diao",
+      "name": "Diao",
+      "team": "Como",
+      "role": "A"
+    },
+    {
+      "id": "como-douvikas",
+      "name": "Douvikas",
+      "team": "Como",
+      "role": "A"
+    },
+    {
+      "id": "como-kuhn",
+      "name": "Kuhn",
+      "team": "Como",
+      "role": "A"
+    },
+    {
+      "id": "como-morata",
+      "name": "Morata",
+      "team": "Como",
+      "role": "A"
+    },
+    {
+      "id": "fiorentina-christensen-o",
+      "name": "Christensen O.",
+      "team": "Fiorentina",
+      "role": "P"
+    },
+    {
+      "id": "fiorentina-de-gea",
+      "name": "De Gea",
+      "team": "Fiorentina",
+      "role": "P"
+    },
+    {
+      "id": "fiorentina-lezzerini",
+      "name": "Lezzerini",
+      "team": "Fiorentina",
+      "role": "P"
+    },
+    {
+      "id": "fiorentina-dodo",
+      "name": "Dodò",
+      "team": "Fiorentina",
+      "role": "D"
+    },
+    {
+      "id": "fiorentina-dragusin",
+      "name": "Dragusin",
+      "team": "Fiorentina",
+      "role": "D"
+    },
+    {
+      "id": "fiorentina-jimenez-a",
+      "name": "Jimenez A.",
+      "team": "Fiorentina",
+      "role": "D"
+    },
+    {
+      "id": "fiorentina-joao-mario",
+      "name": "Joao Mario",
+      "team": "Fiorentina",
+      "role": "D"
+    },
+    {
+      "id": "fiorentina-parisi",
+      "name": "Parisi",
+      "team": "Fiorentina",
+      "role": "D"
+    },
+    {
+      "id": "fiorentina-pongracic",
+      "name": "Pongracic",
+      "team": "Fiorentina",
+      "role": "D"
+    },
+    {
+      "id": "fiorentina-ranieri-l",
+      "name": "Ranieri L.",
+      "team": "Fiorentina",
+      "role": "D"
+    },
+    {
+      "id": "fiorentina-valdepenas",
+      "name": "Valdepenas",
+      "team": "Fiorentina",
+      "role": "D"
+    },
+    {
+      "id": "fiorentina-viery",
+      "name": "Viery",
+      "team": "Fiorentina",
+      "role": "D"
+    },
+    {
+      "id": "fiorentina-atta",
+      "name": "Atta",
+      "team": "Fiorentina",
+      "role": "C"
+    },
+    {
+      "id": "fiorentina-brescianini",
+      "name": "Brescianini",
+      "team": "Fiorentina",
+      "role": "C"
+    },
+    {
+      "id": "fiorentina-fabbian",
+      "name": "Fabbian",
+      "team": "Fiorentina",
+      "role": "C"
+    },
+    {
+      "id": "fiorentina-fagioli",
+      "name": "Fagioli",
+      "team": "Fiorentina",
+      "role": "C"
+    },
+    {
+      "id": "fiorentina-gudmundsson-a",
+      "name": "Gudmundsson A.",
+      "team": "Fiorentina",
+      "role": "C"
+    },
+    {
+      "id": "fiorentina-mandragora",
+      "name": "Mandragora",
+      "team": "Fiorentina",
+      "role": "C"
+    },
+    {
+      "id": "fiorentina-mastantuono",
+      "name": "Mastantuono",
+      "team": "Fiorentina",
+      "role": "C"
+    },
+    {
+      "id": "fiorentina-ndour",
+      "name": "Ndour",
+      "team": "Fiorentina",
+      "role": "C"
+    },
+    {
+      "id": "fiorentina-oulai",
+      "name": "Oulai",
+      "team": "Fiorentina",
+      "role": "C"
+    },
+    {
+      "id": "fiorentina-kean",
+      "name": "Kean",
+      "team": "Fiorentina",
+      "role": "A"
+    },
+    {
+      "id": "fiorentina-piccoli",
+      "name": "Piccoli",
+      "team": "Fiorentina",
+      "role": "A"
+    },
+    {
+      "id": "frosinone-desplanches",
+      "name": "Desplanches",
+      "team": "Frosinone",
+      "role": "P"
+    },
+    {
+      "id": "frosinone-lolic",
+      "name": "Lolic",
+      "team": "Frosinone",
+      "role": "P"
+    },
+    {
+      "id": "frosinone-palmisani",
+      "name": "Palmisani",
+      "team": "Frosinone",
+      "role": "P"
+    },
+    {
+      "id": "frosinone-akpoguma",
+      "name": "Akpoguma",
+      "team": "Frosinone",
+      "role": "D"
+    },
+    {
+      "id": "frosinone-amey",
+      "name": "Amey",
+      "team": "Frosinone",
+      "role": "D"
+    },
+    {
+      "id": "frosinone-bracaglia",
+      "name": "Bracaglia",
+      "team": "Frosinone",
+      "role": "D"
+    },
+    {
+      "id": "frosinone-calvani",
+      "name": "Calvani",
+      "team": "Frosinone",
+      "role": "D"
+    },
+    {
+      "id": "frosinone-cittadini",
+      "name": "Cittadini",
+      "team": "Frosinone",
+      "role": "D"
+    },
+    {
+      "id": "frosinone-corrado",
+      "name": "Corrado",
+      "team": "Frosinone",
+      "role": "D"
+    },
+    {
+      "id": "frosinone-gelli-j",
+      "name": "Gelli J.",
+      "team": "Frosinone",
+      "role": "D"
+    },
+    {
+      "id": "frosinone-monterisi",
+      "name": "Monterisi",
+      "team": "Frosinone",
+      "role": "D"
+    },
+    {
+      "id": "frosinone-oyono-a",
+      "name": "Oyono A.",
+      "team": "Frosinone",
+      "role": "D"
+    },
+    {
+      "id": "frosinone-oyono-j",
+      "name": "Oyono J.",
+      "team": "Frosinone",
+      "role": "D"
+    },
+    {
+      "id": "frosinone-calo",
+      "name": "Calò",
+      "team": "Frosinone",
+      "role": "C"
+    },
+    {
+      "id": "frosinone-cichella",
+      "name": "Cichella",
+      "team": "Frosinone",
+      "role": "C"
+    },
+    {
+      "id": "frosinone-el-azzouzi-a",
+      "name": "El Azzouzi A.",
+      "team": "Frosinone",
+      "role": "C"
+    },
+    {
+      "id": "frosinone-fini",
+      "name": "Fini",
+      "team": "Frosinone",
+      "role": "C"
+    },
+    {
+      "id": "frosinone-gelli-f",
+      "name": "Gelli F.",
+      "team": "Frosinone",
+      "role": "C"
+    },
+    {
+      "id": "frosinone-hasa",
+      "name": "Hasa",
+      "team": "Frosinone",
+      "role": "C"
+    },
+    {
+      "id": "frosinone-kone-b",
+      "name": "Kone B.",
+      "team": "Frosinone",
+      "role": "C"
+    },
+    {
+      "id": "frosinone-koutsoupias",
+      "name": "Koutsoupias",
+      "team": "Frosinone",
+      "role": "C"
+    },
+    {
+      "id": "frosinone-zerbin",
+      "name": "Zerbin",
+      "team": "Frosinone",
+      "role": "C"
+    },
+    {
+      "id": "frosinone-ghedjemis",
+      "name": "Ghedjemis",
+      "team": "Frosinone",
+      "role": "A"
+    },
+    {
+      "id": "frosinone-kvernadze",
+      "name": "Kvernadze",
+      "team": "Frosinone",
+      "role": "A"
+    },
+    {
+      "id": "frosinone-raimondo",
+      "name": "Raimondo",
+      "team": "Frosinone",
+      "role": "A"
+    },
+    {
+      "id": "genoa-bijlow",
+      "name": "Bijlow",
+      "team": "Genoa",
+      "role": "P"
+    },
+    {
+      "id": "genoa-sommariva",
+      "name": "Sommariva",
+      "team": "Genoa",
+      "role": "P"
+    },
+    {
+      "id": "genoa-stolz",
+      "name": "Stolz",
+      "team": "Genoa",
+      "role": "P"
+    },
+    {
+      "id": "genoa-marcandalli",
+      "name": "Marcandalli",
+      "team": "Genoa",
+      "role": "D"
+    },
+    {
+      "id": "genoa-martin",
+      "name": "Martin",
+      "team": "Genoa",
+      "role": "D"
+    },
+    {
+      "id": "genoa-matturro",
+      "name": "Matturro",
+      "team": "Genoa",
+      "role": "D"
+    },
+    {
+      "id": "genoa-mitaj",
+      "name": "Mitaj",
+      "team": "Genoa",
+      "role": "D"
+    },
+    {
+      "id": "genoa-norton-cuffy",
+      "name": "Norton-Cuffy",
+      "team": "Genoa",
+      "role": "D"
+    },
+    {
+      "id": "genoa-ostigard",
+      "name": "Ostigard",
+      "team": "Genoa",
+      "role": "D"
+    },
+    {
+      "id": "genoa-otoa",
+      "name": "Otoa",
+      "team": "Genoa",
+      "role": "D"
+    },
+    {
+      "id": "genoa-puczka",
+      "name": "Puczka",
+      "team": "Genoa",
+      "role": "D"
+    },
+    {
+      "id": "genoa-sabelli",
+      "name": "Sabelli",
+      "team": "Genoa",
+      "role": "D"
+    },
+    {
+      "id": "genoa-vasquez",
+      "name": "Vasquez",
+      "team": "Genoa",
+      "role": "D"
+    },
+    {
+      "id": "genoa-vogliacco",
+      "name": "Vogliacco",
+      "team": "Genoa",
+      "role": "D"
+    },
+    {
+      "id": "genoa-amorim",
+      "name": "Amorim",
+      "team": "Genoa",
+      "role": "C"
+    },
+    {
+      "id": "genoa-baldanzi",
+      "name": "Baldanzi",
+      "team": "Genoa",
+      "role": "C"
+    },
+    {
+      "id": "genoa-ellertsson",
+      "name": "Ellertsson",
+      "team": "Genoa",
+      "role": "C"
+    },
+    {
+      "id": "genoa-frendrup",
+      "name": "Frendrup",
+      "team": "Genoa",
+      "role": "C"
+    },
+    {
+      "id": "genoa-masini",
+      "name": "Masini",
+      "team": "Genoa",
+      "role": "C"
+    },
+    {
+      "id": "genoa-meichtry",
+      "name": "Meichtry",
+      "team": "Genoa",
+      "role": "C"
+    },
+    {
+      "id": "genoa-messias",
+      "name": "Messias",
+      "team": "Genoa",
+      "role": "C"
+    },
+    {
+      "id": "genoa-sow",
+      "name": "Sow",
+      "team": "Genoa",
+      "role": "C"
+    },
+    {
+      "id": "genoa-traore-hj",
+      "name": "Traorè Hj.",
+      "team": "Genoa",
+      "role": "C"
+    },
+    {
+      "id": "genoa-venturino",
+      "name": "Venturino",
+      "team": "Genoa",
+      "role": "C"
+    },
+    {
+      "id": "genoa-colombo",
+      "name": "Colombo",
+      "team": "Genoa",
+      "role": "A"
+    },
+    {
+      "id": "genoa-havel",
+      "name": "Havel",
+      "team": "Genoa",
+      "role": "A"
+    },
+    {
+      "id": "genoa-vitinha-o",
+      "name": "Vitinha O.",
+      "team": "Genoa",
+      "role": "A"
+    },
+    {
+      "id": "inter-di-gennaro",
+      "name": "Di Gennaro",
+      "team": "Inter",
+      "role": "P"
+    },
+    {
+      "id": "inter-martinez-jo",
+      "name": "Martinez Jo.",
+      "team": "Inter",
+      "role": "P"
+    },
+    {
+      "id": "inter-provedel",
+      "name": "Provedel",
+      "team": "Inter",
+      "role": "P"
+    },
+    {
+      "id": "inter-akanji",
+      "name": "Akanji",
+      "team": "Inter",
+      "role": "D"
+    },
+    {
+      "id": "inter-bastoni",
+      "name": "Bastoni",
+      "team": "Inter",
+      "role": "D"
+    },
+    {
+      "id": "inter-bisseck",
+      "name": "Bisseck",
+      "team": "Inter",
+      "role": "D"
+    },
+    {
+      "id": "inter-carlos-augusto",
+      "name": "Carlos Augusto",
+      "team": "Inter",
+      "role": "D"
+    },
+    {
+      "id": "inter-dimarco",
+      "name": "Dimarco",
+      "team": "Inter",
+      "role": "D"
+    },
+    {
+      "id": "inter-pavard",
+      "name": "Pavard",
+      "team": "Inter",
+      "role": "D"
+    },
+    {
+      "id": "inter-stones",
+      "name": "Stones",
+      "team": "Inter",
+      "role": "D"
+    },
+    {
+      "id": "inter-barella",
+      "name": "Barella",
+      "team": "Inter",
+      "role": "C"
+    },
+    {
+      "id": "inter-calhanoglu",
+      "name": "Calhanoglu",
+      "team": "Inter",
+      "role": "C"
+    },
+    {
+      "id": "inter-diouf",
+      "name": "Diouf",
+      "team": "Inter",
+      "role": "C"
+    },
+    {
+      "id": "inter-frattesi",
+      "name": "Frattesi",
+      "team": "Inter",
+      "role": "C"
+    },
+    {
+      "id": "inter-luis-henrique",
+      "name": "Luis Henrique",
+      "team": "Inter",
+      "role": "C"
+    },
+    {
+      "id": "inter-mkhitaryan",
+      "name": "Mkhitaryan",
+      "team": "Inter",
+      "role": "C"
+    },
+    {
+      "id": "inter-stankovic-a",
+      "name": "Stankovic A.",
+      "team": "Inter",
+      "role": "C"
+    },
+    {
+      "id": "inter-sucic-p",
+      "name": "Sucic P.",
+      "team": "Inter",
+      "role": "C"
+    },
+    {
+      "id": "inter-zielinski",
+      "name": "Zielinski",
+      "team": "Inter",
+      "role": "C"
+    },
+    {
+      "id": "inter-bonny",
+      "name": "Bonny",
+      "team": "Inter",
+      "role": "A"
+    },
+    {
+      "id": "inter-esposito-f-p",
+      "name": "Esposito F.P.",
+      "team": "Inter",
+      "role": "A"
+    },
+    {
+      "id": "inter-martinez-l",
+      "name": "Martinez L.",
+      "team": "Inter",
+      "role": "A"
+    },
+    {
+      "id": "inter-thuram",
+      "name": "Thuram",
+      "team": "Inter",
+      "role": "A"
+    },
+    {
+      "id": "juventus-di-gregorio",
+      "name": "Di Gregorio",
+      "team": "Juventus",
+      "role": "P"
+    },
+    {
+      "id": "juventus-perin",
+      "name": "Perin",
+      "team": "Juventus",
+      "role": "P"
+    },
+    {
+      "id": "juventus-pinsoglio",
+      "name": "Pinsoglio",
+      "team": "Juventus",
+      "role": "P"
+    },
+    {
+      "id": "juventus-bremer",
+      "name": "Bremer",
+      "team": "Juventus",
+      "role": "D"
+    },
+    {
+      "id": "juventus-cabal",
+      "name": "Cabal",
+      "team": "Juventus",
+      "role": "D"
+    },
+    {
+      "id": "juventus-cambiaso",
+      "name": "Cambiaso",
+      "team": "Juventus",
+      "role": "D"
+    },
+    {
+      "id": "juventus-celik",
+      "name": "Celik",
+      "team": "Juventus",
+      "role": "D"
+    },
+    {
+      "id": "juventus-gatti",
+      "name": "Gatti",
+      "team": "Juventus",
+      "role": "D"
+    },
+    {
+      "id": "juventus-kalulu",
+      "name": "Kalulu",
+      "team": "Juventus",
+      "role": "D"
+    },
+    {
+      "id": "juventus-kelly-l",
+      "name": "Kelly L.",
+      "team": "Juventus",
+      "role": "D"
+    },
+    {
+      "id": "juventus-rugani",
+      "name": "Rugani",
+      "team": "Juventus",
+      "role": "D"
+    },
+    {
+      "id": "juventus-alajbegovic",
+      "name": "Alajbegovic",
+      "team": "Juventus",
+      "role": "C"
+    },
+    {
+      "id": "juventus-conceicao",
+      "name": "Conceicao",
+      "team": "Juventus",
+      "role": "C"
+    },
+    {
+      "id": "juventus-douglas-luiz",
+      "name": "Douglas Luiz",
+      "team": "Juventus",
+      "role": "C"
+    },
+    {
+      "id": "juventus-koopmeiners",
+      "name": "Koopmeiners",
+      "team": "Juventus",
+      "role": "C"
+    },
+    {
+      "id": "juventus-locatelli",
+      "name": "Locatelli",
+      "team": "Juventus",
+      "role": "C"
+    },
+    {
+      "id": "juventus-mckennie",
+      "name": "McKennie",
+      "team": "Juventus",
+      "role": "C"
+    },
+    {
+      "id": "juventus-miretti",
+      "name": "Miretti",
+      "team": "Juventus",
+      "role": "C"
+    },
+    {
+      "id": "juventus-thuram-k",
+      "name": "Thuram K.",
+      "team": "Juventus",
+      "role": "C"
+    },
+    {
+      "id": "juventus-zhegrova",
+      "name": "Zhegrova",
+      "team": "Juventus",
+      "role": "C"
+    },
+    {
+      "id": "juventus-boga",
+      "name": "Boga",
+      "team": "Juventus",
+      "role": "A"
+    },
+    {
+      "id": "juventus-david",
+      "name": "David",
+      "team": "Juventus",
+      "role": "A"
+    },
+    {
+      "id": "juventus-ekhator",
+      "name": "Ekhator",
+      "team": "Juventus",
+      "role": "A"
+    },
+    {
+      "id": "juventus-kolo-muani",
+      "name": "Kolo Muani",
+      "team": "Juventus",
+      "role": "A"
+    },
+    {
+      "id": "juventus-yildiz",
+      "name": "Yildiz",
+      "team": "Juventus",
+      "role": "A"
+    },
+    {
+      "id": "lazio-mandas",
+      "name": "Mandas",
+      "team": "Lazio",
+      "role": "P"
+    },
+    {
+      "id": "lazio-motta",
+      "name": "Motta",
+      "team": "Lazio",
+      "role": "P"
+    },
+    {
+      "id": "lazio-renzetti",
+      "name": "Renzetti",
+      "team": "Lazio",
+      "role": "P"
+    },
+    {
+      "id": "lazio-doekhi",
+      "name": "Doekhi",
+      "team": "Lazio",
+      "role": "D"
+    },
+    {
+      "id": "lazio-floriani-mussolini",
+      "name": "Floriani Mussolini",
+      "team": "Lazio",
+      "role": "D"
+    },
+    {
+      "id": "lazio-lazzari",
+      "name": "Lazzari",
+      "team": "Lazio",
+      "role": "D"
+    },
+    {
+      "id": "lazio-marusic",
+      "name": "Marusic",
+      "team": "Lazio",
+      "role": "D"
+    },
+    {
+      "id": "lazio-patric",
+      "name": "Patric",
+      "team": "Lazio",
+      "role": "D"
+    },
+    {
+      "id": "lazio-pedraza",
+      "name": "Pedraza",
+      "team": "Lazio",
+      "role": "D"
+    },
+    {
+      "id": "lazio-pellegrini-lu",
+      "name": "Pellegrini Lu.",
+      "team": "Lazio",
+      "role": "D"
+    },
+    {
+      "id": "lazio-provstgaard",
+      "name": "Provstgaard",
+      "team": "Lazio",
+      "role": "D"
+    },
+    {
+      "id": "lazio-romagnoli",
+      "name": "Romagnoli",
+      "team": "Lazio",
+      "role": "D"
+    },
+    {
+      "id": "lazio-tavares-n",
+      "name": "Tavares N.",
+      "team": "Lazio",
+      "role": "D"
+    },
+    {
+      "id": "lazio-belahyane",
+      "name": "Belahyane",
+      "team": "Lazio",
+      "role": "C"
+    },
+    {
+      "id": "lazio-cancellieri",
+      "name": "Cancellieri",
+      "team": "Lazio",
+      "role": "C"
+    },
+    {
+      "id": "lazio-cataldi",
+      "name": "Cataldi",
+      "team": "Lazio",
+      "role": "C"
+    },
+    {
+      "id": "lazio-dele-bashiru",
+      "name": "Dele-Bashiru",
+      "team": "Lazio",
+      "role": "C"
+    },
+    {
+      "id": "lazio-isaksen",
+      "name": "Isaksen",
+      "team": "Lazio",
+      "role": "C"
+    },
+    {
+      "id": "lazio-przyborek",
+      "name": "Przyborek",
+      "team": "Lazio",
+      "role": "C"
+    },
+    {
+      "id": "lazio-rovella",
+      "name": "Rovella",
+      "team": "Lazio",
+      "role": "C"
+    },
+    {
+      "id": "lazio-taylor-k",
+      "name": "Taylor K.",
+      "team": "Lazio",
+      "role": "C"
+    },
+    {
+      "id": "lazio-zaccagni",
+      "name": "Zaccagni",
+      "team": "Lazio",
+      "role": "C"
+    },
+    {
+      "id": "lazio-dia",
+      "name": "Dia",
+      "team": "Lazio",
+      "role": "A"
+    },
+    {
+      "id": "lazio-noslin",
+      "name": "Noslin",
+      "team": "Lazio",
+      "role": "A"
+    },
+    {
+      "id": "lazio-ratkov",
+      "name": "Ratkov",
+      "team": "Lazio",
+      "role": "A"
+    },
+    {
+      "id": "lecce-falcone",
+      "name": "Falcone",
+      "team": "Lecce",
+      "role": "P"
+    },
+    {
+      "id": "lecce-fruchtl",
+      "name": "Fruchtl",
+      "team": "Lecce",
+      "role": "P"
+    },
+    {
+      "id": "lecce-samooja",
+      "name": "Samooja",
+      "team": "Lecce",
+      "role": "P"
+    },
+    {
+      "id": "lecce-gallo",
+      "name": "Gallo",
+      "team": "Lecce",
+      "role": "D"
+    },
+    {
+      "id": "lecce-gaspar-k",
+      "name": "Gaspar K.",
+      "team": "Lecce",
+      "role": "D"
+    },
+    {
+      "id": "lecce-jean",
+      "name": "Jean",
+      "team": "Lecce",
+      "role": "D"
+    },
+    {
+      "id": "lecce-ndaba",
+      "name": "Ndaba",
+      "team": "Lecce",
+      "role": "D"
+    },
+    {
+      "id": "lecce-perez-m",
+      "name": "Perez M.",
+      "team": "Lecce",
+      "role": "D"
+    },
+    {
+      "id": "lecce-siebert",
+      "name": "Siebert",
+      "team": "Lecce",
+      "role": "D"
+    },
+    {
+      "id": "lecce-tiago-gabriel",
+      "name": "Tiago Gabriel",
+      "team": "Lecce",
+      "role": "D"
+    },
+    {
+      "id": "lecce-veiga-d",
+      "name": "Veiga D.",
+      "team": "Lecce",
+      "role": "D"
+    },
+    {
+      "id": "lecce-berisha-m",
+      "name": "Berisha M.",
+      "team": "Lecce",
+      "role": "C"
+    },
+    {
+      "id": "lecce-coulibaly-l",
+      "name": "Coulibaly L.",
+      "team": "Lecce",
+      "role": "C"
+    },
+    {
+      "id": "lecce-fofana-sa",
+      "name": "Fofana Sa.",
+      "team": "Lecce",
+      "role": "C"
+    },
+    {
+      "id": "lecce-gandelman",
+      "name": "Gandelman",
+      "team": "Lecce",
+      "role": "C"
+    },
+    {
+      "id": "lecce-gorter",
+      "name": "Gorter",
+      "team": "Lecce",
+      "role": "C"
+    },
+    {
+      "id": "lecce-kaba",
+      "name": "Kaba",
+      "team": "Lecce",
+      "role": "C"
+    },
+    {
+      "id": "lecce-maleh",
+      "name": "Maleh",
+      "team": "Lecce",
+      "role": "C"
+    },
+    {
+      "id": "lecce-ngom",
+      "name": "Ngom",
+      "team": "Lecce",
+      "role": "C"
+    },
+    {
+      "id": "lecce-pierotti",
+      "name": "Pierotti",
+      "team": "Lecce",
+      "role": "C"
+    },
+    {
+      "id": "lecce-geubbels",
+      "name": "Geubbels",
+      "team": "Lecce",
+      "role": "A"
+    },
+    {
+      "id": "lecce-n-dri",
+      "name": "N'Dri",
+      "team": "Lecce",
+      "role": "A"
+    },
+    {
+      "id": "lecce-stulic",
+      "name": "Stulic",
+      "team": "Lecce",
+      "role": "A"
+    },
+    {
+      "id": "milan-maignan",
+      "name": "Maignan",
+      "team": "Milan",
+      "role": "P"
+    },
+    {
+      "id": "milan-terracciano",
+      "name": "Terracciano",
+      "team": "Milan",
+      "role": "P"
+    },
+    {
+      "id": "milan-torriani",
+      "name": "Torriani",
+      "team": "Milan",
+      "role": "P"
+    },
+    {
+      "id": "milan-athekame",
+      "name": "Athekame",
+      "team": "Milan",
+      "role": "D"
+    },
+    {
+      "id": "milan-bartesaghi",
+      "name": "Bartesaghi",
+      "team": "Milan",
+      "role": "D"
+    },
+    {
+      "id": "milan-de-winter",
+      "name": "De Winter",
+      "team": "Milan",
+      "role": "D"
+    },
+    {
+      "id": "milan-diawara-s",
+      "name": "Diawara S.",
+      "team": "Milan",
+      "role": "D"
+    },
+    {
+      "id": "milan-estupinan",
+      "name": "Estupinan",
+      "team": "Milan",
+      "role": "D"
+    },
+    {
+      "id": "milan-gabbia",
+      "name": "Gabbia",
+      "team": "Milan",
+      "role": "D"
+    },
+    {
+      "id": "milan-gila",
+      "name": "Gila",
+      "team": "Milan",
+      "role": "D"
+    },
+    {
+      "id": "milan-pavlovic",
+      "name": "Pavlovic",
+      "team": "Milan",
+      "role": "D"
+    },
+    {
+      "id": "milan-tomori",
+      "name": "Tomori",
+      "team": "Milan",
+      "role": "D"
+    },
+    {
+      "id": "milan-chukwueze",
+      "name": "Chukwueze",
+      "team": "Milan",
+      "role": "C"
+    },
+    {
+      "id": "milan-fofana-y",
+      "name": "Fofana Y.",
+      "team": "Milan",
+      "role": "C"
+    },
+    {
+      "id": "milan-jashari",
+      "name": "Jashari",
+      "team": "Milan",
+      "role": "C"
+    },
+    {
+      "id": "milan-loftus-cheek",
+      "name": "Loftus-Cheek",
+      "team": "Milan",
+      "role": "C"
+    },
+    {
+      "id": "milan-modric",
+      "name": "Modric",
+      "team": "Milan",
+      "role": "C"
+    },
+    {
+      "id": "milan-musah",
+      "name": "Musah",
+      "team": "Milan",
+      "role": "C"
+    },
+    {
+      "id": "milan-pulisic",
+      "name": "Pulisic",
+      "team": "Milan",
+      "role": "C"
+    },
+    {
+      "id": "milan-rabiot",
+      "name": "Rabiot",
+      "team": "Milan",
+      "role": "C"
+    },
+    {
+      "id": "milan-ricci-s",
+      "name": "Ricci S.",
+      "team": "Milan",
+      "role": "C"
+    },
+    {
+      "id": "milan-saelemaekers",
+      "name": "Saelemaekers",
+      "team": "Milan",
+      "role": "C"
+    },
+    {
+      "id": "milan-camarda",
+      "name": "Camarda",
+      "team": "Milan",
+      "role": "A"
+    },
+    {
+      "id": "milan-gimenez",
+      "name": "Gimenez",
+      "team": "Milan",
+      "role": "A"
+    },
+    {
+      "id": "milan-leao",
+      "name": "Leao",
+      "team": "Milan",
+      "role": "A"
+    },
+    {
+      "id": "milan-nkunku",
+      "name": "Nkunku",
+      "team": "Milan",
+      "role": "A"
+    },
+    {
+      "id": "milan-ramos-g",
+      "name": "Ramos G.",
+      "team": "Milan",
+      "role": "A"
+    },
+    {
+      "id": "monza-pizzignacco",
+      "name": "Pizzignacco",
+      "team": "Monza",
+      "role": "P"
+    },
+    {
+      "id": "monza-strajnar",
+      "name": "Strajnar",
+      "team": "Monza",
+      "role": "P"
+    },
+    {
+      "id": "monza-thiam",
+      "name": "Thiam",
+      "team": "Monza",
+      "role": "P"
+    },
+    {
+      "id": "monza-antov",
+      "name": "Antov",
+      "team": "Monza",
+      "role": "D"
+    },
+    {
+      "id": "monza-bakoune",
+      "name": "Bakoune",
+      "team": "Monza",
+      "role": "D"
+    },
+    {
+      "id": "monza-birindelli",
+      "name": "Birindelli",
+      "team": "Monza",
+      "role": "D"
+    },
+    {
+      "id": "monza-carboni-a",
+      "name": "Carboni A.",
+      "team": "Monza",
+      "role": "D"
+    },
+    {
+      "id": "monza-delli-carri",
+      "name": "Delli Carri",
+      "team": "Monza",
+      "role": "D"
+    },
+    {
+      "id": "monza-kouadio",
+      "name": "Kouadio",
+      "team": "Monza",
+      "role": "D"
+    },
+    {
+      "id": "monza-lucchesi",
+      "name": "Lucchesi",
+      "team": "Monza",
+      "role": "D"
+    },
+    {
+      "id": "monza-mangas",
+      "name": "Mangas",
+      "team": "Monza",
+      "role": "D"
+    },
+    {
+      "id": "monza-akinsanmiro",
+      "name": "Akinsanmiro",
+      "team": "Monza",
+      "role": "C"
+    },
+    {
+      "id": "monza-ciurria",
+      "name": "Ciurria",
+      "team": "Monza",
+      "role": "C"
+    },
+    {
+      "id": "monza-colombo-l",
+      "name": "Colombo L.",
+      "team": "Monza",
+      "role": "C"
+    },
+    {
+      "id": "monza-colpani",
+      "name": "Colpani",
+      "team": "Monza",
+      "role": "C"
+    },
+    {
+      "id": "monza-pessina",
+      "name": "Pessina",
+      "team": "Monza",
+      "role": "C"
+    },
+    {
+      "id": "monza-cutrone",
+      "name": "Cutrone",
+      "team": "Monza",
+      "role": "A"
+    },
+    {
+      "id": "monza-mota",
+      "name": "Mota",
+      "team": "Monza",
+      "role": "A"
+    },
+    {
+      "id": "monza-petagna",
+      "name": "Petagna",
+      "team": "Monza",
+      "role": "A"
+    },
+    {
+      "id": "monza-robinson-j",
+      "name": "Robinson J.",
+      "team": "Monza",
+      "role": "A"
+    },
+    {
+      "id": "monza-varela-g",
+      "name": "Varela G.",
+      "team": "Monza",
+      "role": "A"
+    },
+    {
+      "id": "napoli-contini",
+      "name": "Contini",
+      "team": "Napoli",
+      "role": "P"
+    },
+    {
+      "id": "napoli-meret",
+      "name": "Meret",
+      "team": "Napoli",
+      "role": "P"
+    },
+    {
+      "id": "napoli-milinkovic-savic-v",
+      "name": "Milinkovic-Savic V.",
+      "team": "Napoli",
+      "role": "P"
+    },
+    {
+      "id": "napoli-beukema",
+      "name": "Beukema",
+      "team": "Napoli",
+      "role": "D"
+    },
+    {
+      "id": "napoli-buongiorno",
+      "name": "Buongiorno",
+      "team": "Napoli",
+      "role": "D"
+    },
+    {
+      "id": "napoli-di-lorenzo",
+      "name": "Di Lorenzo",
+      "team": "Napoli",
+      "role": "D"
+    },
+    {
+      "id": "napoli-gutierrez",
+      "name": "Gutierrez",
+      "team": "Napoli",
+      "role": "D"
+    },
+    {
+      "id": "napoli-marianucci",
+      "name": "Marianucci",
+      "team": "Napoli",
+      "role": "D"
+    },
+    {
+      "id": "napoli-marin-r",
+      "name": "Marin R.",
+      "team": "Napoli",
+      "role": "D"
+    },
+    {
+      "id": "napoli-mazzocchi",
+      "name": "Mazzocchi",
+      "team": "Napoli",
+      "role": "D"
+    },
+    {
+      "id": "napoli-olivera",
+      "name": "Olivera",
+      "team": "Napoli",
+      "role": "D"
+    },
+    {
+      "id": "napoli-rrahmani",
+      "name": "Rrahmani",
+      "team": "Napoli",
+      "role": "D"
+    },
+    {
+      "id": "napoli-spinazzola",
+      "name": "Spinazzola",
+      "team": "Napoli",
+      "role": "D"
+    },
+    {
+      "id": "napoli-de-bruyne",
+      "name": "De Bruyne",
+      "team": "Napoli",
+      "role": "C"
+    },
+    {
+      "id": "napoli-folorunsho",
+      "name": "Folorunsho",
+      "team": "Napoli",
+      "role": "C"
+    },
+    {
+      "id": "napoli-gilmour",
+      "name": "Gilmour",
+      "team": "Napoli",
+      "role": "C"
+    },
+    {
+      "id": "napoli-lobotka",
+      "name": "Lobotka",
+      "team": "Napoli",
+      "role": "C"
+    },
+    {
+      "id": "napoli-mctominay",
+      "name": "McTominay",
+      "team": "Napoli",
+      "role": "C"
+    },
+    {
+      "id": "napoli-politano",
+      "name": "Politano",
+      "team": "Napoli",
+      "role": "C"
+    },
+    {
+      "id": "napoli-vergara",
+      "name": "Vergara",
+      "team": "Napoli",
+      "role": "C"
+    },
+    {
+      "id": "napoli-zambo-anguissa",
+      "name": "Zambo Anguissa",
+      "team": "Napoli",
+      "role": "C"
+    },
+    {
+      "id": "napoli-giovane",
+      "name": "Giovane",
+      "team": "Napoli",
+      "role": "A"
+    },
+    {
+      "id": "napoli-hojlund",
+      "name": "Hojlund",
+      "team": "Napoli",
+      "role": "A"
+    },
+    {
+      "id": "napoli-lang",
+      "name": "Lang",
+      "team": "Napoli",
+      "role": "A"
+    },
+    {
+      "id": "napoli-lucca",
+      "name": "Lucca",
+      "team": "Napoli",
+      "role": "A"
+    },
+    {
+      "id": "napoli-lukaku",
+      "name": "Lukaku",
+      "team": "Napoli",
+      "role": "A"
+    },
+    {
+      "id": "napoli-neres",
+      "name": "Neres",
+      "team": "Napoli",
+      "role": "A"
+    },
+    {
+      "id": "napoli-santos-a",
+      "name": "Santos A.",
+      "team": "Napoli",
+      "role": "A"
+    },
+    {
+      "id": "parma-corvi",
+      "name": "Corvi",
+      "team": "Parma",
+      "role": "P"
+    },
+    {
+      "id": "parma-daffara",
+      "name": "Daffara",
+      "team": "Parma",
+      "role": "P"
+    },
+    {
+      "id": "parma-suzuki",
+      "name": "Suzuki",
+      "team": "Parma",
+      "role": "P"
+    },
+    {
+      "id": "parma-britschgi",
+      "name": "Britschgi",
+      "team": "Parma",
+      "role": "D"
+    },
+    {
+      "id": "parma-carboni-f",
+      "name": "Carboni F.",
+      "team": "Parma",
+      "role": "D"
+    },
+    {
+      "id": "parma-circati",
+      "name": "Circati",
+      "team": "Parma",
+      "role": "D"
+    },
+    {
+      "id": "parma-delprato",
+      "name": "Delprato",
+      "team": "Parma",
+      "role": "D"
+    },
+    {
+      "id": "parma-ndiaye",
+      "name": "Ndiaye",
+      "team": "Parma",
+      "role": "D"
+    },
+    {
+      "id": "parma-troilo",
+      "name": "Troilo",
+      "team": "Parma",
+      "role": "D"
+    },
+    {
+      "id": "parma-valenti",
+      "name": "Valenti",
+      "team": "Parma",
+      "role": "D"
+    },
+    {
+      "id": "parma-valeri",
+      "name": "Valeri",
+      "team": "Parma",
+      "role": "D"
+    },
+    {
+      "id": "parma-almqvist",
+      "name": "Almqvist",
+      "team": "Parma",
+      "role": "C"
+    },
+    {
+      "id": "parma-bernabe",
+      "name": "Bernabè",
+      "team": "Parma",
+      "role": "C"
+    },
+    {
+      "id": "parma-cremaschi",
+      "name": "Cremaschi",
+      "team": "Parma",
+      "role": "C"
+    },
+    {
+      "id": "parma-diallo-o",
+      "name": "Diallo O.",
+      "team": "Parma",
+      "role": "C"
+    },
+    {
+      "id": "parma-keita-m",
+      "name": "Keita M.",
+      "team": "Parma",
+      "role": "C"
+    },
+    {
+      "id": "parma-nicolussi-caviglia",
+      "name": "Nicolussi Caviglia",
+      "team": "Parma",
+      "role": "C"
+    },
+    {
+      "id": "parma-ondrejka",
+      "name": "Ondrejka",
+      "team": "Parma",
+      "role": "C"
+    },
+    {
+      "id": "parma-ordonez-c",
+      "name": "Ordonez C.",
+      "team": "Parma",
+      "role": "C"
+    },
+    {
+      "id": "parma-sorensen-o",
+      "name": "Sorensen O.",
+      "team": "Parma",
+      "role": "C"
+    },
+    {
+      "id": "parma-elphege",
+      "name": "Elphege",
+      "team": "Parma",
+      "role": "A"
+    },
+    {
+      "id": "parma-frigan",
+      "name": "Frigan",
+      "team": "Parma",
+      "role": "A"
+    },
+    {
+      "id": "parma-pellegrino-m",
+      "name": "Pellegrino M.",
+      "team": "Parma",
+      "role": "A"
+    },
+    {
+      "id": "parma-toure-e",
+      "name": "Tourè E.",
+      "team": "Parma",
+      "role": "A"
+    },
+    {
+      "id": "roma-de-marzi",
+      "name": "De Marzi",
+      "team": "Roma",
+      "role": "P"
+    },
+    {
+      "id": "roma-gollini",
+      "name": "Gollini",
+      "team": "Roma",
+      "role": "P"
+    },
+    {
+      "id": "roma-svilar",
+      "name": "Svilar",
+      "team": "Roma",
+      "role": "P"
+    },
+    {
+      "id": "roma-angelino",
+      "name": "Angelino",
+      "team": "Roma",
+      "role": "D"
+    },
+    {
+      "id": "roma-ghilardi",
+      "name": "Ghilardi",
+      "team": "Roma",
+      "role": "D"
+    },
+    {
+      "id": "roma-hermoso",
+      "name": "Hermoso",
+      "team": "Roma",
+      "role": "D"
+    },
+    {
+      "id": "roma-koulierakis",
+      "name": "Koulierakis",
+      "team": "Roma",
+      "role": "D"
+    },
+    {
+      "id": "roma-mancini",
+      "name": "Mancini",
+      "team": "Roma",
+      "role": "D"
+    },
+    {
+      "id": "roma-n-dicka",
+      "name": "N'Dicka",
+      "team": "Roma",
+      "role": "D"
+    },
+    {
+      "id": "roma-rensch",
+      "name": "Rensch",
+      "team": "Roma",
+      "role": "D"
+    },
+    {
+      "id": "roma-wesley",
+      "name": "Wesley",
+      "team": "Roma",
+      "role": "D"
+    },
+    {
+      "id": "roma-ziolkowski",
+      "name": "Ziolkowski",
+      "team": "Roma",
+      "role": "D"
+    },
+    {
+      "id": "roma-cristante",
+      "name": "Cristante",
+      "team": "Roma",
+      "role": "C"
+    },
+    {
+      "id": "roma-el-aynaoui",
+      "name": "El Aynaoui",
+      "team": "Roma",
+      "role": "C"
+    },
+    {
+      "id": "roma-kone-m",
+      "name": "Konè M.",
+      "team": "Roma",
+      "role": "C"
+    },
+    {
+      "id": "roma-pellegrini-lo",
+      "name": "Pellegrini Lo.",
+      "team": "Roma",
+      "role": "C"
+    },
+    {
+      "id": "roma-pisilli",
+      "name": "Pisilli",
+      "team": "Roma",
+      "role": "C"
+    },
+    {
+      "id": "roma-castro-s",
+      "name": "Castro S.",
+      "team": "Roma",
+      "role": "A"
+    },
+    {
+      "id": "roma-dybala",
+      "name": "Dybala",
+      "team": "Roma",
+      "role": "A"
+    },
+    {
+      "id": "roma-malen",
+      "name": "Malen",
+      "team": "Roma",
+      "role": "A"
+    },
+    {
+      "id": "roma-soule",
+      "name": "Soulè",
+      "team": "Roma",
+      "role": "A"
+    },
+    {
+      "id": "roma-vaz",
+      "name": "Vaz",
+      "team": "Roma",
+      "role": "A"
+    },
+    {
+      "id": "sassuolo-muric",
+      "name": "Muric",
+      "team": "Sassuolo",
+      "role": "P"
+    },
+    {
+      "id": "sassuolo-russo-a",
+      "name": "Russo A.",
+      "team": "Sassuolo",
+      "role": "P"
+    },
+    {
+      "id": "sassuolo-satalino",
+      "name": "Satalino",
+      "team": "Sassuolo",
+      "role": "P"
+    },
+    {
+      "id": "sassuolo-turati",
+      "name": "Turati",
+      "team": "Sassuolo",
+      "role": "P"
+    },
+    {
+      "id": "sassuolo-cande",
+      "name": "Candè",
+      "team": "Sassuolo",
+      "role": "D"
+    },
+    {
+      "id": "sassuolo-doig",
+      "name": "Doig",
+      "team": "Sassuolo",
+      "role": "D"
+    },
+    {
+      "id": "sassuolo-idzes",
+      "name": "Idzes",
+      "team": "Sassuolo",
+      "role": "D"
+    },
+    {
+      "id": "sassuolo-missori",
+      "name": "Missori",
+      "team": "Sassuolo",
+      "role": "D"
+    },
+    {
+      "id": "sassuolo-pieragnolo",
+      "name": "Pieragnolo",
+      "team": "Sassuolo",
+      "role": "D"
+    },
+    {
+      "id": "sassuolo-walukiewicz",
+      "name": "Walukiewicz",
+      "team": "Sassuolo",
+      "role": "D"
+    },
+    {
+      "id": "sassuolo-adzic",
+      "name": "Adzic",
+      "team": "Sassuolo",
+      "role": "C"
+    },
+    {
+      "id": "sassuolo-bakola",
+      "name": "Bakola",
+      "team": "Sassuolo",
+      "role": "C"
+    },
+    {
+      "id": "sassuolo-boloca",
+      "name": "Boloca",
+      "team": "Sassuolo",
+      "role": "C"
+    },
+    {
+      "id": "sassuolo-iannoni",
+      "name": "Iannoni",
+      "team": "Sassuolo",
+      "role": "C"
+    },
+    {
+      "id": "sassuolo-kone-i",
+      "name": "Konè I.",
+      "team": "Sassuolo",
+      "role": "C"
+    },
+    {
+      "id": "sassuolo-lipani",
+      "name": "Lipani",
+      "team": "Sassuolo",
+      "role": "C"
+    },
+    {
+      "id": "sassuolo-matic",
+      "name": "Matic",
+      "team": "Sassuolo",
+      "role": "C"
+    },
+    {
+      "id": "sassuolo-thorstvedt",
+      "name": "Thorstvedt",
+      "team": "Sassuolo",
+      "role": "C"
+    },
+    {
+      "id": "sassuolo-volpato",
+      "name": "Volpato",
+      "team": "Sassuolo",
+      "role": "C"
+    },
+    {
+      "id": "sassuolo-berardi",
+      "name": "Berardi",
+      "team": "Sassuolo",
+      "role": "A"
+    },
+    {
+      "id": "sassuolo-bowie",
+      "name": "Bowie",
+      "team": "Sassuolo",
+      "role": "A"
+    },
+    {
+      "id": "sassuolo-lauriente",
+      "name": "Laurientè",
+      "team": "Sassuolo",
+      "role": "A"
+    },
+    {
+      "id": "sassuolo-moro-l",
+      "name": "Moro L.",
+      "team": "Sassuolo",
+      "role": "A"
+    },
+    {
+      "id": "sassuolo-pinamonti",
+      "name": "Pinamonti",
+      "team": "Sassuolo",
+      "role": "A"
+    },
+    {
+      "id": "torino-mascardi",
+      "name": "Mascardi",
+      "team": "Torino",
+      "role": "P"
+    },
+    {
+      "id": "torino-paleari",
+      "name": "Paleari",
+      "team": "Torino",
+      "role": "P"
+    },
+    {
+      "id": "torino-siviero",
+      "name": "Siviero",
+      "team": "Torino",
+      "role": "P"
+    },
+    {
+      "id": "torino-biraghi",
+      "name": "Biraghi",
+      "team": "Torino",
+      "role": "D"
+    },
+    {
+      "id": "torino-coco",
+      "name": "Coco",
+      "team": "Torino",
+      "role": "D"
+    },
+    {
+      "id": "torino-comert",
+      "name": "Comert",
+      "team": "Torino",
+      "role": "D"
+    },
+    {
+      "id": "torino-comuzzo",
+      "name": "Comuzzo",
+      "team": "Torino",
+      "role": "D"
+    },
+    {
+      "id": "torino-ismajli",
+      "name": "Ismajli",
+      "team": "Torino",
+      "role": "D"
+    },
+    {
+      "id": "torino-pedersen",
+      "name": "Pedersen",
+      "team": "Torino",
+      "role": "D"
+    },
+    {
+      "id": "torino-aboukhlal",
+      "name": "Aboukhlal",
+      "team": "Torino",
+      "role": "C"
+    },
+    {
+      "id": "torino-anjorin",
+      "name": "Anjorin",
+      "team": "Torino",
+      "role": "C"
+    },
+    {
+      "id": "torino-cacciamani",
+      "name": "Cacciamani",
+      "team": "Torino",
+      "role": "C"
+    },
+    {
+      "id": "torino-casadei",
+      "name": "Casadei",
+      "team": "Torino",
+      "role": "C"
+    },
+    {
+      "id": "torino-fitz-jim",
+      "name": "Fitz-Jim",
+      "team": "Torino",
+      "role": "C"
+    },
+    {
+      "id": "torino-gineitis",
+      "name": "Gineitis",
+      "team": "Torino",
+      "role": "C"
+    },
+    {
+      "id": "torino-ilic",
+      "name": "Ilic",
+      "team": "Torino",
+      "role": "C"
+    },
+    {
+      "id": "torino-ilkhan",
+      "name": "Ilkhan",
+      "team": "Torino",
+      "role": "C"
+    },
+    {
+      "id": "torino-njie",
+      "name": "Njie",
+      "team": "Torino",
+      "role": "C"
+    },
+    {
+      "id": "torino-oristanio",
+      "name": "Oristanio",
+      "team": "Torino",
+      "role": "C"
+    },
+    {
+      "id": "torino-vlasic",
+      "name": "Vlasic",
+      "team": "Torino",
+      "role": "C"
+    },
+    {
+      "id": "torino-adams-c",
+      "name": "Adams C.",
+      "team": "Torino",
+      "role": "A"
+    },
+    {
+      "id": "torino-kulenovic",
+      "name": "Kulenovic",
+      "team": "Torino",
+      "role": "A"
+    },
+    {
+      "id": "torino-simeone",
+      "name": "Simeone",
+      "team": "Torino",
+      "role": "A"
+    },
+    {
+      "id": "torino-zapata-d",
+      "name": "Zapata D.",
+      "team": "Torino",
+      "role": "A"
+    },
+    {
+      "id": "udinese-okoye",
+      "name": "Okoye",
+      "team": "Udinese",
+      "role": "P"
+    },
+    {
+      "id": "udinese-padelli",
+      "name": "Padelli",
+      "team": "Udinese",
+      "role": "P"
+    },
+    {
+      "id": "udinese-piana",
+      "name": "Piana",
+      "team": "Udinese",
+      "role": "P"
+    },
+    {
+      "id": "udinese-abankwah",
+      "name": "Abankwah",
+      "team": "Udinese",
+      "role": "D"
+    },
+    {
+      "id": "udinese-arizala",
+      "name": "Arizala",
+      "team": "Udinese",
+      "role": "D"
+    },
+    {
+      "id": "udinese-bertola",
+      "name": "Bertola",
+      "team": "Udinese",
+      "role": "D"
+    },
+    {
+      "id": "udinese-ebosse",
+      "name": "Ebosse",
+      "team": "Udinese",
+      "role": "D"
+    },
+    {
+      "id": "udinese-kabasele",
+      "name": "Kabasele",
+      "team": "Udinese",
+      "role": "D"
+    },
+    {
+      "id": "udinese-kamara-h",
+      "name": "Kamara H.",
+      "team": "Udinese",
+      "role": "D"
+    },
+    {
+      "id": "udinese-kristensen-t",
+      "name": "Kristensen T.",
+      "team": "Udinese",
+      "role": "D"
+    },
+    {
+      "id": "udinese-mlacic",
+      "name": "Mlacic",
+      "team": "Udinese",
+      "role": "D"
+    },
+    {
+      "id": "udinese-palma",
+      "name": "Palma",
+      "team": "Udinese",
+      "role": "D"
+    },
+    {
+      "id": "udinese-solet",
+      "name": "Solet",
+      "team": "Udinese",
+      "role": "D"
+    },
+    {
+      "id": "udinese-vojvoda",
+      "name": "Vojvoda",
+      "team": "Udinese",
+      "role": "D"
+    },
+    {
+      "id": "udinese-zanoli",
+      "name": "Zanoli",
+      "team": "Udinese",
+      "role": "D"
+    },
+    {
+      "id": "udinese-camara-a",
+      "name": "Camara A.",
+      "team": "Udinese",
+      "role": "C"
+    },
+    {
+      "id": "udinese-chakvetadze",
+      "name": "Chakvetadze",
+      "team": "Udinese",
+      "role": "C"
+    },
+    {
+      "id": "udinese-ekkelenkamp",
+      "name": "Ekkelenkamp",
+      "team": "Udinese",
+      "role": "C"
+    },
+    {
+      "id": "udinese-karlstrom",
+      "name": "Karlstrom",
+      "team": "Udinese",
+      "role": "C"
+    },
+    {
+      "id": "udinese-miller-l",
+      "name": "Miller L.",
+      "team": "Udinese",
+      "role": "C"
+    },
+    {
+      "id": "udinese-piotrowski",
+      "name": "Piotrowski",
+      "team": "Udinese",
+      "role": "C"
+    },
+    {
+      "id": "udinese-unai-gomez",
+      "name": "Unai Gomez",
+      "team": "Udinese",
+      "role": "C"
+    },
+    {
+      "id": "udinese-zaniolo",
+      "name": "Zaniolo",
+      "team": "Udinese",
+      "role": "C"
+    },
+    {
+      "id": "udinese-zarraga",
+      "name": "Zarraga",
+      "team": "Udinese",
+      "role": "C"
+    },
+    {
+      "id": "udinese-bayo-v",
+      "name": "Bayo V.",
+      "team": "Udinese",
+      "role": "A"
+    },
+    {
+      "id": "udinese-buksa",
+      "name": "Buksa",
+      "team": "Udinese",
+      "role": "A"
+    },
+    {
+      "id": "udinese-davis-k",
+      "name": "Davis K.",
+      "team": "Udinese",
+      "role": "A"
+    },
+    {
+      "id": "udinese-gueye",
+      "name": "Gueye",
+      "team": "Udinese",
+      "role": "A"
+    },
+    {
+      "id": "venezia-grandi",
+      "name": "Grandi",
+      "team": "Venezia",
+      "role": "P"
+    },
+    {
+      "id": "venezia-pozzi",
+      "name": "Pozzi",
+      "team": "Venezia",
+      "role": "P"
+    },
+    {
+      "id": "venezia-stankovic-f",
+      "name": "Stankovic F.",
+      "team": "Venezia",
+      "role": "P"
+    },
+    {
+      "id": "venezia-bella-kotchap",
+      "name": "Bella-Kotchap",
+      "team": "Venezia",
+      "role": "D"
+    },
+    {
+      "id": "venezia-correia-t",
+      "name": "Correia T.",
+      "team": "Venezia",
+      "role": "D"
+    },
+    {
+      "id": "venezia-franjic",
+      "name": "Franjic",
+      "team": "Venezia",
+      "role": "D"
+    },
+    {
+      "id": "venezia-gomes",
+      "name": "Gomes",
+      "team": "Venezia",
+      "role": "D"
+    },
+    {
+      "id": "venezia-hainaut",
+      "name": "Hainaut",
+      "team": "Venezia",
+      "role": "D"
+    },
+    {
+      "id": "venezia-halhal",
+      "name": "Halhal",
+      "team": "Venezia",
+      "role": "D"
+    },
+    {
+      "id": "venezia-haps",
+      "name": "Haps",
+      "team": "Venezia",
+      "role": "D"
+    },
+    {
+      "id": "venezia-moreno-m",
+      "name": "Moreno M.",
+      "team": "Venezia",
+      "role": "D"
+    },
+    {
+      "id": "venezia-sagrado",
+      "name": "Sagrado",
+      "team": "Venezia",
+      "role": "D"
+    },
+    {
+      "id": "venezia-schingtienne",
+      "name": "Schingtienne",
+      "team": "Venezia",
+      "role": "D"
+    },
+    {
+      "id": "venezia-sverko",
+      "name": "Sverko",
+      "team": "Venezia",
+      "role": "D"
+    },
+    {
+      "id": "venezia-basic",
+      "name": "Basic",
+      "team": "Venezia",
+      "role": "C"
+    },
+    {
+      "id": "venezia-bjarkason",
+      "name": "Bjarkason",
+      "team": "Venezia",
+      "role": "C"
+    },
+    {
+      "id": "venezia-busio",
+      "name": "Busio",
+      "team": "Venezia",
+      "role": "C"
+    },
+    {
+      "id": "venezia-dagasso",
+      "name": "Dagasso",
+      "team": "Venezia",
+      "role": "C"
+    },
+    {
+      "id": "venezia-duncan",
+      "name": "Duncan",
+      "team": "Venezia",
+      "role": "C"
+    },
+    {
+      "id": "venezia-helgason",
+      "name": "Helgason",
+      "team": "Venezia",
+      "role": "C"
+    },
+    {
+      "id": "venezia-perez-k",
+      "name": "Perez K.",
+      "team": "Venezia",
+      "role": "C"
+    },
+    {
+      "id": "venezia-sohm",
+      "name": "Sohm",
+      "team": "Venezia",
+      "role": "C"
+    },
+    {
+      "id": "venezia-adams-a",
+      "name": "Adams A.",
+      "team": "Venezia",
+      "role": "A"
+    },
+    {
+      "id": "venezia-adorante",
+      "name": "Adorante",
+      "team": "Venezia",
+      "role": "A"
+    },
+    {
+      "id": "venezia-lauberbach",
+      "name": "Lauberbach",
+      "team": "Venezia",
+      "role": "A"
+    },
+    {
+      "id": "venezia-lisman",
+      "name": "Lisman",
+      "team": "Venezia",
+      "role": "A"
+    },
+    {
+      "id": "venezia-rrahmani-al",
+      "name": "Rrahmani Al.",
+      "team": "Venezia",
+      "role": "A"
+    },
+    {
+      "id": "venezia-yeboah-j",
+      "name": "Yeboah J.",
+      "team": "Venezia",
+      "role": "A"
+    }
+  ]
+}
