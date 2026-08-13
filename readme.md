@@ -6,9 +6,160 @@ piano di lavoro per fasi, test e criteri di accettazione numerici.
 
 **Lingua del codice:** identificatori e commenti in inglese, testi della UI in italiano.
 
+**Stato del progetto:** tutte le 13 fasi di §12 sono state completate e collaudate (155 test
+automatici). Il file eseguibile finale è `dist/fantasta.html`. Le sezioni sottostanti restano la
+specifica tecnica di riferimento per chi estende o rivede il codice; questa guida in cima serve a
+chi deve solo installarlo e usarlo.
+
+---
+
+## Guida pratica: installazione, sviluppo, build, uso
+
+### Prerequisiti
+
+- **Node.js 18+** (consigliato 22, quello usato in sviluppo) e `npm`.
+- Nessun altro requisito: zero dipendenze di sistema, zero servizi esterni, zero account.
+
+### Installazione
+
+```bash
+npm install
+```
+
+### Sviluppo (con ricompilazione automatica)
+
+```bash
+npm run dev
+```
+
+Apri l'indirizzo che compare in console (di solito `http://localhost:5173/`). Utile per modificare
+il codice, non per l'asta vera (serve una build).
+
+### Build — il file che userai davvero all'asta
+
+```bash
+npm run build
+```
+
+Esegue il typecheck, compila e produce **`dist/fantasta.html`**: un unico file HTML, zero
+dipendenze esterne, zero rete a runtime. Aprilo due volte prima del giorno dell'asta — da un
+browser desktop e **dal telefono che userai in asta** — per essere sicuro che si apra e sia
+leggibile. Non serve alcun server: funziona anche con `file://` e offline.
+
+```bash
+npm run preview   # per vedere la build già compilata in locale, senza aprire il file direttamente
+```
+
+### Test e verifica
+
+```bash
+npm run typecheck     # controllo dei tipi TypeScript, strict
+npm test               # tutti i test automatici (unit + property-based sugli invarianti)
+npm run test:watch     # test in modalità interattiva durante lo sviluppo
+```
+
+### Testare la UI senza rifare un'asta intera a mano
+
+`npm test` copre il motore (`src/core`, `src/sim`) senza bisogno di un browser, ma per controllare
+una schermata REALE — un cambiamento visivo, una nuova funzione, un sospetto — cliccare un'asta
+intera da zero (Setup → carica listone → assegna decine di score → registra vendita per vendita) è
+troppo lento per essere un metodo di lavoro quotidiano. Due strumenti coprono questo buco:
+
+```bash
+npm run fixtures   # rigenera src/fixtures/*.json: 4 istantanee di un'asta realistica (00-vuota,
+                    # 01-iniziale, 02-meta, 03-quasi-finita), giocata in millisecondi dallo stesso
+                    # simulatore della Prova a secco (scripts/make-fixtures.ts) sul listone vero.
+npm run dev         # poi apri http://localhost:5173/?fixture=02-meta (o un altro nome) — carica
+                    # quella fixture invece dello stato salvato. Solo in `npm run dev`
+                    # (`import.meta.env.DEV`): il file finale che va all'asta vera non la contiene.
+npm run test:e2e    # con il dev server già avviato: apre ogni fixture in Chromium (Playwright),
+                    # visita tutte le schermate, segnala eventuali errori di console e salva uno
+                    # screenshot per ognuna in e2e-screenshots/ (non versionato) — un controllo
+                    # visivo completo in circa 15 secondi, invece di ricostruire un'asta a mano.
+```
+
+Le fixture sono generate dal simulatore self-play (`auction-sim.ts`), non dal motore esatto della UI
+(`engine.ts`): usale per controllare che tutto RENDERIZZI correttamente e non vada in errore, non
+per giudicare la qualità delle decisioni al loro interno — i due usano politiche di offerta
+volutamente diverse per motivi di prestazioni (§6.6/§6.7), quindi rigiocarle nel Report asta mostrerà
+fisiologicamente alcuni "sovrapprezzo" che una persona reale, guidata dallo stesso motore esatto in
+entrambi i momenti, non vedrebbe.
+
+Un bug reale è stato trovato proprio così durante lo sviluppo di questi strumenti (non con un'asta
+a mano): valutare un candidato per un ruolo già completamente pieno restituiva un "offri fino a"
+positivo invece di "non serve", perché il calcolo del valore ipotetico "se lo comprassi" veniva
+confuso con uno scambio silenzioso con il proprio peggior giocatore già posseduto in quel ruolo.
+Corretto in `plan-dp.ts` (`computeRolePlan`), con test di regressione in `test/plan-dp.test.ts` e
+`test/max-bid.test.ts`.
+
+### Strumenti da riga di comando (simulatore, calibrazione, validazione)
+
+Per chi vuole affinare i parametri o rifare le verifiche di §9–§10 prima di un'asta importante:
+
+```bash
+npx tsx src/sim/cli.ts bench 200        # statistiche di realismo su 200 aste simulate (§9.5)
+npx tsx src/sim/cli.ts validate 100     # motore vs politiche naive, ablazione appaiata (§10.1–10.3)
+npx tsx src/sim/cli.ts calibrate 500 8  # ricalibrazione self-play dei parametri di prezzo (§9.4),
+                                         # aggiorna data/defaults.json — richiede qualche minuto,
+                                         # non è indispensabile: il programma funziona anche con i
+                                         # parametri di default già inclusi
+```
+
+### Uso dell'app
+
+Cinque schermate, da configurare **in ordine** la prima volta:
+
+1. **Setup lega** — manager, budget, slot per ruolo, moduli ammessi, propensione al rischio.
+2. **Lista giocatori** — carica il listone incluso (o importa un CSV `nome,ruolo,squadra` più,
+   opzionalmente, `punteggio,titolarita` per pre-caricare le valutazioni), assegna uno score 0–100
+   a ogni giocatore che ti interessa. Un pulsante scarica un template CSV già formattato.
+3. **Asta (live)** — da usare durante l'asta vera: cerchi il giocatore estratto, il programma dice
+   subito fino a quanto conviene offrire, il prezzo atteso, il tetto esatto degli avversari; registri
+   l'acquisto in due tocchi più un numero; undo sempre disponibile. Uno slider per-decisione permette
+   di scavalcare temporaneamente il rischio di lega su un singolo giocatore.
+4. **Prova a secco** — da usare prima dell'asta vera, per tarare gli score: simula 200 aste sulla
+   tua lista reale e ti mostra la rosa attesa, segnalando i ruoli sbilanciati.
+5. **Report asta** — rigioca la TUA asta reale (non una simulazione) e confronta ogni acquisto con
+   quello che il motore consigliava un istante prima: quanto hai speso, quante volte hai superato il
+   tuo stesso tetto, quali occasioni potevi permetterti e sono finite a un avversario.
+
+**Guida completa passo per passo, in italiano semplice, con spiegazione di ogni numero mostrato a
+schermo:** vedi **[`MANUALE.md`](MANUALE.md)**. È il documento pensato per chi userà l'app
+all'asta, non serve leggere la specifica tecnica qui sotto per usarla.
+
+### Backup dei dati
+
+Lo stato si salva da solo nel browser (`localStorage`) ad ogni azione, ma non è l'unica garanzia:
+usa **Esporta** (in alto a destra nell'app) per scaricare un JSON con l'intero stato ogni tanto
+durante l'asta vera, e **Importa** per ricaricarlo. Dettagli in `MANUALE.md` §4.
+
+### Prima di un'asta vera: checklist minima
+
+1. Aggiorna il listone (il CSV incluso è di agosto 2026, a mercato aperto — va rinfrescato a
+   ridosso della tua asta).
+2. Assegna gli score ai giocatori che ti interessano (bastano i primi 40–50 per ruolo).
+3. Lancia la **Prova a secco** un paio di volte sulla lista definitiva.
+4. Verifica un export JSON manuale, per sapere già come si fa sotto pressione.
+
+Checklist completa e ragionata in `MANUALE.md` §5 (è anche integrata come pannello nella schermata
+Setup lega dell'app).
+
+### Limiti noti
+
+Il modello di valore-rosa spiega l'84% della variabilità osservata contro il 97% teorico di §6.2/A9
+— i numeri assoluti restano buone stime, non verità esatte al fantapunto. Il simulatore interno di
+auto-taratura (non la Prova a secco, che usa la tua lista reale) lascia ancora troppi crediti
+inutilizzati agli avversari sintetici. Nessuno dei due punti richiede un'azione da parte tua;
+dettagli in `MANUALE.md` §7.
+
 ---
 
 ## 0. Come usare questo documento
+
+Il resto di questo file (§1 in poi) è la **specifica tecnica** originale usata per costruire il
+progetto: obiettivo, matematica, architettura, schemi dati, piano a fasi, criteri di accettazione.
+Resta la fonte di verità per chi estende o rivede il motore — non serve leggerla per usare l'app
+(per quello vedi `MANUALE.md` o la guida pratica qui sopra).
 
 Le fasi in §12 sono da eseguire **in ordine**. Ogni fase ha una *Definition of Done* verificabile:
 non passare alla fase successiva se i test della fase corrente non passano. La fase 6

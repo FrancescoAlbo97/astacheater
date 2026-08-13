@@ -5,8 +5,9 @@
 // test/value-model.test.ts e test/plan-dp.test.ts per i test di regressione che proteggono da
 // questa regressione.
 
-import { DEFAULT_VALUE_CURVES, SEASON_MATCHDAYS } from './config.js';
-import type { Role, ValueCurveConfig, ValueCurveParams } from './types.js';
+import { DEFAULT_RISK_CONFIG, DEFAULT_VALUE_CURVES, SEASON_MATCHDAYS } from './config.js';
+import { ROLES } from './types.js';
+import type { Role, RiskConfig, ValueCurveConfig, ValueCurveParams } from './types.js';
 
 function clampScore(score: number): number {
   if (Number.isNaN(score)) return 0;
@@ -47,4 +48,25 @@ export function playerValue(role: Role, score: number, opts: PlayerValueOptions 
   const pt = opts.ptOverride ?? titolarita(role, score, curves);
   const fm = fantamedia(role, score, curves);
   return SEASON_MATCHDAYS * pt * fm;
+}
+
+/**
+ * §6.8 — applica `risk` alle curve di valore: approssimazione esplicitamente ammessa dalla spec
+ * per usare `risk` DENTRO la DP (il termine di varianza vero non è decomponibile lì). Un rischio
+ * positivo maggiora la convessità (γ_ρ cresce): premia i giocatori di fascia alta rispetto alla
+ * media, spingendo a inseguirli più aggressivamente. Un rischio negativo fa l'opposto (punta a
+ * rose più "piatte"/sicure). `risk = 0` restituisce le curve invariate.
+ */
+export function applyRiskToValueCurves(
+  curves: ValueCurveConfig,
+  risk: number,
+  riskConfig: RiskConfig = DEFAULT_RISK_CONFIG,
+): ValueCurveConfig {
+  if (risk === 0) return curves;
+  const adjusted = {} as { -readonly [K in Role]: ValueCurveParams };
+  for (const role of ROLES) {
+    const p = curves[role];
+    adjusted[role] = { ...p, gamma: p.gamma * (1 + riskConfig.gammaMultiplierPerRisk * risk) };
+  }
+  return adjusted;
 }

@@ -20,7 +20,16 @@ export interface AuctionSimConfig {
   /** Un archetipo per manager, stesso ordine di league.managers. */
   readonly archetypesByManager: readonly ArchetypeId[];
   readonly priceModelConfig: PriceModelConfig;
+  /** Curve di valore "di mercato": usate per generare lo scenario e per come gli ARCHETIPI non
+   * razionali percepiscono il valore. Rappresentano una base neutra, non la mia propensione al
+   * rischio personale. */
   readonly valueCurves: ValueCurveConfig;
+  /** Curve di valore usate SOLO dal manager con archetipo 'rational' per calcolare il proprio
+   * valore/offerta (§6.8: già corrette per `league.risk` a monte, se serve). Tenerle separate da
+   * `valueCurves` è voluto: se il rischio venisse applicato a TUTTI i manager simulati, l'intero
+   * mercato diventerebbe più aggressivo insieme a me e l'effetto sulla MIA competitività relativa
+   * si annullerebbe quasi del tutto. Default a `valueCurves` se non fornite. */
+  readonly myValueCurves?: ValueCurveConfig;
   readonly slotWeights: SlotWeights;
   readonly priceNoiseSigma: number;
   readonly dualsRecalcEveryDraws: number;
@@ -158,6 +167,13 @@ export function runAuctionSim(config: AuctionSimConfig): AuctionSimResult {
     return playerValue(role, score, { curves: config.valueCurves });
   }
 
+  // Curve usate SOLO per il calcolo di valore/offerta del manager 'rational' (v. commento sul
+  // campo `myValueCurves` sopra): separata da `value()` così il rischio non "trapela" agli
+  // archetipi non razionali, che devono restare una base di mercato stabile e indipendente.
+  function myValue(role: Role, score: number): number {
+    return playerValue(role, score, { curves: config.myValueCurves ?? config.valueCurves });
+  }
+
   // Granularità del budget usata SOLO per la DP approssimata dei duali (§6.7): il costo della
   // ricombinazione cresce con budget², quindi lavorare a blocchi di DUALS_BUDGET_GRANULARITY
   // crediti anziché a credito singolo riduce quel costo di un fattore ~granularità². Non tocca il
@@ -171,7 +187,7 @@ export function runAuctionSim(config: AuctionSimConfig): AuctionSimResult {
     for (const role of ROLES) {
       const forced: DPCandidate[] = mgr.roster
         .filter((r) => roleByPlayer.get(r.player.id) === role)
-        .map((r) => ({ v: value(role, scores.get(r.player.id) ?? 50), price: 0, forced: true }));
+        .map((r) => ({ v: myValue(role, scores.get(r.player.id) ?? 50), price: 0, forced: true }));
       // La DP dei "duali" (base-policy.ts) è una politica APPROSSIMATA ricalcolata periodicamente
       // (§6.7): tenere solo i migliori MAX_OPTIONAL_CANDIDATES_FOR_DUALS per v è coerente con
       // l'assunzione della spec ("riduce tipicamente a 30-50 candidati", §6.5) e necessario per le
@@ -179,7 +195,7 @@ export function runAuctionSim(config: AuctionSimConfig): AuctionSimResult {
       // manager razionale). Il calcolo ESATTO di p* (§6.6, max-bid.ts) non usa questa scorciatoia.
       const optional: DPCandidate[] = poolByRole(role)
         .map((p) => ({
-          v: value(role, scores.get(p.id) ?? 50),
+          v: myValue(role, scores.get(p.id) ?? 50),
           price: Math.max(1, Math.ceil((pHat.get(p.id) ?? 1) / DUALS_BUDGET_GRANULARITY)),
           forced: false,
         }))
@@ -188,7 +204,7 @@ export function runAuctionSim(config: AuctionSimConfig): AuctionSimResult {
       const p20score = percentile20(role, (id) => scores.get(id) ?? 50);
       roleInputs[role] = {
         candidates: [...forced, ...optional],
-        fillerValue: value(role, p20score),
+        fillerValue: myValue(role, p20score),
         slotCount: league.slots[role],
         weights: config.slotWeights[role],
       };
@@ -221,7 +237,7 @@ export function runAuctionSim(config: AuctionSimConfig): AuctionSimResult {
         cache.drawsSinceRecalc = 0;
         cache.creditsAtLastRecalc = mgr.creditsRemaining;
       }
-      const v = value(role, scenario.scoresByManager[m]!.get(playerId) ?? 50);
+      const v = myValue(role, scenario.scoresByManager[m]!.get(playerId) ?? 50);
       base = approxMaxBid(v, role, cache.duals, maxSingleBid(mgr));
     } else {
       const state = archetypeStates[m]!;
@@ -243,15 +259,32 @@ export function runAuctionSim(config: AuctionSimConfig): AuctionSimResult {
 
     // Pressione a spendere (§9.5: crediti non spesi attesi 0–15 per manager, non centinaia): un
     // manager con più crediti per slot residuo della "media di lega" (budget/slot totali) sta
-    // accumulando un surplus che, nella realtà, spinge a rilanci più aggressivi (nessuno vuole
-    // finire l'asta con centinaia di crediti inutilizzati). Si applica a TUTTI gli archetipi,
-    // 'rational' incluso: quest'ultimo lo ottiene già in parte tramite λ (che scende quando il
-    // budget è alto rispetto agli slot), ma non abbastanza da solo nei casi limite osservati.
+    // accumulando un surplus che, nella realtà, spinge a rilanci più aggressivi — i crediti
+    // avanzati a fine asta hanno valore ZERO, quindi spenderne una parte anche per un vantaggio
+    // marginale piccolo batte sempre sprecarli.
+    //
+    // Additivo, non moltiplicativo (bug reale trovato e corretto durante lo sviluppo, stesso
+    // principio del fix di approxMaxBid/marginalValue): per gli ultimi slot di un ruolo il peso
+    // w_ρ,t è molto piccolo (es. 0.02–0.05 per l'ultimo slot di un ruolo profondo), quindi
+    // `base = (w·v − μ)/λ` resta minuscolo ANCHE per un candidato ottimo — un moltiplicatore
+    // applicato a un numero già schiacciato vicino a zero resta vicino a zero. Il rialzo si
+    // applica solo se il candidato vale già più del sostituto (base > 0): non deve rendere
+    // appetibile un giocatore che il modello giudica comunque peggiore del filler.
+    //
+    // Scalato sulla quota di budget ATTESA del ruolo (§6.3.1, già nella config), non fisso: un
+    // rialzo uguale in crediti per tutti i ruoli gonfia sproporzionatamente quelli con più slot
+    // "profondi" a peso basso (D e C ne hanno di più di A — anche questo un bug osservato e
+    // corretto: la quota di budget per ruolo usciva fuori dalla banda attesa di §9.5, pur con un
+    // totale speso realistico). Un attaccante vale per definizione più di un centrocampista anche
+    // quando si tratta solo di smaltire il surplus, non solo quando si valuta un candidato.
     const slotsLeft = totalSlotsRemaining(mgr);
     const actualPace = slotsLeft > 0 ? mgr.creditsRemaining / slotsLeft : 0;
-    const urgency = slotsLeft > 0 ? Math.max(1, actualPace / fairPacePerSlot) : 1;
+    const excessPerSlot = Math.max(0, actualPace - fairPacePerSlot);
+    const avgBudgetShare = 0.25; // media su 4 ruoli equipesati, per normalizzare il moltiplicatore
+    const roleShareMultiplier = config.priceModelConfig.budgetShares[role] / avgBudgetShare;
+    const urgencyBoost = base > 0 ? excessPerSlot * 0.9 * roleShareMultiplier : 0;
 
-    const noisy = base * urgency * Math.exp(randNormal(decisionRngs[m]!) * config.priceNoiseSigma);
+    const noisy = (base + urgencyBoost) * Math.exp(randNormal(decisionRngs[m]!) * config.priceNoiseSigma);
     // Un manager "eligible" (slot libero, può permettersi almeno minPrice) è per definizione
     // disposto a pagare almeno il prezzo minimo pur di riempire uno slot che gli serve: altrimenti
     // rose non necessariamente scarse restano con slot vuoti solo perché la willingness calcolata

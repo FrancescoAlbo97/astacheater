@@ -129,6 +129,42 @@ describe('§6.6 / F6 max-bid', () => {
     expect(result.reason).toBe('not-useful');
   });
 
+  it('p* = 0 ("non serve") quando il ruolo è GIÀ PIENO, anche se il candidato vale più del peggiore già posseduto', () => {
+    // Bug reale trovato durante lo sviluppo (via il Report asta, §11): valutare un candidato per
+    // un ruolo dove possiedo già tutti gli slot risultava in un "offri fino a" positivo ogni volta
+    // che il nuovo giocatore valeva più del peggiore fra quelli già posseduti in quel ruolo — come
+    // se si potesse scambiare in silenzio uno slot già occupato con uno nuovo, invece di segnalare
+    // che comprare è semplicemente impossibile (non c'è nessuno slot libero). Vedi il commento su
+    // `computeRolePlan` in plan-dp.ts per la causa esatta.
+    const targetRole: Role = 'D';
+    const slotCount = DEFAULT_SLOTS[targetRole];
+    // Possiedo già ESATTAMENTE slotCount difensori (ruolo pieno), con valori bassi apposta.
+    const forcedOwned: DPCandidate[] = Array.from({ length: slotCount }, (_, i) => ({
+      v: 50 + i, // tutti modesti: il peggiore vale 50
+      price: 0,
+      forced: true,
+    }));
+    const roleInputs = {} as Record<Role, RoleDPInput>;
+    for (const role of ROLES) {
+      roleInputs[role] = {
+        candidates: role === targetRole ? forcedOwned : [],
+        fillerValue: 10,
+        slotCount: DEFAULT_SLOTS[role],
+        weights: DEFAULT_SLOT_WEIGHTS[role],
+      };
+    }
+    const input: MaxBidInput = {
+      budget: 400,
+      roleInputsWithoutTarget: roleInputs,
+      targetRole,
+      targetValue: 500, // molto più alto di TUTTI i difensori già posseduti
+      maxAffordable: 400,
+    };
+    const result = computeMaxBid(input);
+    expect(result.reason).toBe('not-useful');
+    expect(result.pStar).toBe(0);
+  });
+
   it('p* = 0 con reason "capped-by-budget" se non posso permettermi nemmeno 1 credito', () => {
     const rng = mulberry32(12);
     const targetRole: Role = 'C';

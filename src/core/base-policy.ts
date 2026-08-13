@@ -40,7 +40,22 @@ export function computeDuals(input: ComputeDualsInput): DualState {
   return { lambda: plan.lambda, nextSlotWeight, muByRole };
 }
 
-/** p* ≈ (w_ρ,t · v_i − μ_ρ) / λ (§6.6), arrotondato e troncato a [0, maxAffordable]. */
+/**
+ * p* ≈ (w_ρ,t · v_i − μ_ρ) / λ (§6.6), arrotondato e troncato a [0, maxAffordable].
+ *
+ * Nota su λ ≈ 0 — NON è un caso limite raro, va gestito con cura (bug reale trovato e corretto
+ * durante lo sviluppo, causa primaria del sotto-speso osservato in simulazione, vedi
+ * test/base-policy.test.ts). La pianificazione statica a prezzi FISSI (p̂) dietro `computeDuals`
+ * spesso conclude che il proprio piano ottimo "a prezzi di mercato attesi" costa MENO del budget
+ * residuo: un credito in più, in quel piano, non compra nulla, perché il modello non sa
+ * rappresentare "pagare più del p̂ atteso per anticipare un rivale su un candidato specifico".
+ * λ = 0 NON significa che i crediti non valgano più nulla: matematicamente il rapporto
+ * (numeratore positivo)/λ tende a +∞ quando λ → 0, cioè un candidato che vale più del suo
+ * sostituto andrebbe inseguito fino al massimo permesso, non abbandonato. La vecchia guardia
+ * (`lambda <= eps ⇒ return 0` incondizionato) faceva l'opposto: azzerava l'offerta anche per
+ * candidati chiaramente sopra la media, non appena il piano statico si "saturava" — cosa che
+ * capita spesso ben prima che l'asta finisca davvero.
+ */
 export function approxMaxBid(
   v: number,
   role: Role,

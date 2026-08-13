@@ -116,6 +116,48 @@ describe('§6.5 / F6 DP vs forza bruta (500 istanze casuali)', () => {
   });
 });
 
+describe('§6.5 computeRolePlan — regressione ruolo già pieno', () => {
+  it('più "forzati" degli slot disponibili è IMPOSSIBILE: NEG_INF ovunque, non uno scambio silenzioso', () => {
+    // Bug reale trovato durante lo sviluppo (via il Report asta, §11): chi valuta un candidato
+    // aggiunge un forzato ipotetico ai candidati REALMENTE posseduti (`max-bid.ts`/`engine.ts`);
+    // se il ruolo è già pieno questo porta `forcedOnly.length` a `slotCount + 1`. La vecchia
+    // scorciatoia (`>=`) prendeva silenziosamente i migliori `slotCount` per valore, come se si
+    // potesse disfarsi di uno slot già occupato — un candidato di valore alto risultava quindi
+    // "comprabile" anche a ruolo pieno. Deve restare impossibile per ogni budget.
+    const slotCount = 3;
+    const weights = [0.9, 0.5, 0.2];
+    const forcedOwned: DPCandidate[] = [
+      { v: 50, price: 0, forced: true },
+      { v: 60, price: 0, forced: true },
+      { v: 70, price: 0, forced: true },
+    ];
+    const hypotheticalExtra: DPCandidate = { v: 500, price: 10, forced: true };
+    const input: RoleDPInput = {
+      candidates: [...forcedOwned, hypotheticalExtra],
+      fillerValue: 10,
+      slotCount,
+      weights,
+    };
+    const g = computeRolePlan(input, 100);
+    for (let b = 0; b <= 100; b++) expect(g[b], `b=${b}`).toBe(-Infinity);
+  });
+
+  it('esattamente slotCount forzati resta il comportamento normale (scorciatoia legittima)', () => {
+    const slotCount = 3;
+    const weights = [0.9, 0.5, 0.2];
+    const forcedOwned: DPCandidate[] = [
+      { v: 50, price: 0, forced: true },
+      { v: 60, price: 0, forced: true },
+      { v: 70, price: 0, forced: true },
+    ];
+    const input: RoleDPInput = { candidates: forcedOwned, fillerValue: 10, slotCount, weights };
+    const g = computeRolePlan(input, 100);
+    const expected = weights[0]! * 70 + weights[1]! * 60 + weights[2]! * 50;
+    expect(g[0]).toBeCloseTo(expected, 6);
+    expect(g[100]).toBeCloseTo(expected, 6);
+  });
+});
+
 describe('§6.5 Φ monotona non decrescente in b', () => {
   it('g_ρ[β] non decresce con β (property-based su istanze casuali)', () => {
     const rng = mulberry32(7);

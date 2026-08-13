@@ -26,6 +26,30 @@ function saveLogToStorage(log: readonly AuctionEvent[]): void {
   }
 }
 
+/**
+ * Solo per `npm run dev`, mai nel build finale (§13: il file singolo che va all'asta vera non deve
+ * portarsi dietro dati di test): se l'URL contiene `?fixture=<nome>`, carica quella fixture da
+ * `src/fixtures/*.json` invece dello stato salvato — per testare senza dover rifare un'asta intera
+ * a mano ad ogni modifica (troppo lento come metodo di debug, vedi `scripts/make-fixtures.ts` per
+ * come si generano/rigenerano). `import.meta.env.DEV` è `false` a build time in produzione: Vite
+ * elimina questo intero ramo (fixture comprese) dal file finale.
+ */
+function loadDevFixtureIfRequested(): AuctionEvent[] | null {
+  if (!import.meta.env.DEV) return null;
+  const name = new URLSearchParams(window.location.search).get('fixture');
+  if (!name) return null;
+  const modules = import.meta.glob('../../fixtures/*.json', { eager: true }) as Record<
+    string,
+    { version: number; log: AuctionEvent[] }
+  >;
+  const match = Object.entries(modules).find(([path]) => path.endsWith(`/${name}.json`));
+  if (!match) {
+    console.warn(`[fixture] nessuna fixture "${name}" in src/fixtures/ (disponibili: ${Object.keys(modules).map((p) => p.split('/').pop()).join(', ')})`);
+    return null;
+  }
+  return match[1].log;
+}
+
 export interface AuctionStore {
   readonly log: readonly AuctionEvent[];
   readonly state: AuctionState;
@@ -35,15 +59,21 @@ export interface AuctionStore {
   exportJSON(): string;
   importJSON(json: string): void;
   resetAll(): void;
+  /** Timestamp (`Date.now()`) dell'ultimo salvataggio riuscito su localStorage, `null` prima del
+   * primo. Solo per mostrare all'utente che l'autosave sta davvero funzionando (§4 del manuale: non
+   * è mai l'unica garanzia, ma vale la pena renderla visibile invece di chiedere fiducia cieca). */
+  readonly lastSavedAt: number | null;
 }
 
 const AuctionContext = createContext<AuctionStore | null>(null);
 
 export function AuctionProvider({ children }: { children: ReactNode }) {
-  const [log, setLog] = useState<AuctionEvent[]>(() => loadLogFromStorage());
+  const [log, setLog] = useState<AuctionEvent[]>(() => loadDevFixtureIfRequested() ?? loadLogFromStorage());
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
 
   useEffect(() => {
     saveLogToStorage(log);
+    setLastSavedAt(Date.now());
   }, [log]);
 
   const state = useMemo(() => reduce(log), [log]);
@@ -81,6 +111,7 @@ export function AuctionProvider({ children }: { children: ReactNode }) {
     exportJSON,
     importJSON,
     resetAll,
+    lastSavedAt,
   };
 
   return <AuctionContext.Provider value={value}>{children}</AuctionContext.Provider>;

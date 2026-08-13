@@ -14,7 +14,8 @@ import {
   DEFAULT_VALUE_CURVES,
 } from './config.js';
 import { deriveManagerStates, getMyManagerId, getPool } from './state.js';
-import { playerValue } from './value-model.js';
+import { applyRiskToValueCurves, playerValue } from './value-model.js';
+import type { ValueCurveConfig } from './types.js';
 import {
   capByResidualDemand,
   fitOnlinePriceCurves,
@@ -26,8 +27,14 @@ import {
 import { ceilingForRole, maxSingleBid, operationalMaxBid, expectedPriceFromCeiling } from './ceiling.js';
 import { computeMaxBid } from './max-bid.js';
 import { combineRoles, computeRolePlan, type DPCandidate, type RoleDPInput } from './plan-dp.js';
-import { computeDuals } from './base-policy.js';
+import { approxMaxBid, computeDuals } from './base-policy.js';
 import type { RolloutInput } from './rollout.js';
+
+/** Curve di valore corrette per la propensione al rischio configurata (§6.8), o quelle di default
+ * se manca una configurazione di lega. */
+function riskAdjustedCurves(state: AuctionState): ValueCurveConfig {
+  return applyRiskToValueCurves(DEFAULT_VALUE_CURVES, state.config?.risk ?? 0);
+}
 
 export interface MarketSnapshot {
   readonly managers: ReturnType<typeof deriveManagerStates>;
@@ -94,6 +101,7 @@ function buildRoleInputsForMe(
   state: AuctionState,
   snapshot: MarketSnapshot,
   excludePlayerId: string | null,
+  valueCurves: ValueCurveConfig,
 ): Record<Role, RoleDPInput> {
   const me = snapshot.managers.find((m) => m.manager.id === snapshot.myManagerId);
   const config = state.config!;
@@ -105,7 +113,7 @@ function buildRoleInputsForMe(
       .map((r) => ({
         v: playerValue(role, myScoreOf(state, r.player.id), {
           ptOverride: myPtOverrideOf(state, r.player.id),
-          curves: DEFAULT_VALUE_CURVES,
+          curves: valueCurves,
         }),
         price: 0,
         forced: true,
@@ -115,14 +123,14 @@ function buildRoleInputsForMe(
       .map((p) => ({
         v: playerValue(role, myScoreOf(state, p.id), {
           ptOverride: myPtOverrideOf(state, p.id),
-          curves: DEFAULT_VALUE_CURVES,
+          curves: valueCurves,
         }),
         price: Math.max(1, snapshot.pHat.get(p.id) ?? 1),
         forced: false,
       }));
     roleInputs[role] = {
       candidates: [...forced, ...optional],
-      fillerValue: playerValue(role, percentile20Score(snapshot.pool, role, state), { curves: DEFAULT_VALUE_CURVES }),
+      fillerValue: playerValue(role, percentile20Score(snapshot.pool, role, state), { curves: valueCurves }),
       slotCount: config.slots[role],
       weights: DEFAULT_SLOT_WEIGHTS[role],
     };
@@ -184,13 +192,14 @@ export function computeDecisionForPlayer(state: AuctionState, playerId: string):
   if (!meOrUndefined) return null;
   const me = meOrUndefined;
 
+  const valueCurves = riskAdjustedCurves(state);
   const role = player.role;
   const myScore = myScoreOf(state, playerId);
-  const myValue = playerValue(role, myScore, { ptOverride: myPtOverrideOf(state, playerId), curves: DEFAULT_VALUE_CURVES });
+  const myValue = playerValue(role, myScore, { ptOverride: myPtOverrideOf(state, playerId), curves: valueCurves });
   const pHat = snapshot.pHat.get(playerId) ?? 1;
 
   const ceiling = ceilingForRole(snapshot.managers, myManagerId, role);
-  const roleInputsWithoutTarget = buildRoleInputsForMe(state, snapshot, playerId);
+  const roleInputsWithoutTarget = buildRoleInputsForMe(state, snapshot, playerId, valueCurves);
 
   const maxBidResult = computeMaxBid({
     budget: me.creditsRemaining,
@@ -228,7 +237,7 @@ export function computeDecisionForPlayer(state: AuctionState, playerId: string):
   const lambda = duals.lambda;
   const muRole = duals.muByRole[role];
   const nextSlotWeight = duals.nextSlotWeight[role];
-  const approxPStar = lambda > 1e-9 ? Math.max(0, Math.round((nextSlotWeight * myValue - muRole) / lambda)) : 0;
+  const approxPStar = approxMaxBid(myValue, role, duals, maxSingleBid(me));
 
   // Alternative dopo di lui: i migliori 3 rimasti nello stesso ruolo per il mio score.
   const alternatives: DecisionAlternative[] = snapshot.pool
@@ -324,5 +333,6 @@ export function buildRolloutInput(state: AuctionState, playerId: string): Rollou
     slotWeights: DEFAULT_SLOT_WEIGHTS,
     rolloutConfig: DEFAULT_ROLLOUT_CONFIG,
     maxHorizon: 80,
+    valueCurves: riskAdjustedCurves(state),
   };
 }

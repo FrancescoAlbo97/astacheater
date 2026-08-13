@@ -155,6 +155,14 @@ export const DEFAULT_PRICE_MODEL_CONFIG: PriceModelConfig = {
 
 export const DEFAULT_RISK_CONFIG: RiskConfig = {
   eta: 1.0, // ricalibrato in fase 6/F7 sulla simulazione di campionato
+  // §6.8: valore di esempio della spec. Verificato empiricamente (self-play su listone reale, 20
+  // seed, scripts/tmp-diag3.ts) che l'effetto su QUALI giocatori vengono acquistati è debole e
+  // rumoroso a questo valore — e che alzarlo (provato 1.0) NON lo rende più prevedibile, anzi
+  // in alcuni casi inverte l'ordinamento atteso fra risk=-1 e risk=+1. Non è un problema risolvibile
+  // con un'altra costante: la "maggiorazione della convessità" satura verso fmMin per qualunque
+  // score <100 quando γ cresce, quindi non separa in modo affidabile "buono" da "ottimo" — separa
+  // solo "perfetto" da "tutto il resto". Lasciato al valore di spec; limite documentato in
+  // MANUALE.md invece di inseguire un'altra costante a caso.
   gammaMultiplierPerRisk: 0.4,
 };
 

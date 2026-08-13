@@ -75,11 +75,25 @@ export function computeRolePlan(input: RoleDPInput, budget: number): Float64Arra
     throw new Error(`weights.length (${weights.length}) deve coincidere con slotCount (${slotCount})`);
   }
 
+  // Più "forzati" di quanti slot esistano nel ruolo: scenario IMPOSSIBILE, non un'occasione per
+  // scambiare in silenzio il forzato di valore più basso con uno nuovo (bug reale trovato durante
+  // lo sviluppo, via il Report asta: valutare un candidato per un ruolo GIÀ PIENO — es. l'8° D
+  // quando ne possiedo già 8/8 — risultava in un "offri fino a" positivo ogni volta che il nuovo
+  // giocatore valeva più del peggiore fra quelli già posseduti in quel ruolo, come se si potesse
+  // "ripescare" uno slot inesistente. Capita perché chi valuta UN candidato aggiunge un forzato
+  // ipotetico ai candidati REALI già posseduti (`max-bid.ts`/`engine.ts`'s `phiForcingTargetAt`) —
+  // se il ruolo è già pieno, questo porta `forcedOnly.length` a `slotCount + 1`, non a `slotCount`
+  // esatto. Impossibile per definizione: si segnala con NEG_INF ovunque, cosicché il chiamante lo
+  // scarti esattamente come farebbe con qualunque altra opzione non affrontabile.
+  const forcedOnly = input.candidates.filter((c) => c.forced);
+  if (forcedOnly.length > slotCount) {
+    return new Float64Array(budget + 1).fill(NEG_INF);
+  }
+
   // Scorciatoia: se tutti gli slot del ruolo sono già occupati da forzati (§13.3), non c'è
   // nessuna scelta da fare — g_ρ[β] è costante per ogni β. Evita di eseguire la DP completa per
   // ruoli già chiusi (frequente verso fine asta, importante per le prestazioni di auction-sim).
-  const forcedOnly = input.candidates.filter((c) => c.forced);
-  if (forcedOnly.length >= slotCount) {
+  if (forcedOnly.length === slotCount) {
     const sortedForced = forcedOnly.slice().sort((a, b) => b.v - a.v);
     let total = 0;
     for (let t = 0; t < slotCount; t++) total += weights[t]! * sortedForced[t]!.v;
@@ -190,13 +204,30 @@ export function combineRoles(gByRole: Record<Role, Float64Array>, budget: number
   return h;
 }
 
-/** λ = ∂Φ/∂b, differenza discreta all'ultimo credito disponibile. */
+/**
+ * λ = ∂Φ/∂b, differenza discreta all'ultimo credito disponibile.
+ *
+ * Non basta guardare l'ultimo singolo credito (bug reale trovato e corretto durante lo sviluppo,
+ * causa primaria del sotto-speso osservato in simulazione — vedi test/plan-dp.test.ts e
+ * test/base-policy.test.ts). L'inviluppo `h` è per costruzione monotono non decrescente ma NON
+ * strettamente crescente: appena il piano ottimo a prezzi FISSI (p̂) diventa affrontabile con il
+ * budget residuo, `h` si appiattisce per ogni budget successivo, perché il modello non sa
+ * rappresentare "pagare più del p̂ atteso per un candidato specifico" — semplicemente non c'è
+ * altro da comprare AGLI STESSI prezzi fissi. Questo NON significa che un credito in più non
+ * valga nulla: significa solo che l'ultimo scatto di valore reale è avvenuto a un budget più
+ * basso. Si cerca all'indietro il gradino più recente e si usa quel tasso come stima di λ,
+ * evitando lo zero artificiale che altrimenti azzererebbe ogni offerta successiva
+ * (`approxMaxBid`) indipendentemente da quanto un candidato valga più del suo sostituto.
+ */
 export function marginalValue(h: Float64Array, budget: number): number {
-  if (budget <= 0) return 0;
-  const a = h[budget]!;
-  const b = h[budget - 1]!;
-  if (a === NEG_INF || b === NEG_INF) return 0;
-  return a - b;
+  for (let b = budget; b > 0; b--) {
+    const a = h[b]!;
+    const prev = h[b - 1]!;
+    if (a === NEG_INF || prev === NEG_INF) continue;
+    const diff = a - prev;
+    if (diff > 1e-9) return diff;
+  }
+  return 0;
 }
 
 export interface FullPlanInput {

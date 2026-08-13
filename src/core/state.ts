@@ -27,8 +27,11 @@ export const initialAuctionState: AuctionState = {
   log: [],
 };
 
-/** Risolve gli 'undo': ognuno cancella l'ultimo evento applicato non ancora cancellato. */
-function resolveUndos(log: readonly AuctionEvent[]): AuctionEvent[] {
+/** Risolve gli 'undo': ognuno cancella l'ultimo evento applicato non ancora cancellato. Esportata
+ * perché chi deve rigiocare il log un evento alla volta (es. il report post-asta) ha bisogno della
+ * sequenza EFFETTIVA definitiva, non di scoprire a posteriori che un evento già processato verrà
+ * cancellato da un `undo` più avanti nel log grezzo. */
+export function resolveUndos(log: readonly AuctionEvent[]): AuctionEvent[] {
   const effective: AuctionEvent[] = [];
   for (const event of log) {
     if (event.t === 'undo') {
