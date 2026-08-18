@@ -3,13 +3,13 @@
 import { useState } from 'react';
 import { useAuctionStore } from '../state/store.js';
 import {
+  buildSimulatedAuctionReport,
   runDryRun,
-  runSingleSimulatedAuction,
   type BudgetShareRow,
   type CreditsUnspentStats,
   type DryRunSummary,
   type ScorePricePoint,
-  type SingleAuctionResult,
+  type SimulatedAuctionReport,
 } from '../../sim/dry-run.js';
 import { ROLES } from '../../core/types.js';
 import type { Role } from '../../core/types.js';
@@ -135,7 +135,67 @@ function ScorePriceScatter({ points }: { points: readonly ScorePricePoint[] }) {
   );
 }
 
-function SingleAuctionView({ result }: { result: SingleAuctionResult }) {
+function SimulatedAuctionAccuracyView({ simReport }: { simReport: SimulatedAuctionReport }) {
+  const { report, firstHalf, secondHalf } = simReport;
+  return (
+    <>
+      <h4 style={{ margin: '1rem 0 0.4rem' }}>Il motore esatto avrebbe seguito questa simulazione?</h4>
+      <p className="hint">
+        Stesso "Report asta" che vedi dopo un'asta vera, applicato a questa asta simulata: per ogni tuo acquisto,
+        confronta cosa avresti visto sullo schermo un istante prima ("offri fino a") con quanto è stato effettivamente
+        pagato nella simulazione. <b>Attenzione</b>: dentro la simulazione anche "io" decido con la policy approssimata
+        del simulatore, non con questo calcolo esatto — questo report misura QUANTO le due cose divergono, non se il
+        simulatore in assoluto è realistico (quello lo misura la Diagnostica sopra, su 200 aste).
+      </p>
+      <ul className="my-roster-list">
+        <li>
+          <span>Acquisti in overpay secondo il motore esatto</span>
+          <span className="roster-price">
+            {report.overpayCount} / {report.myPurchases.length} ({report.totalOverpaidCredits} crediti in più del consigliato)
+          </span>
+        </li>
+        <li>
+          <span>Occasioni mancate (giocatori affrontabili presi da altri)</span>
+          <span className="roster-price">{report.missedOpportunities.length}</span>
+        </li>
+      </ul>
+      <div className="table-scroll" style={{ marginTop: '0.6rem' }}>
+        <table className="managers-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Acquisti</th>
+              <th>In overpay</th>
+              <th>Crediti in più</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1ª metà asta</td>
+              <td>{firstHalf.purchaseCount}</td>
+              <td>{firstHalf.overpayCount}</td>
+              <td>{firstHalf.overpaidCredits}</td>
+            </tr>
+            <tr>
+              <td>2ª metà asta</td>
+              <td>{secondHalf.purchaseCount}</td>
+              <td>{secondHalf.overpayCount}</td>
+              <td>{secondHalf.overpaidCredits}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p className="hint">
+        Se l'overpay è concentrato nella 2ª metà, il simulatore sta spingendo a comprare riempitivi che il motore
+        esatto non consiglierebbe man mano che i crediti scarseggiano — un segnale utile per capire DOVE la
+        simulazione si allontana dal consiglio dal vivo, non solo QUANTO in totale.
+      </p>
+    </>
+  );
+}
+
+function SingleAuctionView({ simReport }: { simReport: SimulatedAuctionReport }) {
+  const result = simReport.auction;
   return (
     <>
       <p className="hint">
@@ -174,6 +234,7 @@ function SingleAuctionView({ result }: { result: SingleAuctionResult }) {
           </div>
         )}
       </div>
+      <SimulatedAuctionAccuracyView simReport={simReport} />
     </>
   );
 }
@@ -185,7 +246,7 @@ export function DryRun() {
   const [summary, setSummary] = useState<DryRunSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sampleIndex, setSampleIndex] = useState(1); // default: "tipica (mediana)"
-  const [singleAuction, setSingleAuction] = useState<SingleAuctionResult | null>(null);
+  const [singleAuction, setSingleAuction] = useState<SimulatedAuctionReport | null>(null);
   const [singleAuctionSeedOffset, setSingleAuctionSeedOffset] = useState(0);
   const [singleAuctionError, setSingleAuctionError] = useState<string | null>(null);
 
@@ -212,7 +273,9 @@ export function DryRun() {
       // Contatore crescente, non Date.now()/Math.random() (§13.10): ogni clic dà un'asta diversa,
       // resta comunque riproducibile.
       const seed = 90_000 + singleAuctionSeedOffset;
-      setSingleAuction(runSingleSimulatedAuction(state, seed));
+      const report = buildSimulatedAuctionReport(state, seed);
+      if (!report) throw new Error('lega non configurata correttamente');
+      setSingleAuction(report);
       setSingleAuctionSeedOffset((n) => n + 1);
     } catch (err) {
       setSingleAuctionError(err instanceof Error ? err.message : "Errore durante la generazione dell'asta di esempio.");
@@ -413,7 +476,7 @@ export function DryRun() {
           {singleAuction ? "Genera un'altra asta di esempio" : 'Genera un\'asta di esempio'}
         </button>
         {singleAuctionError && <p className="error-banner">{singleAuctionError}</p>}
-        {singleAuction && <SingleAuctionView result={singleAuction} />}
+        {singleAuction && <SingleAuctionView simReport={singleAuction} />}
       </section>
     </div>
   );

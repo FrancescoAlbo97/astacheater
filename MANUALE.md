@@ -280,6 +280,18 @@ di TUTTE le vendite (non solo le tue) in ordine di estrazione, con le tue eviden
 potrebbe svolgersi, in un modo che una media aggregata non può dare — a costo di essere un singolo
 campione: non trarne conclusioni generali, per quello restano i numeri aggregati sopra.
 
+**"Il motore esatto avrebbe seguito questa simulazione?"** (nuovo): sotto ogni asta simulata, lo
+stesso identico "Report asta" che vedi dopo un'asta vera (§2.8), applicato a QUESTA asta simulata —
+per ogni tuo acquisto, confronta "offri fino a" calcolato dal motore esatto un istante prima con
+quanto è stato davvero pagato nella simulazione, più una tabella 1ª metà/2ª metà per capire SE e
+DOVE la simulazione si allontana dal consiglio dal vivo man mano che l'asta procede. Risponde
+direttamente alla domanda "l'algoritmo si comporta bene, soprattutto da metà in poi?" con numeri
+concreti invece che con un'impressione. **Attenzione, spiegata anche nella schermata**: dentro la
+simulazione, anche "io" decido con la policy approssimata del simulatore (`auction-sim.ts`), non con
+questo calcolo esatto — sono due motori diversi fin dall'inizio (§9.3). Questo report misura QUANTO
+le due cose divergono in un'asta plausibile, non se il simulatore in assoluto è realistico (quello
+è il limite già discusso in §7, "F7/F10").
+
 ### 2.8 Report asta
 
 Risponde a una domanda diversa dalla Prova a secco: non "cosa mi devo aspettare", ma **"questo
@@ -386,7 +398,7 @@ aggiornato a ridosso della tua asta**, non usato così com'è se l'asta è fra s
 Per chi vuole guardare sotto il cofano o rifare le verifiche:
 
 ```bash
-npm test                          # tutti i test automatici (242, dovrebbero passare tutti)
+npm test                          # tutti i test automatici (247, dovrebbero passare tutti)
 npm run typecheck                 # controllo dei tipi TypeScript
 npm run build                     # produce dist/fantasta.html
 npx tsx src/sim/cli.ts bench 200        # statistiche di realismo su 200 aste simulate
@@ -403,6 +415,98 @@ bruta sui calcoli esatti, controlli numerici sulle formule, ecc.). Diversi bug r
 trovati e corretti durante lo sviluppo (vedi sotto); **alcuni limiti restano documentati e non
 ancora risolti del tutto**, per trasparenza:
 
+- **Crediti non spesi nelle aste simulate, corretto (non del tutto) — trovato proseguendo
+  l'indagine sul punto successivo**. Con lo strumento del punto successivo l'utente ha visto che i
+  suoi acquisti simulati erano quasi tutti "overpay" secondo il motore esatto, ma ha poi notato il
+  problema di fondo con un numero concreto: "simulando le aste siamo tra i 400 e i 450 crediti
+  spesi, dovremmo spendere minimo 450, orientativamente 480-490". Analisi con un'asta reale
+  tracciata giocatore per giocatore: all'ULTIMO slot dell'intera rosa, con 27 crediti di surplus
+  reale su quell'unico slot rimasto, il modello calcolava ANCORA "candidato senza valore" e offriva
+  il minimo (1 credito) — un meccanismo di "pressione a spendere" già esistente (`auction-sim.ts`,
+  aggiunto in una sessione precedente proprio per questo problema) restava disattivato perché
+  si attiva solo su candidati che il modello giudica già "utili", e quello no. **Causa profonda,
+  collegata al ricalibro dei prior di prezzo di oggi stesso**: abbassare θ (voce successiva) ha
+  alzato il "valore di un credito" a lega intera (λ) da ~1 a ~2.3, e siccome la formula che decide
+  se un candidato è "utile" divide per questo numero, un λ più alto rende MOLTI PIÙ candidati
+  "non utili" di prima — il fix di oggi ha involontariamente aggravato un problema già noto.
+  **Un primo tentativo di correzione è stato provato e SCARTATO con numeri reali, non a intuito**:
+  allargare il gate (far scattare la pressione a spendere anche su candidati "senza valore") ha
+  PEGGIORATO i crediti non spesi invece di migliorarli (misurato: mediana 53→67 su un'asta reale) —
+  perché spinge ANCHE i manager avversari "razionali" a rilanciare di più sugli stessi pochi
+  giocatori marginali, e vincere una gara al rialzo più dura non equivale a spendere di più: spesso
+  si perde comunque quel giocatore a un prezzo più alto pagato da un altro. **Il fix che ha
+  funzionato**: lasciare il filtro "solo candidati utili" intatto, ma aumentare quanto la pressione
+  a spendere pesa sui candidati che quel filtro lascia comunque passare. Risultato misurato: crediti
+  non spesi mediani, su un'asta reale, da 51 a 17 (spesi ~483 su 500, dentro il range 480-490
+  indicato) e, sull'intera lega simulata, da 137-146 a 33-40 — con miglioramento contemporaneo anche
+  del prezzo più caro dell'asta (109→164-178, ora dentro la banda 120-260 attesa dalla specifica).
+  **Non ancora perfetto**: nei casi peggiori si resta comunque intorno a 450-455 spesi (non sempre
+  480-490), e altre due metriche collegate (quanti giocatori vengono venduti a 1 credito, quanti
+  obiettivi di fascia alta vengono davvero acquisiti) restano fuori dalla banda attesa dalla
+  specifica — non toccate da questo fix, stesso limite di fondo già descritto sotto (F7/F10).
+- **Il "me" simulato nella Prova a secco non decide come il motore live — misurato, non solo
+  sospettato**. Dopo il ricalibro dei prior di prezzo (voce successiva), l'utente ha continuato a
+  trovare "strani" i crediti nelle aste simulate, soprattutto nella seconda metà, e ha chiesto un
+  modo per VERIFICARLO invece di doversi fidare a intuito. Costruito uno strumento che applica lo
+  stesso "Report asta" già usato per le aste vere (§2.8) a un'asta simulata, giocatore per
+  giocatore: per ogni acquisto di "io" nella simulazione, confronta "offri fino a" calcolato dal
+  motore ESATTO (`computeMaxBid`, bisezione, quello che vedi dal vivo) con quanto è stato davvero
+  pagato dalla policy APPROSSIMATA che il simulatore usa internamente per tutti i manager, compreso
+  "io" (`auction-sim.ts`, mai stata la stessa cosa fin dall'inizio, §9.3). Risultato misurato su più
+  aste simulate reali: la divergenza è enorme e pervasiva, non un'eccezione — tipicamente 23-25
+  acquisti su 23-25 totali risultano "overpay" secondo il motore esatto, e diversi di questi sono
+  acquisti per giocatori che il motore esatto classifica `reason: 'not-useful'` (offerta massima
+  ESATTAMENTE zero, "non vale la pena comprarlo a nessun prezzo"), pur con lo slot di ruolo ancora
+  libero — la simulazione li compra comunque per pochi crediti. Il fenomeno non è concentrato solo
+  nella seconda metà (compare fin dai primi giocatori), il che è di per sé un'informazione utile:
+  non è "il motore regge finché ha budget e poi crolla", è che la policy approssimata del
+  simulatore diverge da quella esatta per costruzione, in ogni fase. **Causa nota, non nuova**:
+  questa policy approssimata include di proposito un "urgency boost" (aggiunto in una sessione
+  precedente per evitare che le aste simulate finissero con troppi crediti inutilizzati) che spinge
+  a comprare riempitivi anche quando il calcolo esatto direbbe di aspettare un'occasione migliore —
+  un compromesso già accettato allora, ma il cui costo non era mai stato quantificato così
+  direttamente. **Non ancora deciso se e come intervenire sulla policy del simulatore stesso**
+  (rischia di reintrodurre il problema dei crediti inutilizzati che l'urgency boost risolveva): per
+  ora lo strumento di misura è disponibile in Prova a secco → "Guarda un'asta simulata per intero"
+  → "Il motore esatto avrebbe seguito questa simulazione?" (§2.7), incluso lo spacco 1ª/2ª metà, così
+  puoi verificarlo tu stesso su qualunque asta simulata invece di doverti fidare di un numero
+  aggregato che non spiega DOVE le cose divergono.
+- **Prior di prezzo troppo ripidi su TUTTI i ruoli, ricalibrati con dati reali — trovato
+  proseguendo l'indagine sul bug del portiere qui sotto**. Dopo il fix del segno (vedi la voce
+  successiva), l'utente ha segnalato che il problema non era isolato a un portiere: "sono prezzi
+  molto strani... se spendo così tanto per pochi giocatori poi non c'ho più niente per gli altri
+  slot". Analizzando la sua asta reale aggiornata su tutti e 4 i ruoli, non solo i portieri: un
+  attaccante a punteggio 94 riceveva un "offri fino a" di 132 crediti e un prezzo di mercato
+  stimato di 269, con solo 2 vendite reali osservate in quel ruolo (il modello si affidava quindi
+  per l'88% al θ teorico di ruolo, mai validato). Simulando "seguo alla lettera le 4 offerte più
+  alte, una per ruolo" si esaurivano 283 crediti su 355 disponibili, lasciandone 72 per i restanti
+  19 slot — esattamente il sintomo segnalato. L'utente ha poi fornito un file Excel con le
+  quotazioni reali di Fantacalcio-Online (573 giocatori di Serie A). Incrociando per nome 396 di
+  quei giocatori con i punteggi che l'utente aveva assegnato loro nel proprio listone, e rifittando
+  con la stessa regressione robusta già in produzione (§6.3.3): il θ reale risulta **~2-2.5× più
+  basso** di quello teorico su TUTTI i ruoli (es. θ_A: 10.1 teorico → 4.02 reale), in modo
+  sorprendentemente uniforme — segno che l'errore non era specifico a un ruolo ma al METODO con cui
+  i θ originali erano stati derivati (teoricamente, dal rapporto fra prezzo del top e prezzo
+  marginale, mai controllato contro un'asta vera). Conferma indipendente notevole: un vecchio
+  tentativo di ricalibrazione via self-play (mai completato, documentato più sotto) aveva già
+  trovato per conto proprio θ_A→3.4 con un metodo completamente diverso (equilibrio fra bot
+  simulati, non dati reali) — due strade indipendenti che convergono nella stessa direzione è una
+  conferma forte, non una coincidenza. **Corretto** sostituendo i valori teorici di default
+  (`DEFAULT_THETA`/`DEFAULT_A` in `src/core/config.ts`) con quelli fittati sui dati reali. Effetto
+  collaterale onesto da segnalare: il "valore di un credito al margine" (λ, mostrato internamente
+  nei calcoli) è salito da ~1.0 a ~2.3 punti/credito — una conseguenza diretta e non evitabile della
+  correzione (non un effetto regolabile a parte), che rende obsoleta la vecchia regola pratica "1
+  credito ≈ 1 fantapunto" citata nella specifica tecnica. Verificato che questo non è casuale: i
+  mercati reali di fantacalcio sono noti per essere poco efficienti a fine asta (molti buoni
+  giocatori restano a 1-2 crediti), quindi un margine più ampio è plausibile, non un campanello
+  d'allarme. Test aggiornati di conseguenza in `test/plan-dp.test.ts` e `test/sim.test.ts`, con
+  commenti che spiegano perché i vecchi numeri non erano più quelli giusti. **Limite onesto**: le
+  quotazioni usate come base sono un indice di mercato generale del sito, non i prezzi medi
+  realmente pagati nella tua specifica configurazione di lega (10 squadre/500 crediti) — un
+  ricalibro futuro con dati ancora più mirati (prezzi medi reali per quella configurazione,
+  disponibili sullo stesso sito ma non estratti in blocco in questa sessione per limiti tecnici di
+  affidabilità dello scraping) potrebbe affinare ulteriormente questi numeri. Dettagli completi in
+  `readme.md` §6.5 e §6.3.1.
 - **Bug reale nel modello di prezzo, corretto — trovato da un'asta vera dell'utente, non da un
   test**. Segnalato così: "il portiere del Napoli, score 83, rimasto libero dopo che i 5 migliori
   erano già stati venduti a poco (10-40 crediti), mi risultava 'offri fino a 118' — non ha senso."

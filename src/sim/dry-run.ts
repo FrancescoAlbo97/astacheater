@@ -1,7 +1,7 @@
 // §11 / §12 F12 — Prova a secco: gira molte aste simulate sulla LISTA REALE dell'utente (non un
 // pool sintetico) per mostrare che rosa aspettarsi e tarare gli score prima dell'asta vera.
 import { ROLES } from '../core/types.js';
-import type { AuctionState, LeagueConfig, ManagerState, Player, Role, ValueCurveConfig } from '../core/types.js';
+import type { AuctionEvent, AuctionState, LeagueConfig, ManagerState, Player, Role, ValueCurveConfig } from '../core/types.js';
 import {
   DEFAULT_PRICE_MODEL_CONFIG,
   DEFAULT_ROLE_WEIGHTS,
@@ -10,11 +10,13 @@ import {
   normalizeSlotWeights,
 } from '../core/config.js';
 import { mulberry32 } from '../core/rng.js';
+import { getMyManagerId, reduce } from '../core/state.js';
 import { applyRiskToValueCurves } from '../core/value-model.js';
 import { runAuctionSim, type AuctionSimResult } from './auction-sim.js';
 import { buildRealScenario, DEFAULT_OPPONENT_SCORE_JITTER, type Scenario, type ScenarioPlayer } from './generator.js';
 import { evaluateFinalRoster } from './metrics.js';
 import { buildRandomArchetypeMix } from './archetypes.js';
+import { buildPostAuctionReport, type PostAuctionReport } from './post-auction-report.js';
 
 /**
  * Un'iterazione di simulazione (§9.3), condivisa fra l'aggregato di 200 aste (`runDryRun`) e la
@@ -440,4 +442,90 @@ export function runSingleSimulatedAuction(state: AuctionState, seed: number): Si
   const myFinalValue = evaluateFinalRoster(me, myRealScores, config.formations, mulberry32(seed + 999), 2000, myValueCurves);
 
   return { seed, sales, unsold, myRoster, myTotalSpent, myFinalValue };
+}
+
+export interface SimulatedAuctionHalfSummary {
+  readonly purchaseCount: number;
+  readonly overpayCount: number;
+  readonly overpaidCredits: number;
+}
+
+export interface SimulatedAuctionReport {
+  readonly auction: SingleAuctionResult;
+  readonly report: PostAuctionReport;
+  /** Prima/seconda metà dell'asta simulata, divise per indice di estrazione (§7 Session 8: "il
+   * motore si comporta bene soprattutto da metà in poi?"). */
+  readonly firstHalf: SimulatedAuctionHalfSummary;
+  readonly secondHalf: SimulatedAuctionHalfSummary;
+}
+
+/**
+ * Applica lo STESSO identico "Report asta" già usato per le aste vere (`post-auction-report.ts`,
+ * motore esatto rigiocato istante per istante) a UN'asta simulata (`runSingleSimulatedAuction`),
+ * per rispondere a "questa simulazione riflette davvero quello che il motore consiglierebbe dal
+ * vivo?" invece di solo "quanto ho speso in totale" (§9.5, che misura il simulatore in aggregato,
+ * non le singole decisioni). Costruisce un log sintetico (config/listone/punteggi REALI dell'utente
+ * + le vendite della simulazione, in ordine di estrazione) e lo fa rigiocare da
+ * `buildPostAuctionReport` — nessuna nuova logica di analisi, solo un nuovo modo di alimentarla.
+ *
+ * Avvertenza onesta, da mostrare in UI: gli AVVERSARI simulati (e "io" stesso, dentro la
+ * simulazione) decidono con la policy approssimata del simulatore (`auction-sim.ts`,
+ * `computeWillingness`/`approxMaxBid`), non con la bisezione esatta di `computeMaxBid` che vedi dal
+ * vivo — sono deliberatamente due motori diversi (§9.3, mai stati la stessa cosa). Questo report
+ * misura quindi "se avessi seguito il consiglio ESATTO in questa asta plausibile, quanto sarebbe
+ * stato diverso da quello che il simulatore ha fatto", non "il simulatore è realistico in
+ * assoluto" (quella è la domanda di §9.5, con il suo scostamento già documentato altrove).
+ */
+export function buildSimulatedAuctionReport(state: AuctionState, seed: number): SimulatedAuctionReport | null {
+  if (!state.config) return null;
+  const myManagerId = getMyManagerId(state.config);
+  if (!myManagerId) return null;
+
+  const auction = runSingleSimulatedAuction(state, seed);
+  const managerIdByName = new Map(state.config.managers.map((m) => [m.name, m.id]));
+
+  const syntheticLog: AuctionEvent[] = [
+    { t: 'league.setup', config: state.config },
+    { t: 'players.load', players: Object.values(state.players) },
+    ...Object.entries(state.scores).map(
+      ([playerId, s]): AuctionEvent => ({
+        t: 'player.score',
+        playerId,
+        score: s.score,
+        ptOverride: s.ptOverride ?? undefined,
+      }),
+    ),
+    ...auction.sales.map(
+      (s): AuctionEvent => ({
+        t: 'sale',
+        playerId: s.playerId,
+        managerId: s.isMe ? myManagerId : (managerIdByName.get(s.managerName) ?? s.managerName),
+        price: s.price,
+      }),
+    ),
+  ];
+
+  const report = buildPostAuctionReport(reduce(syntheticLog));
+  if (!report) return null;
+
+  const maxDraw = auction.sales.reduce((m, s) => Math.max(m, s.drawIndex), 0);
+  const halfDraw = maxDraw / 2;
+  const drawIndexByPlayerId = new Map(auction.sales.filter((s) => s.isMe).map((s) => [s.playerId, s.drawIndex]));
+
+  function summarizeHalf(inHalf: (drawIndex: number) => boolean): SimulatedAuctionHalfSummary {
+    const purchases = report!.myPurchases.filter((p) => inHalf(drawIndexByPlayerId.get(p.playerId) ?? -1));
+    const overpaid = purchases.filter((p) => p.overpaidBy > 0);
+    return {
+      purchaseCount: purchases.length,
+      overpayCount: overpaid.length,
+      overpaidCredits: overpaid.reduce((s, p) => s + p.overpaidBy, 0),
+    };
+  }
+
+  return {
+    auction,
+    report,
+    firstHalf: summarizeHalf((d) => d < halfDraw),
+    secondHalf: summarizeHalf((d) => d >= halfDraw),
+  };
 }

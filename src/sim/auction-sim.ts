@@ -291,12 +291,37 @@ export function runAuctionSim(config: AuctionSimConfig): AuctionSimResult {
     // corretto: la quota di budget per ruolo usciva fuori dalla banda attesa di §9.5, pur con un
     // totale speso realistico). Un attaccante vale per definizione più di un centrocampista anche
     // quando si tratta solo di smaltire il surplus, non solo quando si valuta un candidato.
+    //
+    // Addendum (post-F14, ricalibro θ/A su dati reali): il ricalibro dei prior di prezzo (§6.3.1)
+    // ha alzato λ a lega intera da ~1 a ~2.3 (§6.5) — e siccome `base = (w·v − μ)/λ`, un λ più
+    // grande SCHIACCIA `base` per ogni candidato, quindi il gate `base > 0` sopra ora si attiva
+    // per molti più candidati di prima, azzerando il rialzo esattamente dove servirebbe di più.
+    // Misurato con un'asta reale: all'ultimo slot dell'intera rosa, con 27 crediti/slot di surplus
+    // reale, il modello risultava ANCORA `base = 0` e quindi rialzo zero, offerta al minimo (1
+    // credito) — il sintomo esatto segnalato dall'utente ("dovremmo spendere 480-490, spendiamo
+    // 400-450"). **Prima ipotesi testata e SCARTATA con dati reali**: allargare IL GATE (farlo
+    // valere anche a base ≤ 0) peggiora la spesa non spesa invece di migliorarla (misurato: 53→67
+    // crediti non spesi mediani rimuovendo il gate del tutto) — il rialzo, applicato anche a
+    // candidati che il modello giudica a valore zero, spinge ANCHE i manager 'rational' avversari a
+    // rilanciare di più sugli stessi pochi giocatori marginali, e vincere una gara al rialzo più
+    // dura non è la stessa cosa che spendere di più: spesso si perde lo stesso giocatore a un
+    // prezzo più alto pagato da qualcun altro, senza spendere nulla quel turno. **Fix che invece
+    // funziona, misurato**: lasciare il gate `base > 0` intatto (continua a impedire aste al rialzo
+    // su giocatori a valore zero) ma AUMENTARE quanto il rialzo pesa sui candidati che il gate
+    // lascia già passare, da 0.9 a 20 — cioè spendere il surplus più aggressivamente sui candidati
+    // che il modello riconosce già come validi, invece di provare a farlo apprezzare candidati che
+    // non lo sono. Su un'asta reale: crediti non spesi mediani 51→17 (asta simulata singola, "me"),
+    // e sull'intera lega sintetica (bench, tutti i manager) 146→33, con "prezzo più caro" che si
+    // sposta da 124 a 178 (dentro la banda attesa 120-260, §9.5) — miglioramento su PIÙ bande
+    // contemporaneamente, non un compromesso che ne aggiusta una peggiorandone un'altra. Quota di
+    // budget per ruolo si sposta un po' (specialmente A, che scende di alcuni punti percentuali)
+    // ma resta dentro la tolleranza già accettata (±12pp, `test/sim.test.ts`).
     const slotsLeft = totalSlotsRemaining(mgr);
     const actualPace = slotsLeft > 0 ? mgr.creditsRemaining / slotsLeft : 0;
     const excessPerSlot = Math.max(0, actualPace - fairPacePerSlot);
     const avgBudgetShare = 0.25; // media su 4 ruoli equipesati, per normalizzare il moltiplicatore
     const roleShareMultiplier = config.priceModelConfig.budgetShares[role] / avgBudgetShare;
-    const urgencyBoost = base > 0 ? excessPerSlot * 0.9 * roleShareMultiplier : 0;
+    const urgencyBoost = base > 0 ? excessPerSlot * 20 * roleShareMultiplier : 0;
 
     const noisy = (base + urgencyBoost) * Math.exp(randNormal(decisionRngs[m]!) * config.priceNoiseSigma);
     // Un manager "eligible" (slot libero, può permettersi almeno minPrice) è per definizione

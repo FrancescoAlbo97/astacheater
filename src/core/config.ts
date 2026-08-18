@@ -156,10 +156,26 @@ export function normalizeSlotWeights(weights: SlotWeights | undefined, slots: Sl
 // §6.3.1 — Prior del modello di prezzo
 // ---------------------------------------------------------------------------
 
-/** θ_ρ di default, calibrati da p_top/p_marg con p_marg = 1 (§6.3.1). Provvisori: sostituiti in F7. */
-export const DEFAULT_THETA: Record<Role, number> = { P: 7.1, D: 8.1, C: 9.0, A: 10.1 };
+/**
+ * θ_ρ di default. Fino a questa revisione erano calibrati teoricamente da p_top/p_marg con
+ * p_marg = 1 (§6.3.1) — un ricalibro su dati reali era previsto per F7 ma non è mai arrivato a
+ * convergenza (self-play, non dati veri). Sostituiti ora con un fit reale: 396 giocatori di Serie
+ * A incrociati per nome fra le quotazioni reali di Fantacalcio-Online (stagione 2025/26, colonna
+ * "10 squadre / 500 crediti") e i punteggi assegnati a mano dall'utente sugli STESSI giocatori nel
+ * proprio listone — la stessa scala di punteggio che l'algoritmo usa dal vivo, non quella (diversa)
+ * del sito. Fit con `fitOnlinePriceCurves` stesso (Huber-IRLS, ridgeN0→0 per ignorare il prior
+ * teorico precedente): il θ reale viene sistematicamente ~2-2.5× più basso di quello teorico su
+ * tutti i ruoli (bug reale trovato da un'asta utente: con θ teorico un attaccante a punteggio 94
+ * riceveva un pHat di 269 crediti, contro una quotazione reale di ~102 per un giocatore
+ * comparabile — la curva era troppo ripida e concentrava un budget assurdo sul primo nome del
+ * ruolo). Errore standard di θ piccolo rispetto al coefficiente su tutti i ruoli (n=52..135),
+ * quindi non è rumore di campionamento.
+ */
+export const DEFAULT_THETA: Record<Role, number> = { P: 3.76, D: 4.07, C: 4.03, A: 4.02 };
 
-/** Quote iniziali di budget per ruolo: P 5%, D 15%, C 30%, A 50%. */
+/** Quote iniziali di budget per ruolo: P 5%, D 15%, C 30%, A 50%. Usate solo dal self-play di
+ * simulazione (§ sim/archetypes.ts), non dal pricing dal vivo (quello deriva la ripartizione fra
+ * ruoli direttamente da A_ρ/θ_ρ tramite il water-filling di `renormalize`). */
 export const DEFAULT_BUDGET_SHARES: BudgetShares = { P: 0.05, D: 0.15, C: 0.3, A: 0.5 };
 
 export const DEFAULT_RESERVE_FRACTION = 0.015;
@@ -171,11 +187,12 @@ export const DEFAULT_MIN_OBSERVATIONS_FOR_OWN_FIT = 5;
 export const DEFAULT_CONFIDENCE_THRESHOLDS = { low: 8, medium: 25 };
 
 /**
- * A_ρ derivato dalla quota di budget media implicita: A_ρ è il prezzo prior a score 0,
- * fissato in modo che il prezzo medio ponderato sul pool osservato riproduca la quota di
- * budget target. Valore di partenza prudente (score medio ~50): ricalibrato in F7/F8.
+ * A_ρ: prezzo prior a score 0. Stessa provenienza di `DEFAULT_THETA` sopra (fit reale, stessa
+ * regressione, stesso campione di 396 giocatori) — non più derivato teoricamente da una quota di
+ * budget assunta. La differenza assoluta fra ruoli riflette la reale disparità di valutazione di
+ * mercato fra P/D/C/A osservata nelle quotazioni reali, non una policy scelta a mano.
  */
-export const DEFAULT_A: Record<Role, number> = { P: 1.2, D: 1.1, C: 1.3, A: 1.6 };
+export const DEFAULT_A: Record<Role, number> = { P: 0.64, D: 0.91, C: 1.06, A: 1.21 };
 
 export const DEFAULT_PRICE_CURVES: PriceCurveConfig = ROLES.reduce((acc, role) => {
   acc[role] = { A: DEFAULT_A[role], theta: DEFAULT_THETA[role] };

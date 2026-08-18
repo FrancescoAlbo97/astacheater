@@ -6,7 +6,7 @@ piano di lavoro per fasi, test e criteri di accettazione numerici.
 
 **Lingua del codice:** identificatori e commenti in inglese, testi della UI in italiano.
 
-**Stato del progetto:** tutte le 13 fasi di §12 sono state completate e collaudate (242 test
+**Stato del progetto:** tutte le 13 fasi di §12 sono state completate e collaudate (247 test
 automatici). Il file eseguibile finale è `dist/fantasta.html`. Le sezioni sottostanti restano la
 specifica tecnica di riferimento per chi estende o rivede il codice; questa guida in cima serve a
 chi deve solo installarlo e usarlo.
@@ -84,6 +84,18 @@ per giudicare la qualità delle decisioni al loro interno — i due usano politi
 volutamente diverse per motivi di prestazioni (§6.6/§6.7), quindi rigiocarle nel Report asta mostrerà
 fisiologicamente alcuni "sovrapprezzo" che una persona reale, guidata dallo stesso motore esatto in
 entrambi i momenti, non vedrebbe.
+
+**Addendum (post-F14, quanto vale davvero questa divergenza)**: la frase sopra era finora solo
+qualitativa ("fisiologicamente alcuni sovrapprezzo"). `dry-run.ts`'s `buildSimulatedAuctionReport`
+la rende misurabile: converte un'asta simulata (`runSingleSimulatedAuction`) in un log di eventi
+sintetico e lo rigioca con `buildPostAuctionReport` (§7.x), aggiungendo uno spacco 1ª/2ª metà per
+localizzare DOVE la policy approssimata del simulatore si allontana di più da quella esatta.
+Misurato su più aste simulate reali: la divergenza è pervasiva (tipicamente 23-25 acquisti su 23-25
+totali in "overpay" secondo il motore esatto), non concentrata in una fase specifica dell'asta —
+diversi acquisti simulati sono per giocatori che il motore esatto valuta `reason: 'not-useful'`
+(offerta massima esattamente 0) nonostante lo slot di ruolo sia ancora libero. Esposto in UI in
+Prova a secco → "Guarda un'asta simulata per intero" → "Il motore esatto avrebbe seguito questa
+simulazione?". Dettagli in MANUALE.md §7.
 
 Un bug reale è stato trovato proprio così durante lo sviluppo di questi strumenti (non con un'asta
 a mano): valutare un candidato per un ruolo già completamente pieno restituiva un "offri fino a"
@@ -466,11 +478,41 @@ B_j = A_ρ · exp( θ_ρ · s_j / 100 )
 θ_ρ = 100 · ln(p_top / p_marg) / (s_top − s_marg)
 ```
 
-Default (da `p_marg = 1`): `θ_P = 7.1`, `θ_D = 8.1`, `θ_C = 9.0`, `θ_A = 10.1`.
+Default storico (teorico, da `p_marg = 1`): `θ_P = 7.1`, `θ_D = 8.1`, `θ_C = 9.0`, `θ_A = 10.1`.
 
 Quote iniziali di budget per ruolo: `P 5%`, `D 15%`, `C 30%`, `A 50%`, cioè prezzi medi impliciti di
 `8.3 / 9.4 / 18.8 / 41.7` crediti. **Questi prior sono provvisori: la fase 6 li sostituisce con i
 valori del punto fisso di self-play.**
+
+> **Addendum (post-F14, ricalibro su dati reali):** i θ_ρ teorici sopra non sono mai stati validati
+> contro un'asta vera prima di questa revisione, e un'asta utente reale ha mostrato che erano
+> troppo ripidi (Meret, portiere score 83, riceveva un'offerta massima consigliata di 118 crediti —
+> assurda per il ruolo — e il problema si è poi confermato sistemico su tutti i ruoli, non isolato
+> a un caso: un attaccante a score 94 riceveva un p̂ di 269 crediti contro una quotazione media
+> reale di ~102). Nuovi default, fittati con la STESSA regressione robusta di §6.3.3 (Huber-IRLS,
+> ridge→0 per ignorare il prior teorico) su 396 giocatori di Serie A incrociati per nome fra le
+> quotazioni reali di Fantacalcio-Online (stagione 2025/26, colonna "10 squadre / 500 crediti") e i
+> punteggi che l'utente aveva assegnato agli STESSI giocatori nel proprio listone — la scala di
+> punteggio che l'algoritmo usa dal vivo, non quella del sito:
+>
+> `θ_P = 3.76`, `θ_D = 4.07`, `θ_C = 4.03`, `θ_A = 4.02` — sistematicamente ~2-2.5× più bassi su
+> tutti i ruoli, errore standard piccolo rispetto al coefficiente (n = 52..135 per ruolo).
+>
+> `A_P = 0.64`, `A_D = 0.91`, `A_C = 1.06`, `A_A = 1.21` — stessa regressione, stesso campione; la
+> differenza assoluta fra ruoli riflette la disparità di valutazione realmente osservata, non più
+> una policy scelta a mano.
+>
+> Coincidenza notevole: la calibrazione self-play indipendente di F7 (§9.4, mai andata in
+> produzione perché il resto della pipeline non convergeva) aveva già trovato `θ_A → 3.4` con un
+> metodo completamente diverso (equilibrio di aste simulate, non dati reali) — due metodi
+> indipendenti che convergono nella stessa direzione è una conferma forte che il prior teorico
+> originale fosse il problema. Conseguenza attesa e diretta: `λ` (§6.5) si è spostato più in alto,
+> la mnemonica "1 credito ≈ 1 fantapunto" non vale più con questi numeri. Dettagli in MANUALE.md §7.
+
+Il modo più semplice per aggiornare questi numeri in futuro (nuova stagione, nuovo export) è
+rifare lo stesso incrocio: unire un export di quotazioni reali per nome col proprio listone
+punteggiato, poi chiamare `fitOnlinePriceCurves` con `ridgeN0` vicino a 0 sulle osservazioni
+risultanti — non serve altra infrastruttura, la funzione di regressione è già quella di produzione.
 
 #### 6.3.2 Ancoraggio (vale anche a zero osservazioni)
 
@@ -621,16 +663,29 @@ Totale pochi millisecondi in JS con array tipizzati. **Nessuna approssimazione n
 **Comportamento atteso di `λ`** (verificato numericamente con i parametri di default):
 
 ```
-budget 150 → λ ≈ 2.85 punti/credito
-budget 250 → λ ≈ 1.89
-budget 350 → λ ≈ 1.39
-budget 500 → λ ≈ 1.03
+budget 150 → λ ≈ 3.53 punti/credito
+budget 250 → λ ≈ 3.36
+budget 350 → λ ≈ 3.11
+budget 500 → λ ≈ 2.34
 ```
 
 `λ` decresce in modo regolare e resta ben positiva a budget pieno: il budget vincola per tutto
-l'arco dell'asta. **Requisito di sanità: `λ(500) ∈ [0.8, 1.4]`.** Un valore intorno a 0.5 indica
-quasi certamente il bug di §13.1, e si traduce in offerte massime raddoppiate. `λ ≈ 1` dà anche una
-regola mnemonica utile da mostrare in UI: **1 credito ≈ 1 fantapunto di stagione**.
+l'arco dell'asta. **Requisito di sanità: `λ(500) ∈ [1.6, 3.0]`.** Un valore intorno a 0.5 indica
+quasi certamente il bug di §13.1, e si traduce in offerte massime raddoppiate.
+
+Addendum (post-F14, prior di prezzo ricalibrati su dati reali): questi numeri e la banda erano
+originariamente `λ(500) ∈ [0.8, 1.4]` con la mnemonica "1 credito ≈ 1 fantapunto". Dopo aver
+sostituito `DEFAULT_THETA`/`DEFAULT_A` (§6.3.1) con un fit su dati reali (θ_ρ reale risulta
+sistematicamente ~2-2.5× più basso di quello teorico su tutti i ruoli), `λ` si è spostato più in
+alto in modo diretto e non evitabile: il ridimensionamento uniforme di `A_ρ` fra i ruoli si
+annulla esattamente dentro `renormalize()` (il fattore di water-filling lo compensa), quindi
+l'unica leva che sposta `λ` è la forma relativa del prior (θ e rapporti fra ruoli) — esattamente
+quella corretta con dati reali. La mnemonica "1 credito ≈ 1 fantapunto" non vale più con questa
+taratura: un credito marginale a budget pieno vale ora **~2.3 fantapunti**, il che è comunque
+plausibile (i mercati reali di fantacalcio sono noti per essere poco efficienti al margine — molti
+buoni giocatori restano a 1 credito a fine asta). Lo scopo di sanità della banda (intercettare la
+reintroduzione del bug §13.1, che produce λ≈0.47, un ordine di grandezza sotto qualunque taratura
+ragionevole del prior) resta comunque valido.
 
 ---
 
@@ -1080,7 +1135,8 @@ tetto avversari di §6.4 sono tutti coperti da test; `C¹ = 0` viene riconosciut
 `plan-dp.ts` (§6.5), `max-bid.ts` (§6.6).
 **DoD:** la DP coincide con una forza bruta su istanze piccole (≤ 12 giocatori, ≤ 3 slot per ruolo,
 budget ≤ 40) su 500 istanze casuali; `Φ` monotona non decrescente in `b`; `λ` riproduce la
-traiettoria di §6.5 entro ±10%; **`λ(500) ∈ [0.8, 1.4]`**; DP completa in < 20 ms; `p*` in < 100 ms.
+traiettoria di §6.5 entro ±10%; **`λ(500) ∈ [1.6, 3.0]`** (banda post-F14, vedi §6.5); DP completa
+in < 20 ms; `p*` in < 100 ms.
 
 ### F7 — Simulatore, archetipi, self-play
 `generator.ts`, `archetypes.ts`, `auction-sim.ts`, `selfplay-calibrate.ts`, CLI.
@@ -1155,10 +1211,11 @@ prezzo sono così convesse che dominano la scelta). L'errore non si vede guardan
 guardando `λ` e quindi `p*`. È esattamente per questo che è insidioso.
 
 **Test di regressione obbligatori:**
-- `λ(b = 500)` ∈ `[0.8, 1.4]` con i parametri di default;
+- `λ(b = 500)` resta ben sopra 0.5 (soglia di regressione per QUESTO bug specifico; per il valore
+  assoluto atteso con i parametri correnti vedi §6.5, aggiornato post-F14);
 - `v_A(95) / v_A(20) ≥ 5`.
 
-Se il primo fallisce verso il basso, si è reintrodotto questo bug.
+Se il primo fallisce verso il basso (valore vicino a 0.47), si è reintrodotto questo bug.
 
 ### 13.2 Non usare il completamento della lista come metrica
 Vedi §1 e §9.5. Il tasso di target ottenuti serve a validare il **simulatore**, non il motore.
