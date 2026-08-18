@@ -2,7 +2,15 @@
 // rosa attesa per ruolo e la evidenzia se sbilanciata. Serve a tarare gli score prima dell'asta.
 import { useState } from 'react';
 import { useAuctionStore } from '../state/store.js';
-import { runDryRun, type DryRunSummary } from '../../sim/dry-run.js';
+import {
+  runDryRun,
+  runSingleSimulatedAuction,
+  type BudgetShareRow,
+  type CreditsUnspentStats,
+  type DryRunSummary,
+  type ScorePricePoint,
+  type SingleAuctionResult,
+} from '../../sim/dry-run.js';
 import { ROLES } from '../../core/types.js';
 import type { Role } from '../../core/types.js';
 
@@ -15,6 +23,161 @@ const ROLE_BAR_COLOR: Record<Role, string> = {
   A: 'var(--role-a)',
 };
 
+/** Scarto oltre il quale la spesa per ruolo si segnala come fuori quota (§9.5: banda ±8pp). */
+const BUDGET_SHARE_TOLERANCE = 0.08;
+
+function BudgetShareBars({ rows }: { rows: readonly BudgetShareRow[] }) {
+  return (
+    <div className="budget-share-bars">
+      {rows.map((r) => {
+        const offBand = Math.abs(r.actualShare - r.targetShare) > BUDGET_SHARE_TOLERANCE;
+        return (
+          <div key={r.role} className="role-bar-row">
+            <span className={`role-bar-tag role-text-${r.role}`}>{offBand && '⚠ '}{r.role}</span>
+            <div className="role-bar-track budget-share-track">
+              <div
+                className="role-bar-fill"
+                style={{ width: `${Math.min(100, r.actualShare * 100)}%`, background: ROLE_BAR_COLOR[r.role] }}
+              />
+              <div
+                className="budget-share-target-marker"
+                style={{ left: `${Math.min(100, r.targetShare * 100)}%` }}
+                title={`quota attesa: ${(r.targetShare * 100).toFixed(0)}%`}
+              />
+            </div>
+            <div className="role-bar-meta">
+              <div className={`role-bar-value ${offBand ? 'ceiling-low' : ''}`}>{(r.actualShare * 100).toFixed(0)}%</div>
+              <div className="role-bar-sub">attesa {(r.targetShare * 100).toFixed(0)}%</div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function CreditsUnspentRange({ stats }: { stats: CreditsUnspentStats }) {
+  const offBand = stats.median > 15;
+  return (
+    <div className={`dry-run-stat-card ${offBand ? 'warn-card' : ''}`}>
+      <div className="stat-label">Crediti non spesi a fine asta (io)</div>
+      <div className="stat-value">{stats.median.toFixed(0)}</div>
+      <div className="stat-meta">
+        mediana su {`p10 ${stats.p10.toFixed(0)} · media ${stats.mean.toFixed(0)} · p90 ${stats.p90.toFixed(0)}`} · atteso 0–15
+      </div>
+    </div>
+  );
+}
+
+/** Campiona al massimo `cap` punti per ruolo, passo fisso (deterministico: niente Math.random). */
+function samplePoints(points: readonly ScorePricePoint[], role: Role, cap: number): ScorePricePoint[] {
+  const byRole = points.filter((p) => p.role === role);
+  if (byRole.length <= cap) return byRole;
+  const stride = byRole.length / cap;
+  const out: ScorePricePoint[] = [];
+  for (let i = 0; i < cap; i++) out.push(byRole[Math.floor(i * stride)]!);
+  return out;
+}
+
+const SCATTER_W = 460;
+const SCATTER_H = 220;
+const SCATTER_PAD = { left: 34, right: 10, top: 10, bottom: 26 };
+
+function ScorePriceScatter({ points }: { points: readonly ScorePricePoint[] }) {
+  if (points.length === 0) return <p className="hint">Nessun acquisto registrato nelle simulazioni.</p>;
+  const maxPrice = Math.max(10, ...points.map((p) => p.price));
+  const plotW = SCATTER_W - SCATTER_PAD.left - SCATTER_PAD.right;
+  const plotH = SCATTER_H - SCATTER_PAD.top - SCATTER_PAD.bottom;
+  const x = (score: number) => SCATTER_PAD.left + (score / 100) * plotW;
+  const y = (price: number) => SCATTER_PAD.top + plotH - (price / maxPrice) * plotH;
+
+  const sampled = ROLES.flatMap((role) => samplePoints(points, role, 120));
+
+  return (
+    <figure>
+      <svg
+        viewBox={`0 0 ${SCATTER_W} ${SCATTER_H}`}
+        role="img"
+        aria-label="Punteggio assegnato vs prezzo pagato, per ruolo, sulle aste simulate"
+        style={{ width: '100%', height: 'auto', maxWidth: `${SCATTER_W}px` }}
+      >
+        <line x1={SCATTER_PAD.left} y1={SCATTER_PAD.top} x2={SCATTER_PAD.left} y2={SCATTER_PAD.top + plotH} stroke="currentColor" opacity={0.3} />
+        <line
+          x1={SCATTER_PAD.left}
+          y1={SCATTER_PAD.top + plotH}
+          x2={SCATTER_PAD.left + plotW}
+          y2={SCATTER_PAD.top + plotH}
+          stroke="currentColor"
+          opacity={0.3}
+        />
+        {[0, 50, 100].map((s) => (
+          <text key={s} x={x(s)} y={SCATTER_H - 8} fontSize={9} textAnchor="middle" fill="currentColor" opacity={0.6}>
+            {s}
+          </text>
+        ))}
+        {[0, maxPrice].map((p) => (
+          <text key={p} x={SCATTER_PAD.left - 6} y={y(p) + 3} fontSize={9} textAnchor="end" fill="currentColor" opacity={0.6}>
+            {Math.round(p)}
+          </text>
+        ))}
+        <text x={SCATTER_W / 2} y={SCATTER_H - 1} fontSize={9} textAnchor="middle" fill="currentColor" opacity={0.5}>
+          punteggio
+        </text>
+        {sampled.map((p, i) => (
+          <circle key={i} cx={x(p.score)} cy={y(p.price)} r={2.4} fill={ROLE_BAR_COLOR[p.role]} opacity={0.65} />
+        ))}
+      </svg>
+      <figcaption className="hint">
+        Punteggio assegnato vs prezzo pagato per i tuoi acquisti simulati (campione per leggibilità). Se non si vede una
+        tendenza crescente per un ruolo, il modello di prezzo per quel ruolo potrebbe essere scalato male.
+      </figcaption>
+    </figure>
+  );
+}
+
+function SingleAuctionView({ result }: { result: SingleAuctionResult }) {
+  return (
+    <>
+      <p className="hint">
+        Valore finale <b>{formatNum(result.myFinalValue)}</b> pt · spesi <b>{result.myTotalSpent}</b> crediti ·{' '}
+        {result.sales.length} vendite in questa asta, {result.unsold.length} rimasti senza acquirente.
+      </p>
+      <h4 style={{ margin: '0.8rem 0 0.4rem' }}>La tua rosa in questa asta</h4>
+      <ul className="my-roster-list">
+        {result.myRoster.map((p) => (
+          <li key={p.id}>
+            <span>
+              <span className={`role-tag role-${p.role}`}>{p.role}</span> {p.name} <span className="dim">({p.team}, score {p.score})</span>
+            </span>
+            <span className="roster-price">{p.price} cr</span>
+          </li>
+        ))}
+      </ul>
+      <h4 style={{ margin: '1rem 0 0.4rem' }}>Tutte le vendite, in ordine di estrazione</h4>
+      <div className="registro-list">
+        {result.sales.map((s) => (
+          <div key={s.playerId} className={s.isMe ? 'registro-row registro-row-me' : 'registro-row'}>
+            <div className="registro-row-main">
+              <div>
+                <span className={`role-tag role-${s.role}`}>{s.role}</span> {s.name}
+                <div className="dim small">→ {s.isMe ? 'Io' : s.managerName}</div>
+              </div>
+              <span className="mono strong">{s.price}</span>
+            </div>
+          </div>
+        ))}
+        {result.unsold.length > 0 && (
+          <div className="registro-row">
+            <div className="registro-row-main">
+              <div className="dim">{result.unsold.length} giocatori rimasti senza acquirente (slot altrui esauriti)</div>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
 export function DryRun() {
   const { state } = useAuctionStore();
   const [running, setRunning] = useState(false);
@@ -22,6 +185,9 @@ export function DryRun() {
   const [summary, setSummary] = useState<DryRunSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sampleIndex, setSampleIndex] = useState(1); // default: "tipica (mediana)"
+  const [singleAuction, setSingleAuction] = useState<SingleAuctionResult | null>(null);
+  const [singleAuctionSeedOffset, setSingleAuctionSeedOffset] = useState(0);
+  const [singleAuctionError, setSingleAuctionError] = useState<string | null>(null);
 
   const scoredCount = Object.keys(state.scores).length;
 
@@ -37,6 +203,19 @@ export function DryRun() {
       setError(err instanceof Error ? err.message : 'Errore durante la prova a secco.');
     } finally {
       setRunning(false);
+    }
+  }
+
+  function generateSingleAuction() {
+    setSingleAuctionError(null);
+    try {
+      // Contatore crescente, non Date.now()/Math.random() (§13.10): ogni clic dà un'asta diversa,
+      // resta comunque riproducibile.
+      const seed = 90_000 + singleAuctionSeedOffset;
+      setSingleAuction(runSingleSimulatedAuction(state, seed));
+      setSingleAuctionSeedOffset((n) => n + 1);
+    } catch (err) {
+      setSingleAuctionError(err instanceof Error ? err.message : "Errore durante la generazione dell'asta di esempio.");
     }
   }
 
@@ -89,6 +268,36 @@ export function DryRun() {
               <div className="stat-meta">{summary.imbalancedRoles.join(', ') || 'nessuno'}</div>
             </div>
           </div>
+
+          <section className="card">
+            <h3>Diagnostica</h3>
+            <p className="hint">
+              Non solo "che rosa aspettarti", ma "quanto fidarsi di questi numeri": confronta la simulazione con i
+              parametri che dovrebbe rispettare (§9.5), sulla TUA lista reale invece che su un benchmark sintetico.
+            </p>
+            <div className="dry-run-stat-grid" style={{ marginBottom: '1rem' }}>
+              <CreditsUnspentRange stats={summary.creditsUnspent} />
+              {summary.targetAcquisition && (
+                <div className={`dry-run-stat-card ${summary.targetAcquisition.rate < 0.3 ? 'warn-card' : ''}`}>
+                  <div className="stat-label">Obiettivi ★ acquisiti (media)</div>
+                  <div className="stat-value">{(summary.targetAcquisition.rate * 100).toFixed(0)}%</div>
+                  <div className="stat-meta">
+                    {summary.targetAcquisition.avgAcquired.toFixed(1)} di {summary.targetAcquisition.totalTargets} obiettivi · atteso 30–50%
+                  </div>
+                </div>
+              )}
+            </div>
+            {!summary.targetAcquisition && (
+              <p className="hint">
+                Segna qualche obiettivo con ★ in Pool giocatori prima di rilanciare la prova a secco, per vedere quanti
+                ne prendi davvero in queste simulazioni.
+              </p>
+            )}
+            <h4 style={{ marginBottom: '0.4rem' }}>Spesa per ruolo: reale vs quota attesa dal modello di prezzo</h4>
+            <BudgetShareBars rows={summary.budgetShareByRole} />
+            <h4 style={{ margin: '1rem 0 0.4rem' }}>Punteggio vs prezzo pagato</h4>
+            <ScorePriceScatter points={summary.scoreVsPrice} />
+          </section>
 
           <section className="card">
             <h3>Rosa attesa per ruolo (media su {summary.iterations} aste)</h3>
@@ -191,6 +400,21 @@ export function DryRun() {
           </section>
         </>
       )}
+
+      <section className="card">
+        <h3>Guarda un'asta simulata per intero</h3>
+        <p className="hint">
+          Non una media su 200 aste, ma UNA asta plausibile vista giocata per giocata: chi ha preso cosa, quando, per
+          quanto — con la stessa macchina esatta della Prova a secco (stesso jitter dai tuoi punteggi, stesso mix di
+          avversari, la tua configurazione personalizzata). Utile per farsi un'idea concreta di come si potrebbe
+          svolgere, non solo vedere numeri aggregati.
+        </p>
+        <button type="button" className="secondary-button" onClick={generateSingleAuction} disabled={scoredCount === 0}>
+          {singleAuction ? "Genera un'altra asta di esempio" : 'Genera un\'asta di esempio'}
+        </button>
+        {singleAuctionError && <p className="error-banner">{singleAuctionError}</p>}
+        {singleAuction && <SingleAuctionView result={singleAuction} />}
+      </section>
     </div>
   );
 }

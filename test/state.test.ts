@@ -167,3 +167,75 @@ describe('§6.4/§6.5 selettori derivati', () => {
     expect(pool.map((p) => p.id)).toEqual(['p3']);
   });
 });
+
+describe('§11 Banco d\'asta / Pool giocatori — revert, obiettivi, ordine slot', () => {
+  it('revert rimette in pool un giocatore venduto', () => {
+    const log = buildLog([
+      { t: 'league.setup', config: league },
+      { t: 'players.load', players },
+      { t: 'sale', playerId: 'p1', managerId: 'me', price: 10 },
+      { t: 'revert', playerId: 'p1' },
+    ]);
+    const state = reduce(log);
+    expect(state.sales).toEqual([]);
+    expect(getPool(state).map((p) => p.id)).toContain('p1');
+  });
+
+  it('revert rimette in pool un giocatore segnato non acquistato ("riproponi")', () => {
+    const log = buildLog([
+      { t: 'league.setup', config: league },
+      { t: 'players.load', players },
+      { t: 'unsold', playerId: 'p2' },
+      { t: 'revert', playerId: 'p2' },
+    ]);
+    const state = reduce(log);
+    expect(state.unsold).toEqual([]);
+    expect(getPool(state).map((p) => p.id)).toContain('p2');
+  });
+
+  it('revert su un giocatore mai deciso non ha effetto (idempotente)', () => {
+    const log = buildLog([
+      { t: 'league.setup', config: league },
+      { t: 'players.load', players },
+      { t: 'revert', playerId: 'p1' },
+    ]);
+    expect(() => reduce(log)).not.toThrow();
+    expect(getPool(reduce(log)).map((p) => p.id)).toContain('p1');
+  });
+
+  it('una correzione si fa con revert + una nuova sale, non con un evento dedicato', () => {
+    const log = buildLog([
+      { t: 'league.setup', config: league },
+      { t: 'players.load', players },
+      { t: 'sale', playerId: 'p1', managerId: 'me', price: 10 },
+      { t: 'revert', playerId: 'p1' },
+      { t: 'sale', playerId: 'p1', managerId: 'm2', price: 25 },
+    ]);
+    const state = reduce(log);
+    expect(state.sales).toEqual([{ playerId: 'p1', managerId: 'm2', price: 25 }]);
+  });
+
+  it('player.target aggiunge e rimuove un obiettivo personale', () => {
+    const log = buildLog([
+      { t: 'league.setup', config: league },
+      { t: 'players.load', players },
+      { t: 'player.target', playerId: 'p1', isTarget: true },
+    ]);
+    expect(reduce(log).targets).toEqual({ p1: true });
+
+    const untargeted = buildLog([...log, { t: 'player.target', playerId: 'p1', isTarget: false }]);
+    expect(reduce(untargeted).targets).toEqual({});
+  });
+
+  it('roster.slot sostituisce sempre l\'intero ordine per quel manager+ruolo', () => {
+    const log = buildLog([
+      { t: 'league.setup', config: league },
+      { t: 'players.load', players },
+      { t: 'roster.slot', managerId: 'me', role: 'D', order: ['p2', 'p9'] },
+    ]);
+    expect(reduce(log).slotOrder['me:D']).toEqual(['p2', 'p9']);
+
+    const replaced = buildLog([...log, { t: 'roster.slot', managerId: 'me', role: 'D', order: ['p9'] }]);
+    expect(reduce(replaced).slotOrder['me:D']).toEqual(['p9']);
+  });
+});

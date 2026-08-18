@@ -12,7 +12,8 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { runAuctionSim } from '../src/sim/auction-sim.js';
-import { buildRealScenario, type ScenarioPlayer } from '../src/sim/generator.js';
+import { buildRealScenario, DEFAULT_OPPONENT_SCORE_JITTER, type ScenarioPlayer } from '../src/sim/generator.js';
+import { buildRandomArchetypeMix } from '../src/sim/archetypes.js';
 import {
   DEFAULT_PRICE_MODEL_CONFIG,
   DEFAULT_ROLLOUT_CONFIG,
@@ -22,7 +23,6 @@ import {
 } from '../src/core/config.js';
 import { mulberry32 } from '../src/core/rng.js';
 import { ROLES } from '../src/core/types.js';
-import type { ArchetypeId } from '../src/sim/archetypes.js';
 import type { AuctionEvent, Player, Role } from '../src/core/types.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -57,24 +57,17 @@ function buildScores(rng: () => number): Map<string, number> {
   return scores;
 }
 
-const NON_RATIONAL_ARCHETYPES: ArchetypeId[] = [
-  'earlyEnthusiast', 'latePanicker', 'fanboy', 'roleCapper', 'anchored', 'budgetSplitter',
-];
-function archetypeMix(n: number): ArchetypeId[] {
-  return Array.from({ length: n }, (_, i) => (i === 0 ? 'rational' : NON_RATIONAL_ARCHETYPES[(i - 1) % NON_RATIONAL_ARCHETYPES.length]!));
-}
-
 const SEED = 20260811;
 const league = makeDefaultLeagueConfig();
 const myScores = buildScores(mulberry32(SEED));
 const scenarioPlayers: ScenarioPlayer[] = players.map((p) => ({ id: p.id, role: p.role, team: p.team }));
 
-const scenario = buildRealScenario(scenarioPlayers, myScores, league.managers.length, 0.8, mulberry32(SEED + 1));
+const scenario = buildRealScenario(scenarioPlayers, myScores, league.managers.length, DEFAULT_OPPONENT_SCORE_JITTER, mulberry32(SEED + 1));
 const result = runAuctionSim({
   league,
   seed: SEED,
-  rho: 0.8,
-  archetypesByManager: archetypeMix(league.managers.length),
+  rho: 0, // ignorato: scenarioOverride sotto salta generateScenario (che è l'unico a leggere rho)
+  archetypesByManager: buildRandomArchetypeMix(league.managers.length, mulberry32(SEED + 300_000_007)),
   priceModelConfig: DEFAULT_PRICE_MODEL_CONFIG,
   valueCurves: DEFAULT_VALUE_CURVES,
   slotWeights: DEFAULT_SLOT_WEIGHTS,

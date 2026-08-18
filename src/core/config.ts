@@ -10,6 +10,7 @@ import type {
   PriceModelConfig,
   Role,
   RiskConfig,
+  RoleWeights,
   RolloutConfig,
   SlotCounts,
   SlotWeights,
@@ -51,6 +52,10 @@ export const FORMATION_SHAPES: Record<Formation, FormationShape> = {
 export const DEFAULT_MIN_PRICE = 1;
 export const DEFAULT_RISK = 0.15;
 
+/** Nessuna preferenza fra ruoli: comportamento invariato rispetto a prima che esistesse il peso
+ * per ruolo (§11 Setup). */
+export const DEFAULT_ROLE_WEIGHTS: RoleWeights = { P: 1, D: 1, C: 1, A: 1 };
+
 export function makeDefaultLeagueConfig(
   managerNames: readonly string[] = defaultManagerNames(),
 ): LeagueConfig {
@@ -66,6 +71,8 @@ export function makeDefaultLeagueConfig(
     primaryFormation: DEFAULT_PRIMARY_FORMATION,
     minPrice: DEFAULT_MIN_PRICE,
     risk: DEFAULT_RISK,
+    roleWeights: DEFAULT_ROLE_WEIGHTS,
+    slotWeights: DEFAULT_SLOT_WEIGHTS,
   };
 }
 
@@ -94,6 +101,17 @@ export const DEFAULT_VALUE_CURVES: ValueCurveConfig = {
 // §6.2 — Pesi di slot (surrogato additivo), somma totale = 11.00
 // ---------------------------------------------------------------------------
 
+// Inquadramento teorico: l'idea di "il primo slot di un ruolo vale più dell'ottavo" non è
+// inventata per questo progetto — è imparentata con il Sequential Stochastic Assignment Problem
+// (Derman, Lieberman, Ross, Management Science 1972): elementi con valore casuale arrivano in
+// sequenza, ciascuno va assegnato immediatamente a una delle posizioni disponibili, ognuna con un
+// proprio "peso"/importanza, per massimizzare il valore atteso totale — la soluzione ottima è
+// descritta da soglie fisse per posizione. La differenza che impedisce di importarne la soluzione
+// esatta così com'è: quel problema classico non ha prezzi né concorrenza (assegnazione pura), il
+// nostro caso invece è un'asta con budget condiviso fra i ruoli e avversari che competono per
+// LO STESSO giocatore. È quindi solo una validazione concettuale dell'approccio a pesi
+// decrescenti, non una fonte per i numeri esatti qui sotto (che restano tarati come descritto).
+//
 // Tabella del readme §6.2, usata come default operativo. La procedura di fit indipendente di
 // F4 (scripts/fit-slot-weights.ts, verificata in test/value-surrogate.test.ts) valida
 // l'architettura del modello (rango per v_j, termine sommato 38·fm_j) ma su un benchmark di
@@ -107,6 +125,32 @@ export const DEFAULT_SLOT_WEIGHTS: SlotWeights = {
   C: [0.94, 0.9, 0.82, 0.4, 0.18, 0.09, 0.05, 0.02],
   A: [0.93, 0.88, 0.72, 0.17, 0.07, 0.03],
 };
+
+/** Adatta un array di pesi a una nuova lunghezza: tronca se si riduce, ripete l'ultimo valore se
+ * cresce. Mantiene sempre `weights.length === newLength`, invariante richiesta dalla DP
+ * (`plan-dp.ts`'s `computeRolePlan` lancia un errore altrimenti, §13.3). */
+export function resizeSlotWeights(weights: readonly number[], newLength: number): number[] {
+  if (newLength <= 0) return [];
+  if (newLength <= weights.length) return weights.slice(0, newLength);
+  const last = weights.length > 0 ? weights[weights.length - 1]! : 0.1;
+  return [...weights, ...Array.from({ length: newLength - weights.length }, () => last)];
+}
+
+/**
+ * Normalizza pesi di slot (§6.2, Setup) contro il numero di slot REALMENTE configurato: usata sia
+ * dalla UI di Setup sia difensivamente ovunque si leggano `config.slotWeights` nel motore, perché
+ * una config salvata da PRIMA che questo controllo esistesse ha `slotWeights` assente, e una in cui
+ * l'utente ha cambiato il numero di slot di un ruolo dopo aver personalizzato i pesi avrebbe
+ * altrimenti una lunghezza disallineata — in entrambi i casi la DP andrebbe in errore senza
+ * questa normalizzazione. `weights` mancante ⇒ riparte da `DEFAULT_SLOT_WEIGHTS`, non da un
+ * appiattimento arbitrario.
+ */
+export function normalizeSlotWeights(weights: SlotWeights | undefined, slots: SlotCounts): SlotWeights {
+  const base = weights ?? DEFAULT_SLOT_WEIGHTS;
+  const out = {} as Record<Role, number[]>;
+  for (const role of ROLES) out[role] = resizeSlotWeights(base[role], slots[role]);
+  return out;
+}
 
 // ---------------------------------------------------------------------------
 // §6.3.1 — Prior del modello di prezzo

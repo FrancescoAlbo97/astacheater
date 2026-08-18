@@ -4,17 +4,19 @@
 // ricalcolo "dopo ogni vendita" richiesto da §7.
 
 import { ROLES } from './types.js';
-import type { AuctionState, CeilingInfo, MaxBidResult, Player, Role } from './types.js';
+import type { AuctionState, CeilingInfo, MaxBidResult, Player, Role, RoleWeights, SlotWeights } from './types.js';
 import {
   DEFAULT_PRICE_CURVES,
   DEFAULT_PRICE_MODEL_CONFIG,
   DEFAULT_RESERVE_FRACTION,
+  DEFAULT_ROLE_WEIGHTS,
   DEFAULT_ROLLOUT_CONFIG,
-  DEFAULT_SLOT_WEIGHTS,
+  DEFAULT_SLOTS,
   DEFAULT_VALUE_CURVES,
+  normalizeSlotWeights,
 } from './config.js';
 import { deriveManagerStates, getMyManagerId, getPool } from './state.js';
-import { applyRiskToValueCurves, playerValue } from './value-model.js';
+import { applyRiskToValueCurves, roleWeightedPlayerValue } from './value-model.js';
 import type { ValueCurveConfig } from './types.js';
 import {
   capByResidualDemand,
@@ -34,6 +36,20 @@ import type { RolloutInput } from './rollout.js';
  * se manca una configurazione di lega. */
 function riskAdjustedCurves(state: AuctionState): ValueCurveConfig {
   return applyRiskToValueCurves(DEFAULT_VALUE_CURVES, state.config?.risk ?? 0);
+}
+
+/** Peso per ruolo configurato (§11 Setup), o nessuna preferenza se la lega non lo ha (config
+ * salvata prima che esistesse questo controllo). */
+function myRoleWeights(state: AuctionState): RoleWeights {
+  return state.config?.roleWeights ?? DEFAULT_ROLE_WEIGHTS;
+}
+
+/** Pesi di slot configurati (§6.2 Setup), normalizzati contro `config.slots` — copre sia una
+ * config salvata prima che questo controllo esistesse (slotWeights assente) sia il caso in cui il
+ * numero di slot di un ruolo sia stato cambiato dopo aver personalizzato i pesi (lunghezze
+ * disallineate, altrimenti la DP lancerebbe un errore, §13.3). */
+function mySlotWeights(state: AuctionState): SlotWeights {
+  return normalizeSlotWeights(state.config?.slotWeights, state.config?.slots ?? DEFAULT_SLOTS);
 }
 
 export interface MarketSnapshot {
@@ -105,13 +121,15 @@ function buildRoleInputsForMe(
 ): Record<Role, RoleDPInput> {
   const me = snapshot.managers.find((m) => m.manager.id === snapshot.myManagerId);
   const config = state.config!;
+  const roleWeights = myRoleWeights(state);
+  const slotWeights = mySlotWeights(state);
   const roleInputs = {} as Record<Role, RoleDPInput>;
 
   for (const role of ROLES) {
     const forced: DPCandidate[] = (me?.roster ?? [])
       .filter((r) => r.player.role === role)
       .map((r) => ({
-        v: playerValue(role, myScoreOf(state, r.player.id), {
+        v: roleWeightedPlayerValue(role, myScoreOf(state, r.player.id), roleWeights, {
           ptOverride: myPtOverrideOf(state, r.player.id),
           curves: valueCurves,
         }),
@@ -121,7 +139,7 @@ function buildRoleInputsForMe(
     const optional: DPCandidate[] = snapshot.pool
       .filter((p) => p.role === role && p.id !== excludePlayerId)
       .map((p) => ({
-        v: playerValue(role, myScoreOf(state, p.id), {
+        v: roleWeightedPlayerValue(role, myScoreOf(state, p.id), roleWeights, {
           ptOverride: myPtOverrideOf(state, p.id),
           curves: valueCurves,
         }),
@@ -130,9 +148,9 @@ function buildRoleInputsForMe(
       }));
     roleInputs[role] = {
       candidates: [...forced, ...optional],
-      fillerValue: playerValue(role, percentile20Score(snapshot.pool, role, state), { curves: valueCurves }),
+      fillerValue: roleWeightedPlayerValue(role, percentile20Score(snapshot.pool, role, state), roleWeights, { curves: valueCurves }),
       slotCount: config.slots[role],
-      weights: DEFAULT_SLOT_WEIGHTS[role],
+      weights: slotWeights[role],
     };
   }
   return roleInputs;
@@ -195,7 +213,10 @@ export function computeDecisionForPlayer(state: AuctionState, playerId: string):
   const valueCurves = riskAdjustedCurves(state);
   const role = player.role;
   const myScore = myScoreOf(state, playerId);
-  const myValue = playerValue(role, myScore, { ptOverride: myPtOverrideOf(state, playerId), curves: valueCurves });
+  const myValue = roleWeightedPlayerValue(role, myScore, myRoleWeights(state), {
+    ptOverride: myPtOverrideOf(state, playerId),
+    curves: valueCurves,
+  });
   const pHat = snapshot.pHat.get(playerId) ?? 1;
 
   const ceiling = ceilingForRole(snapshot.managers, myManagerId, role);
@@ -330,9 +351,10 @@ export function buildRolloutInput(state: AuctionState, playerId: string): Rollou
     remainingPool,
     leagueSlots: state.config.slots,
     minPrice: state.config.minPrice,
-    slotWeights: DEFAULT_SLOT_WEIGHTS,
+    slotWeights: mySlotWeights(state),
     rolloutConfig: DEFAULT_ROLLOUT_CONFIG,
     maxHorizon: 80,
     valueCurves: riskAdjustedCurves(state),
+    roleWeights: myRoleWeights(state),
   };
 }

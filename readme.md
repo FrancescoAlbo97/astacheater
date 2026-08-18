@@ -6,7 +6,7 @@ piano di lavoro per fasi, test e criteri di accettazione numerici.
 
 **Lingua del codice:** identificatori e commenti in inglese, testi della UI in italiano.
 
-**Stato del progetto:** tutte le 13 fasi di §12 sono state completate e collaudate (155 test
+**Stato del progetto:** tutte le 13 fasi di §12 sono state completate e collaudate (240 test
 automatici). Il file eseguibile finale è `dist/fantasta.html`. Le sezioni sottostanti restano la
 specifica tecnica di riferimento per chi estende o rivede il codice; questa guida in cima serve a
 chi deve solo installarlo e usarlo.
@@ -438,6 +438,16 @@ restare 11.
 ruolo, somma totale = 11). **Riportare l'R² del fit.** Requisito di accettazione: R² ≥ 0.97. Se è
 sotto, il surrogato additivo non è adeguato e va segnalato prima di costruirci sopra la DP.
 
+> **Addendum (post-F13, pesi di slot configurabili):** i pesi della tabella sopra sono ora anche un
+> parametro personale (Setup lega, §11), non solo un default fisso — per adattare la FORMA dentro un
+> ruolo al proprio modo di giocare (es. due portieri "titolari" comparabili invece di uno solo netto
+> con riserve scontate quasi a zero). `normalizeSlotWeights` (`src/core/config.ts`) mantiene sempre
+> `w_ρ` della lunghezza giusta (`slots[ρ]`) e la UI riordina automaticamente in decrescente, ma **non
+> impone più il vincolo `Σ = 11`**: personalizzando i pesi, quell'invariante (calibrato per il mix di
+> moduli di default) può non valere più, per scelta esplicita dell'utente. Resta il default di
+> fabbrica se non toccato. Verificato che questo non rompe la DP per nessuna combinazione di pesi
+> personali validi (`test/engine.test.ts`, incluso un test property-based).
+
 ---
 
 ### 6.3 Modello di prezzo
@@ -691,6 +701,25 @@ Dentro la DP il termine di varianza non è additivo. Approssimazione ammessa: ap
 `risk` come **maggiorazione della convessità della curva di valore** (`γ_ρ ← γ_ρ · (1 + 0.4·risk)`),
 verificando in fase 6 che riproduca la stessa graduatoria di decisioni del criterio esatto sul
 simulatore. Documentare lo scarto misurato.
+
+> **Addendum (post-F13):** lo "scarto misurato" richiesto sopra è stato effettivamente quantificato
+> — vedi MANUALE.md §7. È stata anche implementata e misurata un'approssimazione additiva
+> alternativa, più letterale rispetto alla formula di questa sezione:
+> `v_adj = v + risk · η · fm(s)·√(38·pt(s)·(1−pt(s)))` (`riskAdjustedPlayerValue`/`seasonSdProxy` in
+> `src/core/value-model.ts`), che aggiunge un bonus/malus proporzionale alla varianza Bernoulliana
+> del singolo candidato invece di distorcere l'intera curva. Non ha superato la soglia di
+> affidabilità fissata prima della misura (dettagli e numeri in MANUALE.md §7): resta nel codice,
+> testata, ma NON è quella attiva di default — γ resta l'approssimazione in uso.
+
+> **Addendum (post-F13, peso per ruolo):** aggiunto un secondo parametro personale, indipendente da
+> `risk` e con lo stesso principio (tocca solo il proprio valore/DP, mai il modello di prezzo):
+> `roleWeights: Record<Role, number>` (Setup lega, default 1 per tutti = nessuna differenza),
+> applicato come `v' = playerValue(...) · roleWeights[ruolo]` (`roleWeightedPlayerValue` in
+> `src/core/value-model.ts`). A differenza del rischio, non distorce la curva punteggio→valore — è
+> un moltiplicatore diretto e indipendente dallo score. Effetto verificato NON uniforme all'interno
+> del ruolo pesato (dettagli e numeri in MANUALE.md §7): alza "offri fino a" per i migliori candidati
+> del ruolo, ma può abbassarlo per quelli mediocri, perché la DP rivaluta anche le alternative dello
+> stesso ruolo con lo stesso peso — comportamento coerente con l'ottimizzazione, non un difetto.
 
 ---
 

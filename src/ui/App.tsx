@@ -3,11 +3,14 @@ import { useEffect, useRef, useState } from 'react';
 import { AuctionProvider, useAuctionStore } from './state/store.js';
 import { SetupLeague } from './screens/SetupLeague.js';
 import { PlayerList } from './screens/PlayerList.js';
-import { Auction } from './screens/Auction.js';
+import { AuctionDesk } from './screens/Auction.js';
+import { Managers } from './screens/Managers.js';
+import { MyRoster } from './screens/MyRoster.js';
+import { Prediction } from './screens/Prediction.js';
 import { DryRun } from './screens/DryRun.js';
 import { Report } from './screens/Report.js';
 
-type Screen = 'setup' | 'players' | 'auction' | 'dryrun' | 'report';
+type Screen = 'setup' | 'desk' | 'players' | 'managers' | 'myroster' | 'prediction' | 'dryrun' | 'report';
 
 // Backup automatico su file, oltre al salvataggio in localStorage (§4 del manuale): protegge dal
 // caso in cui sia il browser stesso a perdere i dati (dati cancellati, profilo corrotto, cambio
@@ -33,7 +36,7 @@ function downloadJSON(json: string, filename: string): void {
 
 function AppShell() {
   const { state, log, exportJSON, importJSON, resetAll, lastSavedAt } = useAuctionStore();
-  const [screen, setScreen] = useState<Screen>(state.config ? 'auction' : 'setup');
+  const [screen, setScreen] = useState<Screen>(state.config ? 'desk' : 'setup');
   const [importError, setImportError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -102,19 +105,44 @@ function AppShell() {
           <h1>FantAsta</h1>
         </div>
         <nav className="screen-nav">
-          <button type="button" className={screen === 'setup' ? 'active' : ''} onClick={() => setScreen('setup')}>
-            Setup
+          <button
+            type="button"
+            className={screen === 'desk' ? 'active' : ''}
+            onClick={() => setScreen('desk')}
+            disabled={!state.config}
+          >
+            Banco d'asta
           </button>
           <button type="button" className={screen === 'players' ? 'active' : ''} onClick={() => setScreen('players')}>
-            Lista giocatori
+            Pool giocatori
           </button>
           <button
             type="button"
-            className={screen === 'auction' ? 'active' : ''}
-            onClick={() => setScreen('auction')}
+            className={screen === 'managers' ? 'active' : ''}
+            onClick={() => setScreen('managers')}
             disabled={!state.config}
           >
-            Asta
+            Fantallenatori
+          </button>
+          <button
+            type="button"
+            className={screen === 'myroster' ? 'active' : ''}
+            onClick={() => setScreen('myroster')}
+            disabled={!state.config}
+          >
+            La mia rosa
+          </button>
+          <button
+            type="button"
+            className={screen === 'prediction' ? 'active' : ''}
+            onClick={() => setScreen('prediction')}
+            disabled={!state.config}
+          >
+            Predizione
+          </button>
+          <span className="nav-divider" />
+          <button type="button" className={screen === 'setup' ? 'active' : ''} onClick={() => setScreen('setup')}>
+            Setup
           </button>
           <button
             type="button"
@@ -162,8 +190,11 @@ function AppShell() {
       {importError && <p className="error-banner">{importError}</p>}
       <main>
         {screen === 'setup' && <SetupLeague onDone={() => setScreen('players')} />}
+        {screen === 'desk' && <AuctionDesk onOpenPrediction={() => setScreen('prediction')} />}
         {screen === 'players' && <PlayerList />}
-        {screen === 'auction' && <Auction />}
+        {screen === 'managers' && <Managers />}
+        {screen === 'myroster' && <MyRoster />}
+        {screen === 'prediction' && <Prediction />}
         {screen === 'dryrun' && <DryRun />}
         {screen === 'report' && <Report />}
       </main>

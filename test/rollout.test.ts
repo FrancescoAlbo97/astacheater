@@ -112,3 +112,17 @@ describe('determinismo (§13.10)', () => {
     expect(a).toEqual(b);
   });
 });
+
+describe('§11 Setup — peso per ruolo dentro il rollout', () => {
+  it('pesare di più il ruolo del target alza la mediana di p*, a parità di seed (confronto appaiato)', () => {
+    const neutral = runRollout(baseInput({ roleWeights: { P: 1, D: 1, C: 1, A: 1 } }), mulberry32(55));
+    const boosted = runRollout(baseInput({ roleWeights: { P: 1, D: 1, C: 1, A: 2 } }), mulberry32(55));
+    expect(boosted.median).toBeGreaterThanOrEqual(neutral.median);
+  });
+
+  it('roleWeights non fornito equivale a nessuna preferenza (fallback difensivo)', () => {
+    const withDefault = runRollout(baseInput(), mulberry32(9));
+    const withExplicitNeutral = runRollout(baseInput({ roleWeights: { P: 1, D: 1, C: 1, A: 1 } }), mulberry32(9));
+    expect(withDefault).toEqual(withExplicitNeutral);
+  });
+});

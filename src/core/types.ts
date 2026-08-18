@@ -50,6 +50,15 @@ export interface LeagueConfig {
   readonly primaryFormation: Formation;
   readonly minPrice: number;
   readonly risk: number;
+  /** §11 Setup — quanto TU valuti personalmente un punto guadagnato in un ruolo rispetto a un
+   * altro: un moltiplicatore sul TUO valore/DP, mai sul modello di prezzo (chi paga cosa resta una
+   * stima oggettiva di mercato, indipendente dalle tue preferenze). 1 = nessuna preferenza. */
+  readonly roleWeights: RoleWeights;
+  /** §6.2 Setup — quanto conta il tuo 1°, 2°, 3°... titolare di ogni ruolo (in ordine decrescente:
+   * il motore assume che riempire prima gli slot con peso più alto sia ottimo, §6.5). Personalizza
+   * la FORMA all'interno del ruolo — es. due portieri "titolari" comparabili invece di uno solo
+   * netto — non l'importanza del ruolo nel suo insieme (quella è `roleWeights` sopra). */
+  readonly slotWeights: SlotWeights;
 }
 
 // ---------------------------------------------------------------------------
@@ -69,6 +78,10 @@ export type ValueCurveConfig = Record<Role, ValueCurveParams>;
 
 /** Pesi di slot dentro un ruolo, ordine decrescente di valore (§6.2). */
 export type SlotWeights = Record<Role, readonly number[]>;
+
+/** Peso personale per ruolo (§11 Setup): moltiplicatore sul proprio `playerValue`, MAI sul modello
+ * di prezzo. 1 = nessuna preferenza (comportamento invariato). */
+export type RoleWeights = Record<Role, number>;
 
 // ---------------------------------------------------------------------------
 // Modello di prezzo (§6.3)
@@ -172,7 +185,20 @@ export type AuctionEvent =
       readonly note?: string;
     }
   | { readonly t: 'undo' }
-  | { readonly t: 'note'; readonly text: string };
+  | { readonly t: 'note'; readonly text: string }
+  /** Rimette un giocatore nel pool da estrarre, qualunque sia il suo stato attuale (venduto o
+   * segnato come non acquistato): copre sia "riproponi" (un non-acquistato torna in asta) sia il
+   * primo passo di una correzione ("rimetti in asta" un acquisto sbagliato, poi registra quello
+   * giusto con un normale evento `sale`) — stesso identico effetto sul reducer in entrambi i casi,
+   * non serve un evento dedicato per ciascuno. */
+  | { readonly t: 'revert'; readonly playerId: string }
+  /** Stella personale ("obiettivo"), indipendente dal punteggio: un giocatore può avere un
+   * punteggio senza essere un obiettivo prioritario, e viceversa. */
+  | { readonly t: 'player.target'; readonly playerId: string; readonly isTarget: boolean }
+  /** Ordine manuale dei giocatori di un manager in un ruolo (slot 1, 2, 3…): sostituisce sempre
+   * l'intero ordine per quel manager+ruolo, non un singolo spostamento — più semplice da applicare
+   * in modo puro, la UI calcola il nuovo array completo prima di inviare l'evento. */
+  | { readonly t: 'roster.slot'; readonly managerId: string; readonly role: Role; readonly order: readonly string[] };
 
 export interface ManualOverride {
   readonly maxBid: number;
@@ -187,6 +213,13 @@ export interface AuctionState {
   readonly unsold: readonly string[];
   readonly overrides: Readonly<Record<string, ManualOverride>>;
   readonly notes: readonly string[];
+  /** Giocatori segnati come obiettivo personale (§11, "Pool giocatori" e "Banco d'asta"): solo le
+   * chiavi con valore `true` sono presenti, l'assenza vale `false`. */
+  readonly targets: Readonly<Record<string, true>>;
+  /** Ordine manuale degli slot per manager+ruolo, chiave `${managerId}:${role}`. Solo i ruoli
+   * riordinati esplicitamente compaiono qui — l'ordine di default (chi non l'ha mai toccato) è
+   * l'ordine di acquisto, calcolato dai selettori in roster-organize.ts, non salvato qui. */
+  readonly slotOrder: Readonly<Record<string, readonly string[]>>;
   /** Log grezzo, esposto per undo/export; reduce() è comunque puro rispetto a questo. */
   readonly log: readonly AuctionEvent[];
 }

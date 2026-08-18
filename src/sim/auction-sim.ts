@@ -3,8 +3,9 @@
 // Math.random() non seminato, per permettere confronti appaiati (§10.1).
 
 import { ROLES, type LeagueConfig, type ManagerState, type Role, type SlotCounts } from '../core/types.js';
-import type { Manager, PriceModelConfig, RosterEntry, SlotWeights, ValueCurveConfig } from '../core/types.js';
-import { playerValue } from '../core/value-model.js';
+import type { Manager, PriceModelConfig, RiskConfig, RoleWeights, RosterEntry, SlotWeights, ValueCurveConfig } from '../core/types.js';
+import { DEFAULT_ROLE_WEIGHTS } from '../core/config.js';
+import { playerValue, riskAdjustedPlayerValue } from '../core/value-model.js';
 import { renormalize, type PoolPlayer } from '../core/price-model.js';
 import { maxSingleBid, totalSlotsRemaining } from '../core/ceiling.js';
 import { computeDuals, approxMaxBid, shouldRecalcDuals, type DualState } from '../core/base-policy.js';
@@ -30,6 +31,17 @@ export interface AuctionSimConfig {
    * mercato diventerebbe più aggressivo insieme a me e l'effetto sulla MIA competitività relativa
    * si annullerebbe quasi del tutto. Default a `valueCurves` se non fornite. */
   readonly myValueCurves?: ValueCurveConfig;
+  /** §6.8, meccanismo ALTERNATIVO a `myValueCurves`/`applyRiskToValueCurves`: propensione al
+   * rischio del manager 'rational' applicata via `riskAdjustedPlayerValue` (bonus/malus additivo
+   * di varianza) invece che distorcendo le curve. Serve principalmente agli script diagnostici per
+   * confrontare i due meccanismi sugli stessi identici seed — non pensato per essere usato insieme
+   * a `myValueCurves` risk-adjusted (si sommerebbero due approssimazioni dello stesso termine).
+   * Default 0 (neutro): `cli.ts bench/validate/calibrate` non lo impostano mai. */
+  readonly risk?: number;
+  readonly riskConfig?: RiskConfig;
+  /** Peso personale per ruolo (§11 Setup), applicato SOLO al manager/i con archetipo 'rational' —
+   * stessa scelta di `myValueCurves`/`risk` sopra. Default nessuna preferenza se non fornito. */
+  readonly roleWeights?: RoleWeights;
   readonly slotWeights: SlotWeights;
   readonly priceNoiseSigma: number;
   readonly dualsRecalcEveryDraws: number;
@@ -171,7 +183,9 @@ export function runAuctionSim(config: AuctionSimConfig): AuctionSimResult {
   // campo `myValueCurves` sopra): separata da `value()` così il rischio non "trapela" agli
   // archetipi non razionali, che devono restare una base di mercato stabile e indipendente.
   function myValue(role: Role, score: number): number {
-    return playerValue(role, score, { curves: config.myValueCurves ?? config.valueCurves });
+    const curves = config.myValueCurves ?? config.valueCurves;
+    const weight = (config.roleWeights ?? DEFAULT_ROLE_WEIGHTS)[role] ?? 1;
+    return riskAdjustedPlayerValue(role, score, config.risk ?? 0, { curves, riskConfig: config.riskConfig }) * weight;
   }
 
   // Granularità del budget usata SOLO per la DP approssimata dei duali (§6.7): il costo della

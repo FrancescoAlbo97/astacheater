@@ -218,6 +218,16 @@ export function combineRoles(gByRole: Record<Role, Float64Array>, budget: number
  * basso. Si cerca all'indietro il gradino più recente e si usa quel tasso come stima di λ,
  * evitando lo zero artificiale che altrimenti azzererebbe ogni offerta successiva
  * (`approxMaxBid`) indipendentemente da quanto un candidato valga più del suo sostituto.
+ *
+ * Inquadramento teorico (non necessario per usare la funzione, utile per chi la tocca): λ è quello
+ * che la programmazione lineare chiama "shadow price" (prezzo ombra) o variabile duale del vincolo
+ * di budget — quanto migliorerebbe l'obiettivo allentando quel vincolo di un'unità. Per problemi
+ * CONTINUI questa nozione è pulita e sempre ben definita. Per uno zaino DISCRETO come questo (un
+ * giocatore lo compri intero, non a frazioni), la dualità ha "buchi" noti in letteratura: il duale
+ * non è sempre unico né continuo nel budget. Il plateau dell'inviluppo gestito sopra è
+ * precisamente uno di questi buchi, non una stranezza di questa implementazione — la ricerca
+ * all'indietro è un modo pragmatico di scegliere UN valore ragionevole dentro l'intervallo di
+ * ambiguità, non "il" valore esatto che una teoria pulita garantirebbe.
  */
 export function marginalValue(h: Float64Array, budget: number): number {
   for (let b = budget; b > 0; b--) {

@@ -92,42 +92,33 @@ export function generateScenario(options: GenerateScenarioOptions): Scenario {
   return { players, scoresByManager };
 }
 
+/** Jitter di default per gli avversari simulati della prova a secco (§11): ±10 punti di score
+ * (su una scala 0–100), scelto insieme all'utente come compromesso fra "abbastanza divergente da
+ * dare a ciascun avversario obiettivi propri" e "non così tanto da rendere gli score reali
+ * irriconoscibili. Regolabile: vedi `buildRealScenario`. */
+export const DEFAULT_OPPONENT_SCORE_JITTER = 0.1;
+
 /**
  * Variante di generateScenario() per la "prova a secco" (§11, F12): usa il LISTONE REALE e i
  * punteggi REALI dell'utente (manager 0) invece di generare un pool sintetico. Gli avversari
- * vengono costruiti con lo stesso schema fattore-latente + rumore di generateScenario(), ma
- * applicato al RANGO dei punteggi reali dell'utente (che qui fa da "consenso") anziché a un
- * consenso sintetico indipendente: rho=1 ⇒ tutti vedono la mia stessa classifica, rho=0 ⇒ le
- * liste degli avversari sono scollegate dalla mia.
+ * partono DAI TUOI STESSI punteggi e li perturbano con un jitter additivo casuale, indipendente
+ * per ogni coppia (giocatore, avversario): `jitterFraction=0` ⇒ condividono esattamente la tua
+ * classifica; più alto ⇒ obiettivi via via più divergenti dai tuoi (§13, scelta esplicita
+ * dell'utente — preferita a un fattore di correlazione latente per ruolo perché più diretta da
+ * capire e da tarare: "parti dai miei valori, poi cambiali di un tot" invece di un coefficiente
+ * di correlazione astratto). Non è un modello di consenso latente come `generateScenario()`: qui
+ * non c'è un "vero" score oggettivo verso cui gli avversari convergono, solo la TUA opinione più
+ * rumore proprio di ciascuno — coerente con l'idea di "ognuno ha i suoi obiettivi".
  */
 export function buildRealScenario(
   players: readonly ScenarioPlayer[],
   myScores: ReadonlyMap<string, number>,
   numManagers: number,
-  rho: number,
+  jitterFraction: number,
   rng: Rng,
   fallbackScore = 30,
 ): Scenario {
-  const playersByRole: Record<Role, ScenarioPlayer[]> = { P: [], D: [], C: [], A: [] };
-  for (const p of players) playersByRole[p.role].push(p);
-
   const myScoreOf = (id: string): number => myScores.get(id) ?? fallbackScore;
-
-  // "Consenso" per la generazione degli avversari: rango dei MIEI punteggi reali, per ruolo (un
-  // punteggio più alto ⇒ rango migliore ⇒ latente più alto), non i punteggi grezzi (la formula
-  // del fattore latente è pensata per variabili ~N(0,1), non per punteggi 0–100 diretti).
-  const myRankZByRole: Record<Role, Map<string, number>> = { P: new Map(), D: new Map(), C: new Map(), A: new Map() };
-  for (const role of ROLES) {
-    const list = playersByRole[role];
-    const sorted = list.slice().sort((a, b) => myScoreOf(b.id) - myScoreOf(a.id));
-    const n = sorted.length;
-    for (let rank = 0; rank < n; rank++) {
-      // rimappa il rango su un quantile normale approssimato (via inversione della stessa curva
-      // di pool, poi su una scala z grezza ma monotona: sufficiente per pilotare il rumore).
-      const percentile = n > 1 ? rank / (n - 1) : 0.5;
-      myRankZByRole[role]!.set(sorted[rank]!.id, 1 - 2 * percentile); // 1 (migliore) .. -1 (peggiore)
-    }
-  }
 
   const scoresByManager: Map<string, number>[] = [];
   const mine = new Map<string, number>();
@@ -136,17 +127,9 @@ export function buildRealScenario(
 
   for (let m = 1; m < numManagers; m++) {
     const scores = new Map<string, number>();
-    for (const role of ROLES) {
-      const list = playersByRole[role];
-      const n = list.length;
-      const latentByPlayer = list.map((p) => {
-        const z = myRankZByRole[role]!.get(p.id) ?? 0;
-        return { id: p.id, latent: rho * z + Math.sqrt(Math.max(0, 1 - rho * rho)) * randNormal(rng) };
-      });
-      const order = latentByPlayer.slice().sort((a, b) => b.latent - a.latent);
-      for (let rank = 0; rank < n; rank++) {
-        scores.set(order[rank]!.id, poolScoreAtRank(rank, n));
-      }
+    for (const p of players) {
+      const jitter = (rng() * 2 - 1) * jitterFraction * 100;
+      scores.set(p.id, Math.min(100, Math.max(0, myScoreOf(p.id) + jitter)));
     }
     scoresByManager.push(scores);
   }

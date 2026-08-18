@@ -63,6 +63,12 @@ export interface AuctionStore {
    * primo. Solo per mostrare all'utente che l'autosave sta davvero funzionando (§4 del manuale: non
    * è mai l'unica garanzia, ma vale la pena renderla visibile invece di chiedere fiducia cieca). */
   readonly lastSavedAt: number | null;
+  /** Giocatore "in discussione" al momento, condiviso fra Banco d'asta e Predizione (§11): stato
+   * di navigazione della UI, non un fatto dell'asta — deliberatamente FUORI dal log degli eventi
+   * (non deve finire in export/import/undo), altrimenti "chi ho cercato per ultimo" diventerebbe
+   * un evento indistinguibile da una vendita vera nella cronologia. */
+  readonly activePlayerId: string | null;
+  setActivePlayerId(playerId: string | null): void;
 }
 
 const AuctionContext = createContext<AuctionStore | null>(null);
@@ -70,6 +76,7 @@ const AuctionContext = createContext<AuctionStore | null>(null);
 export function AuctionProvider({ children }: { children: ReactNode }) {
   const [log, setLog] = useState<AuctionEvent[]>(() => loadDevFixtureIfRequested() ?? loadLogFromStorage());
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
+  const [activePlayerId, setActivePlayerId] = useState<string | null>(null);
 
   useEffect(() => {
     saveLogToStorage(log);
@@ -112,6 +119,8 @@ export function AuctionProvider({ children }: { children: ReactNode }) {
     importJSON,
     resetAll,
     lastSavedAt,
+    activePlayerId,
+    setActivePlayerId,
   };
 
   return <AuctionContext.Provider value={value}>{children}</AuctionContext.Provider>;

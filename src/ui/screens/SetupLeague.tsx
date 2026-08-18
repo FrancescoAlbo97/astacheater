@@ -8,10 +8,13 @@ import {
   DEFAULT_NUM_MANAGERS,
   DEFAULT_PRIMARY_FORMATION,
   DEFAULT_RISK,
+  DEFAULT_ROLE_WEIGHTS,
   DEFAULT_SLOTS,
+  normalizeSlotWeights,
+  resizeSlotWeights,
 } from '../../core/config.js';
 import { ROLES } from '../../core/types.js';
-import type { Formation, LeagueConfig, Manager, Role } from '../../core/types.js';
+import type { Formation, LeagueConfig, Manager, Role, RoleWeights, SlotWeights } from '../../core/types.js';
 
 const ALL_FORMATIONS = DEFAULT_FORMATIONS;
 
@@ -52,6 +55,10 @@ export function SetupLeague({ onDone }: { onDone: () => void }) {
   const [primaryFormation, setPrimaryFormation] = useState<Formation>(existing?.primaryFormation ?? DEFAULT_PRIMARY_FORMATION);
   const [minPrice, setMinPrice] = useState(existing?.minPrice ?? DEFAULT_MIN_PRICE);
   const [risk, setRisk] = useState(existing?.risk ?? DEFAULT_RISK);
+  const [roleWeights, setRoleWeights] = useState<RoleWeights>(existing?.roleWeights ?? DEFAULT_ROLE_WEIGHTS);
+  const [slotWeights, setSlotWeights] = useState<SlotWeights>(() =>
+    normalizeSlotWeights(existing?.slotWeights, existing?.slots ?? DEFAULT_SLOTS),
+  );
 
   function updateNumManagers(n: number) {
     const clamped = Math.max(2, Math.min(20, n));
@@ -90,6 +97,8 @@ export function SetupLeague({ onDone }: { onDone: () => void }) {
       primaryFormation,
       minPrice,
       risk,
+      roleWeights,
+      slotWeights: normalizeSlotWeights(slotWeights, slots),
     };
     dispatch({ t: 'league.setup', config });
     onDone();
@@ -143,7 +152,11 @@ export function SetupLeague({ onDone }: { onDone: () => void }) {
                   type="number"
                   min={0}
                   value={slots[role]}
-                  onChange={(e) => setSlots((prev) => ({ ...prev, [role]: Number(e.target.value) }))}
+                  onChange={(e) => {
+                    const n = Math.max(0, Number(e.target.value));
+                    setSlots((prev) => ({ ...prev, [role]: n }));
+                    setSlotWeights((prev) => ({ ...prev, [role]: resizeSlotWeights(prev[role], n) }));
+                  }}
                 />
               </div>
             ))}
@@ -209,6 +222,76 @@ export function SetupLeague({ onDone }: { onDone: () => void }) {
           </div>
           <p className="hint">
             Negativo = avversione al rischio (punta alla media), positivo = propensione (punta ai top). Default +0.15.
+          </p>
+        </section>
+
+        <section className="card">
+          <h3>Peso per ruolo</h3>
+          <div className="slot-tiles">
+            {ROLES.map((role) => (
+              <div key={role} className="slot-tile">
+                <span className={`role-label role-text-${role}`}>{role}</span>
+                <input
+                  type="number"
+                  min={0.3}
+                  max={3}
+                  step={0.05}
+                  value={roleWeights[role]}
+                  onChange={(e) => setRoleWeights((prev) => ({ ...prev, [role]: Number(e.target.value) }))}
+                />
+              </div>
+            ))}
+          </div>
+          <p className="hint">
+            Quanto vale per TE un punto guadagnato in quel ruolo rispetto agli altri: 1 = nessuna preferenza. Non è
+            "paga di più chiunque giochi in quel ruolo": un peso più alto ti spinge a inseguire con più aggressività i
+            MIGLIORI candidati di quel ruolo, e a scartare ancora più volentieri quelli mediocri (visto che ora un
+            posto in quel ruolo vale di più, aspettare un'occasione migliore conviene di più). Più basso fa l'opposto.
+            Non cambia quanto ti aspetti che gli AVVERSARI paghino (tetto, prezzo atteso) — solo quanto SEI TU disposto
+            a pagare.
+          </p>
+        </section>
+
+        <section className="card">
+          <h3>Pesi di slot (titolari vs riserve)</h3>
+          <div className="slot-weight-rows">
+            {ROLES.map((role) => (
+              <div key={role} className="slot-weight-row">
+                <span className={`role-label role-text-${role}`}>{role}</span>
+                <div className="slot-weight-inputs">
+                  {slotWeights[role].map((w, i) => (
+                    <label key={i} className="slot-weight-input">
+                      <span className="slot-weight-rank">{i + 1}°</span>
+                      <input
+                        type="number"
+                        min={0}
+                        max={1}
+                        step={0.01}
+                        value={w}
+                        onChange={(e) => {
+                          const val = Math.max(0, Number(e.target.value));
+                          setSlotWeights((prev) => {
+                            const next = prev[role].slice();
+                            next[i] = val;
+                            return { ...prev, [role]: next };
+                          });
+                        }}
+                        onBlur={() =>
+                          setSlotWeights((prev) => ({ ...prev, [role]: prev[role].slice().sort((a, b) => b - a) }))
+                        }
+                      />
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="hint">
+            Quanto conta il tuo 1°, 2°, 3°... titolare di quel ruolo — diverso dal peso per ruolo sopra: questo
+            cambia la forma DENTRO al ruolo (quanti "titolari veri" ti aspetti), non l'importanza del ruolo nel suo
+            insieme. Utile ad esempio se giochi con due portieri a rotazione invece di uno solo netto: alza il peso
+            del 2° per avvicinarlo al 1°. Si riordinano da soli dal più alto al più basso quando esci dal campo: il
+            piano d'acquisto assume sempre che il tuo migliore in un ruolo valga più del secondo, e così via.
           </p>
         </section>
 

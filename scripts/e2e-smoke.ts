@@ -23,11 +23,14 @@ const FIXTURE_NAMES = readdirSync(FIXTURES_DIR)
   .sort();
 
 const TABS = [
+  { label: 'Banco-d-asta', text: "Banco d'asta" },
+  { label: 'Pool-giocatori', text: 'Pool giocatori' },
+  { label: 'Fantallenatori', text: 'Fantallenatori' },
+  { label: 'La-mia-rosa', text: 'La mia rosa' },
+  { label: 'Predizione', text: 'Predizione' },
   { label: 'Setup', text: 'Setup' },
-  { label: 'Lista giocatori', text: 'Lista giocatori' },
-  { label: 'Asta', text: 'Asta' },
-  { label: 'Prova a secco', text: 'Prova a secco' },
-  { label: 'Report asta', text: 'Report asta' },
+  { label: 'Prova-a-secco', text: 'Prova a secco' },
+  { label: 'Report-asta', text: 'Report asta' },
 ] as const;
 
 async function checkServerUp(): Promise<boolean> {
@@ -76,7 +79,7 @@ async function main() {
 
       // Sulla schermata Report, esercita anche "Genera report" se ci sono vendite da analizzare
       // (la fixture "00-vuota" non ne ha: il pulsante resta disabilitato, comportamento atteso).
-      if (tab.label === 'Report asta') {
+      if (tab.text === 'Report asta') {
         const generaButton = page.getByRole('button', { name: 'Genera report' });
         if (await generaButton.isEnabled().catch(() => false)) {
           await generaButton.click();
@@ -85,7 +88,7 @@ async function main() {
       }
       // Sulla schermata Prova a secco, avviala per esercitare anche quel percorso (200 iterazioni,
       // qualche secondo): utile soprattutto sulla fixture con più punteggi assegnati.
-      if (tab.label === 'Prova a secco') {
+      if (tab.text === 'Prova a secco') {
         const avviaButton = page.getByRole('button', { name: 'Avvia prova a secco' });
         if (await avviaButton.isEnabled().catch(() => false)) {
           await avviaButton.click();

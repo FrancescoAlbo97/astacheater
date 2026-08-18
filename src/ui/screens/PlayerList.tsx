@@ -1,6 +1,11 @@
-// §11 — Schermata "Lista giocatori": listone, filtri, punteggi, import CSV, aggiunta manuale.
+// §11 — Schermata "Pool giocatori": listone, filtri, punteggi, import CSV, aggiunta manuale, più le
+// tre viste sullo stato dell'asta (da estrarre / non acquistati / assegnati) che prima vivevano
+// solo nella testa dell'utente — "ogni volta che esce un giocatore, dove finisce".
 import { useMemo, useRef, useState } from 'react';
 import { useAuctionStore } from '../state/store.js';
+import { computeMarketSnapshot } from '../../core/engine.js';
+import { deriveManagerStates, getMyManagerId, getPool } from '../../core/state.js';
+import { managersWhoCanAfford } from '../../core/ceiling.js';
 import listoneData from '../../../data/listone.json';
 import { ROLES } from '../../core/types.js';
 import type { Player, Role } from '../../core/types.js';
@@ -61,20 +66,27 @@ function parseCsv(text: string): CsvRow[] {
   return out;
 }
 
+type PoolTab = 'da-estrarre' | 'non-acquistati' | 'assegnati';
+
 export function PlayerList() {
   const { state, dispatch } = useAuctionStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [tab, setTab] = useState<PoolTab>('da-estrarre');
   const [roleFilter, setRoleFilter] = useState<Role | 'ALL'>('ALL');
   const [teamFilter, setTeamFilter] = useState<string>('ALL');
   const [search, setSearch] = useState('');
   const [showUnscoredOnly, setShowUnscoredOnly] = useState(false);
+  const [targetsOnly, setTargetsOnly] = useState(false);
   const [manualName, setManualName] = useState('');
   const [manualTeam, setManualTeam] = useState('');
   const [manualRole, setManualRole] = useState<Role>('C');
   const [importMessage, setImportMessage] = useState<string | null>(null);
 
   const players = useMemo(() => Object.values(state.players), [state.players]);
+  const myManagerId = getMyManagerId(state.config);
+  const managers = useMemo(() => deriveManagerStates(state), [state]);
+  const snapshot = useMemo(() => computeMarketSnapshot(state), [state]);
 
   function loadDefaultListone() {
     dispatch({ t: 'players.load', players: LISTONE_PLAYERS });
@@ -82,15 +94,47 @@ export function PlayerList() {
 
   const teams = useMemo(() => Array.from(new Set(players.map((p) => p.team))).sort(), [players]);
 
+  const salesByPlayerId = useMemo(() => new Map(state.sales.map((s) => [s.playerId, s])), [state.sales]);
+  const unsoldSet = useMemo(() => new Set(state.unsold), [state.unsold]);
+
+  const basePlayers = useMemo(() => {
+    if (tab === 'da-estrarre') return getPool(state);
+    if (tab === 'non-acquistati') return players.filter((p) => unsoldSet.has(p.id));
+    return players.filter((p) => salesByPlayerId.has(p.id));
+  }, [tab, state, players, unsoldSet, salesByPlayerId]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return players
+    return basePlayers
       .filter((p) => roleFilter === 'ALL' || p.role === roleFilter)
       .filter((p) => teamFilter === 'ALL' || p.team === teamFilter)
       .filter((p) => !q || p.name.toLowerCase().includes(q) || p.team.toLowerCase().includes(q))
       .filter((p) => !showUnscoredOnly || state.scores[p.id]?.score === undefined)
-      .sort((a, b) => a.role.localeCompare(b.role) || a.name.localeCompare(b.name));
-  }, [players, roleFilter, teamFilter, search, showUnscoredOnly, state.scores]);
+      .filter((p) => !targetsOnly || state.targets[p.id])
+      .sort((a, b) => (state.scores[b.id]?.score ?? -1) - (state.scores[a.id]?.score ?? -1));
+  }, [basePlayers, roleFilter, teamFilter, search, showUnscoredOnly, targetsOnly, state.scores, state.targets]);
+
+  const roleTileStats = useMemo(() => {
+    if (roleFilter === 'ALL' || tab !== 'da-estrarre') return null;
+    const inPool = getPool(state).filter((p) => p.role === roleFilter);
+    const highScorers = inPool.filter((p) => (state.scores[p.id]?.score ?? 0) >= 75).length;
+    const slotsOpen = managers.reduce((s, m) => s + m.slotsRemaining[roleFilter], 0);
+    const soldOfRole = state.sales.filter((s) => state.players[s.playerId]?.role === roleFilter);
+    const avgPrice = soldOfRole.length > 0 ? soldOfRole.reduce((s, x) => s + x.price, 0) / soldOfRole.length : 0;
+    return { toDraw: inPool.length, highScorers, slotsOpen, avgPrice };
+  }, [roleFilter, tab, state, managers]);
+
+  function toggleTarget(playerId: string, isTarget: boolean) {
+    dispatch({ t: 'player.target', playerId, isTarget });
+  }
+
+  function requeue(playerId: string) {
+    dispatch({ t: 'revert', playerId });
+  }
+
+  function requeueAllUnsold() {
+    for (const playerId of state.unsold) dispatch({ t: 'revert', playerId });
+  }
 
   const countsByRole = useMemo(() => {
     const counts: Record<Role, { total: number; scored: number }> = {
@@ -218,7 +262,7 @@ export function PlayerList() {
   return (
     <div className="screen player-list-screen">
       <div className="player-list-header">
-        <h2>Lista giocatori</h2>
+        <h2>Pool giocatori</h2>
         <div className="counters">
           {ROLES.map((role) => (
             <span key={role} className="counter-chip">
@@ -229,6 +273,18 @@ export function PlayerList() {
             </span>
           ))}
         </div>
+      </div>
+
+      <div className="tab-switch">
+        <button type="button" className={tab === 'da-estrarre' ? 'active' : ''} onClick={() => setTab('da-estrarre')}>
+          Da estrarre <span className="mono">{getPool(state).length}</span>
+        </button>
+        <button type="button" className={tab === 'non-acquistati' ? 'active' : ''} onClick={() => setTab('non-acquistati')}>
+          Non acquistati <span className="mono">{state.unsold.length}</span>
+        </button>
+        <button type="button" className={tab === 'assegnati' ? 'active' : ''} onClick={() => setTab('assegnati')}>
+          Assegnati <span className="mono">{state.sales.length}</span>
+        </button>
       </div>
 
       <section className="filters">
@@ -265,16 +321,58 @@ export function PlayerList() {
             </option>
           ))}
         </select>
-        <label className={showUnscoredOnly ? 'checkbox-label active' : 'checkbox-label'}>
-          <input
-            type="checkbox"
-            checked={showUnscoredOnly}
-            onChange={(e) => setShowUnscoredOnly(e.target.checked)}
-          />
-          solo senza punteggio
+        {tab === 'da-estrarre' && (
+          <label className={showUnscoredOnly ? 'checkbox-label active' : 'checkbox-label'}>
+            <input type="checkbox" checked={showUnscoredOnly} onChange={(e) => setShowUnscoredOnly(e.target.checked)} />
+            solo senza punteggio
+          </label>
+        )}
+        <label className={targetsOnly ? 'checkbox-label active' : 'checkbox-label'}>
+          <input type="checkbox" checked={targetsOnly} onChange={(e) => setTargetsOnly(e.target.checked)} />
+          ★ solo i miei obiettivi
         </label>
       </section>
 
+      {roleTileStats && (
+        <div className="dry-run-stat-grid">
+          <div className="dry-run-stat-card">
+            <div className="stat-label">{roleFilter} da estrarre</div>
+            <div className="stat-value">{roleTileStats.toDraw}</div>
+          </div>
+          <div className="dry-run-stat-card warn-card">
+            <div className="stat-label">Sopra 75 ancora in pool</div>
+            <div className="stat-value">{roleTileStats.highScorers}</div>
+          </div>
+          <div className="dry-run-stat-card">
+            <div className="stat-label">Slot {roleFilter} aperti in lega</div>
+            <div className="stat-value">{roleTileStats.slotsOpen}</div>
+          </div>
+          <div className="dry-run-stat-card">
+            <div className="stat-label">Prezzo medio {roleFilter} finora</div>
+            <div className="stat-value">{roleTileStats.avgPrice.toFixed(0)}</div>
+          </div>
+        </div>
+      )}
+
+      {tab === 'non-acquistati' && state.unsold.length > 0 && (
+        <section className="card unsold-banner">
+          <div>
+            <p className="eyebrow" style={{ color: 'var(--warn)' }}>
+              Usciti e rimasti senza acquirente
+            </p>
+            <p className="hint">
+              In molte leghe questi tornano in asta a fine giro: qui restano pronti da riproporre, spesso le occasioni
+              migliori quando gli avversari hanno finito i crediti.
+            </p>
+          </div>
+          <button type="button" className="primary-button" onClick={requeueAllUnsold}>
+            Rimetti tutti in asta
+          </button>
+        </section>
+      )}
+
+      {tab === 'da-estrarre' && (
+      <>
       <section className="card">
         <h3>Importa CSV</h3>
         <p className="hint">
@@ -332,63 +430,136 @@ export function PlayerList() {
           </button>
         </form>
       </section>
+      </>
+      )}
 
       <div className="table-scroll">
         <table className="player-table">
           <thead>
             <tr>
+              <th>★</th>
               <th>Ruolo</th>
               <th>Nome</th>
               <th>Squadra</th>
-              <th>Punteggio 0–100</th>
-              <th>Titolarità</th>
+              <th>{tab === 'da-estrarre' ? 'Punteggio 0–100' : 'Score'}</th>
+              {tab === 'da-estrarre' && <th>Titolarità</th>}
+              {tab === 'da-estrarre' && (
+                <>
+                  <th>p̂</th>
+                  <th>Chi può permetterselo</th>
+                </>
+              )}
+              {tab === 'non-acquistati' && <th></th>}
+              {tab === 'assegnati' && (
+                <>
+                  <th>Assegnato a</th>
+                  <th>Prezzo</th>
+                </>
+              )}
             </tr>
           </thead>
           <tbody>
             {filtered.map((p) => {
               const scoreEntry = state.scores[p.id];
               const score = scoreEntry?.score;
+              const isTarget = Boolean(state.targets[p.id]);
+              const sale = salesByPlayerId.get(p.id);
+              const pHat = snapshot.pHat.get(p.id);
+              const affordable = tab === 'da-estrarre' ? managersWhoCanAfford(managers, p.role, pHat ?? 1) : [];
               return (
                 <tr key={p.id}>
+                  <td>
+                    <button
+                      type="button"
+                      className={isTarget ? 'star-toggle active' : 'star-toggle'}
+                      onClick={() => toggleTarget(p.id, !isTarget)}
+                      title={isTarget ? 'Togli dagli obiettivi' : 'Segna come obiettivo'}
+                    >
+                      ★
+                    </button>
+                  </td>
                   <td>
                     <span className={`role-tag role-${p.role}`}>{p.role}</span>
                   </td>
                   <td>{p.name}</td>
                   <td className="dim">{p.team}</td>
                   <td>
-                    <div className="score-cell">
-                      <div className="score-bar-track">
-                        <div className="score-bar-fill" style={{ width: `${score ?? 0}%` }} />
+                    {tab === 'da-estrarre' ? (
+                      <div className="score-cell">
+                        <div className="score-bar-track">
+                          <div className="score-bar-fill" style={{ width: `${score ?? 0}%` }} />
+                        </div>
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          value={score ?? ''}
+                          onChange={(e) => setScore(p.id, Number(e.target.value))}
+                          className="score-input"
+                        />
                       </div>
+                    ) : (
+                      <span className="mono">{score?.toFixed(0) ?? '—'}</span>
+                    )}
+                  </td>
+                  {tab === 'da-estrarre' && (
+                    <td>
                       <input
                         type="number"
                         min={0}
-                        max={100}
-                        value={score ?? ''}
-                        onChange={(e) => setScore(p.id, Number(e.target.value))}
-                        className="score-input"
+                        max={1}
+                        step={0.05}
+                        value={scoreEntry?.ptOverride ?? ''}
+                        placeholder={scoreEntry ? 'auto' : '—'}
+                        disabled={scoreEntry === undefined}
+                        onChange={(e) => {
+                          const raw = e.target.value;
+                          setPtOverride(p.id, raw === '' ? null : Number(raw));
+                        }}
+                        className="pt-override-input"
                       />
-                    </div>
-                  </td>
-                  <td>
-                    <input
-                      type="number"
-                      min={0}
-                      max={1}
-                      step={0.05}
-                      value={scoreEntry?.ptOverride ?? ''}
-                      placeholder={scoreEntry ? 'auto' : '—'}
-                      disabled={scoreEntry === undefined}
-                      onChange={(e) => {
-                        const raw = e.target.value;
-                        setPtOverride(p.id, raw === '' ? null : Number(raw));
-                      }}
-                      className="pt-override-input"
-                    />
-                  </td>
+                    </td>
+                  )}
+                  {tab === 'da-estrarre' && (
+                    <>
+                      <td className="mono">{pHat !== undefined ? pHat.toFixed(0) : '—'}</td>
+                      <td className="dim small">
+                        {affordable.length === 0
+                          ? '—'
+                          : affordable.length === managers.length
+                            ? 'tutti'
+                            : affordable.length >= managers.length - 1
+                              ? `${affordable.length} manager su ${managers.length}`
+                              : affordable
+                                  .slice(0, 3)
+                                  .map((m) => (m.manager.id === myManagerId ? 'tu' : m.manager.name))
+                                  .join(' · ')}
+                      </td>
+                    </>
+                  )}
+                  {tab === 'non-acquistati' && (
+                    <td>
+                      <button type="button" className="link-button" onClick={() => requeue(p.id)}>
+                        Riproponi
+                      </button>
+                    </td>
+                  )}
+                  {tab === 'assegnati' && sale && (
+                    <>
+                      <td>{managers.find((m) => m.manager.id === sale.managerId)?.manager.isMe ? 'Io' : managers.find((m) => m.manager.id === sale.managerId)?.manager.name}</td>
+                      <td className="mono strong">{sale.price}</td>
+                    </>
+                  )}
                 </tr>
               );
             })}
+            {filtered.length === 0 && (
+              <tr>
+                <td colSpan={9} className="hint" style={{ padding: '1rem' }}>
+                  Nessun giocatore in questa vista con i filtri attuali.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

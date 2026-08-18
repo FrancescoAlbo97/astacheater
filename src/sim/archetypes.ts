@@ -4,7 +4,7 @@
 // (§6.7). `rational` è gestito a parte in auction-sim.ts: usa il motore vero e proprio.
 
 import type { Role } from '../core/types.js';
-import type { Rng } from '../core/rng.js';
+import { shuffle, type Rng } from '../core/rng.js';
 
 export type ArchetypeId =
   | 'rational'
@@ -21,6 +21,45 @@ export type ArchetypeId =
   | 'ratio'
   | 'fixedSplit'
   | 'targetChaser';
+
+/** Le 6 "irrazionalità sfruttabili" usate per gli avversari simulati della prova a secco/fixture
+ * (§9.2) — esclude 'rational' (gestito a parte) e i 3 benchmark naive di §10.1 (non pensati per
+ * essere avversari plausibili, solo termini di paragone per l'ablazione). */
+export const EXPLOITABLE_ARCHETYPES: readonly ArchetypeId[] = [
+  'earlyEnthusiast',
+  'latePanicker',
+  'fanboy',
+  'roleCapper',
+  'anchored',
+  'budgetSplitter',
+];
+
+/** Quota di avversari simulati genuinemente razionali (oltre a "me", manager 0, sempre razionale):
+ * un mercato TUTTO irrazionale è tanto irrealistico quanto uno tutto razionale — in una lega vera
+ * qualcuno gioca bene. ~20% è un compromesso di partenza, non una taratura misurata; regolabile. */
+export const DEFAULT_RATIONAL_OPPONENT_FRACTION = 0.2;
+
+/**
+ * Mix di archetipi per un'asta simulata: manager 0 ("me") sempre 'rational', gli altri
+ * `numManagers - 1` avversari sono una quota `rationalFraction` di 'rational' e il resto pescato
+ * (con ripetizione, mescolato) da `EXPLOITABLE_ARCHETYPES` — MAI un'assegnazione fissa per "posto"
+ * (§9.2/§11: se il manager 2 fosse sempre earlyEnthusiast, ogni asta simulata ripeterebbe
+ * identicamente lo stesso bias strutturale invece di variare come farebbe una lega vera).
+ * Deterministico dato `rng`: stesso seed ⇒ stesso mix (§13.10).
+ */
+export function buildRandomArchetypeMix(
+  numManagers: number,
+  rng: Rng,
+  rationalFraction: number = DEFAULT_RATIONAL_OPPONENT_FRACTION,
+): ArchetypeId[] {
+  const numOpponents = numManagers - 1;
+  const numRationalOpponents = Math.round(numOpponents * rationalFraction);
+  const opponentPool: ArchetypeId[] = [];
+  for (let i = 0; i < numOpponents; i++) {
+    opponentPool.push(i < numRationalOpponents ? 'rational' : EXPLOITABLE_ARCHETYPES[i % EXPLOITABLE_ARCHETYPES.length]!);
+  }
+  return ['rational', ...shuffle(opponentPool, rng)];
+}
 
 export interface ArchetypeContext {
   readonly playerId: string;

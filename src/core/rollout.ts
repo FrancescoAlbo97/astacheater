@@ -12,13 +12,13 @@
 // la vera psicologia di ciascun avversario.
 
 import { ROLES } from './types.js';
-import type { ManagerState, Role, RolloutConfig, RolloutResult, SlotCounts, SlotWeights, ValueCurveConfig } from './types.js';
-import { DEFAULT_VALUE_CURVES } from './config.js';
+import type { ManagerState, Role, RoleWeights, RolloutConfig, RolloutResult, SlotCounts, SlotWeights, ValueCurveConfig } from './types.js';
+import { DEFAULT_ROLE_WEIGHTS, DEFAULT_VALUE_CURVES } from './config.js';
 import { maxSingleBid } from './ceiling.js';
 import { computeDuals, approxMaxBid, shouldRecalcDuals, type DualState } from './base-policy.js';
 import type { RoleDPInput, DPCandidate } from './plan-dp.js';
 import { surrogateRosterValue, type SurrogatePlayerInput } from './value-surrogate.js';
-import { playerValue, fantamedia } from './value-model.js';
+import { fantamedia, roleWeightedPlayerValue } from './value-model.js';
 import { randNormal, shuffle, type Rng } from './rng.js';
 
 const DUALS_BUDGET_GRANULARITY = 20;
@@ -55,6 +55,8 @@ export interface RolloutInput {
   /** Curve di valore da usare (§6.1), già corrette per il rischio configurato (§6.8) a monte —
    * default alle curve base se non fornite. */
   readonly valueCurves?: ValueCurveConfig;
+  /** Peso personale per ruolo (§11 Setup) — default nessuna preferenza se non fornito. */
+  readonly roleWeights?: RoleWeights;
 }
 
 interface SimManagerState {
@@ -99,24 +101,29 @@ function buildMyRoleInputs(
   leagueSlots: SlotCounts,
   slotWeights: SlotWeights,
   valueCurves: ValueCurveConfig,
+  roleWeights: RoleWeights,
 ): Record<Role, RoleDPInput> {
   const roleInputs = {} as Record<Role, RoleDPInput>;
   for (const role of ROLES) {
     const forced: DPCandidate[] = me.ownedScores[role]!.map((score) => ({
-      v: playerValue(role, score, { curves: valueCurves }),
+      v: roleWeightedPlayerValue(role, score, roleWeights, { curves: valueCurves }),
       price: 0,
       forced: true,
     }));
     const rolePool = pool.filter((p) => p.role === role);
     const optional: DPCandidate[] = rolePool
-      .map((p) => ({ v: playerValue(role, p.myScore, { curves: valueCurves }), price: Math.max(1, p.pHat), forced: false }))
+      .map((p) => ({
+        v: roleWeightedPlayerValue(role, p.myScore, roleWeights, { curves: valueCurves }),
+        price: Math.max(1, p.pHat),
+        forced: false,
+      }))
       .sort((a, b) => b.v - a.v)
       .slice(0, 20);
     const scoresSorted = rolePool.map((p) => p.myScore).sort((a, b) => a - b);
     const p20 = scoresSorted[Math.floor(0.2 * scoresSorted.length)] ?? 30;
     roleInputs[role] = {
       candidates: [...forced, ...optional],
-      fillerValue: playerValue(role, p20, { curves: valueCurves }),
+      fillerValue: roleWeightedPlayerValue(role, p20, roleWeights, { curves: valueCurves }),
       slotCount: leagueSlots[role],
       weights: slotWeights[role],
     };
@@ -142,6 +149,7 @@ function simulateContinuation(
 
   const me = managers.get(input.myManagerId)!;
   const valueCurves = input.valueCurves ?? DEFAULT_VALUE_CURVES;
+  const roleWeights = input.roleWeights ?? DEFAULT_ROLE_WEIGHTS;
   let dualsCache: DualState | null = null;
   let drawsSinceRecalc = Infinity;
   let creditsAtLastRecalc = me.credits;
@@ -181,14 +189,14 @@ function simulateContinuation(
       );
       if (needsRecalc || dualsCache === null) {
         const poolFromHere = order.slice(i + 1);
-        const roleInputs = buildMyRoleInputs(me, poolFromHere, input.leagueSlots, input.slotWeights, valueCurves);
+        const roleInputs = buildMyRoleInputs(me, poolFromHere, input.leagueSlots, input.slotWeights, valueCurves, roleWeights);
         const scaledBudget = Math.max(1, Math.floor(me.credits / DUALS_BUDGET_GRANULARITY));
         const duals = computeDuals({ budget: scaledBudget, roleInputs, ownedCountByRole: me.ownedByRole });
         dualsCache = { ...duals, lambda: duals.lambda / DUALS_BUDGET_GRANULARITY };
         drawsSinceRecalc = 0;
         creditsAtLastRecalc = me.credits;
       }
-      const v = playerValue(role, player.myScore, { curves: valueCurves });
+      const v = roleWeightedPlayerValue(role, player.myScore, roleWeights, { curves: valueCurves });
       myBid = Math.max(input.minPrice, Math.min(approxMaxBid(v, role, dualsCache, myCap), myCap));
     }
 
@@ -224,10 +232,12 @@ function simulateContinuation(
   const playersByRole = {} as Record<Role, SurrogatePlayerInput[]>;
   for (const role of ROLES) {
     const owned = me.ownedScores[role]!.map((score) => ({
-      rankValue: playerValue(role, score, { curves: valueCurves }),
+      rankValue: roleWeightedPlayerValue(role, score, roleWeights, { curves: valueCurves }),
+      // `potential` resta neutro rispetto al peso di ruolo: è la stima di verità-a-terra usata dal
+      // confronto vinco/perdo, non la preferenza — stesso principio già seguito per il rischio.
       potential: 38 * fantamedia(role, score, valueCurves),
     }));
-    const fillerV = playerValue(role, fillerScoreByRole[role], { curves: valueCurves });
+    const fillerV = roleWeightedPlayerValue(role, fillerScoreByRole[role], roleWeights, { curves: valueCurves });
     const fillerPotential = 38 * fantamedia(role, fillerScoreByRole[role], valueCurves);
     const missing = Math.max(0, input.leagueSlots[role] - owned.length);
     const padding = Array.from({ length: missing }, () => ({ rankValue: fillerV, potential: fillerPotential }));

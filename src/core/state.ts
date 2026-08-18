@@ -24,8 +24,14 @@ export const initialAuctionState: AuctionState = {
   unsold: [],
   overrides: {},
   notes: [],
+  targets: {},
+  slotOrder: {},
   log: [],
 };
+
+export function slotOrderKey(managerId: string, role: Role): string {
+  return `${managerId}:${role}`;
+}
 
 /** Risolve gli 'undo': ognuno cancella l'ultimo evento applicato non ancora cancellato. Esportata
  * perché chi deve rigiocare il log un evento alla volta (es. il report post-asta) ha bisogno della
@@ -80,6 +86,28 @@ function applyEvent(state: AuctionState, event: AuctionEvent): AuctionState {
 
     case 'note':
       return { ...state, notes: [...state.notes, event.text] };
+
+    case 'revert':
+      return {
+        ...state,
+        sales: state.sales.filter((s) => s.playerId !== event.playerId),
+        unsold: state.unsold.filter((id) => id !== event.playerId),
+      };
+
+    case 'player.target': {
+      if (event.isTarget) {
+        return { ...state, targets: { ...state.targets, [event.playerId]: true } };
+      }
+      const targets = { ...state.targets };
+      delete targets[event.playerId];
+      return { ...state, targets };
+    }
+
+    case 'roster.slot':
+      return {
+        ...state,
+        slotOrder: { ...state.slotOrder, [slotOrderKey(event.managerId, event.role)]: event.order },
+      };
 
     case 'undo':
       // Non dovrebbe mai arrivare qui: resolveUndos() filtra gli 'undo' prima del fold.
