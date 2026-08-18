@@ -386,7 +386,7 @@ aggiornato a ridosso della tua asta**, non usato così com'è se l'asta è fra s
 Per chi vuole guardare sotto il cofano o rifare le verifiche:
 
 ```bash
-npm test                          # tutti i test automatici (240, dovrebbero passare tutti)
+npm test                          # tutti i test automatici (242, dovrebbero passare tutti)
 npm run typecheck                 # controllo dei tipi TypeScript
 npm run build                     # produce dist/fantasta.html
 npx tsx src/sim/cli.ts bench 200        # statistiche di realismo su 200 aste simulate
@@ -403,6 +403,35 @@ bruta sui calcoli esatti, controlli numerici sulle formule, ecc.). Diversi bug r
 trovati e corretti durante lo sviluppo (vedi sotto); **alcuni limiti restano documentati e non
 ancora risolti del tutto**, per trasparenza:
 
+- **Bug reale nel modello di prezzo, corretto — trovato da un'asta vera dell'utente, non da un
+  test**. Segnalato così: "il portiere del Napoli, score 83, rimasto libero dopo che i 5 migliori
+  erano già stati venduti a poco (10-40 crediti), mi risultava 'offri fino a 118' — non ha senso."
+  Riprodotto esattamente con l'export JSON di quell'asta: la regressione online che stima il
+  prezzo dal proprio ruolo (§6.3.3) aveva ricevuto solo 6 vendite di portieri, tutte concentrate in
+  una fascia di punteggio strettissima (86-95 su 100) e con prezzi bassi e NON correlati allo
+  score (il più alto in punteggio, 94, era stato il più economico, 10 crediti). Su un campione così
+  piccolo e stretto, la pendenza grezza della regressione usciva **negativa** (-9.3): "punteggio
+  più alto, prezzo più basso". Poiché pendenza e intercetta sono statisticamente legate quando lo
+  score varia poco nel campione, l'intercetta esplodeva per compensare (equivalente in scala
+  lineare a un prezzo base di oltre 100.000 crediti), e questo valore assurdo sopravviveva persino
+  alla miscela con il prior di default (che pesa per il 71% quando le osservazioni sono poche) —
+  risultato: un prezzo PREVISTO di 313 crediti per uno score di 95 e ancora 106 per uno score di
+  50, l'esatto contrario di quello che un prezzo dovrebbe fare (§6.3.1 definisce θ_ρ — quanto il
+  prezzo cresce con lo score — come sempre ≥ 0 per costruzione: non può mai scendere). **Corretto**
+  impedendo alla pendenza grezza di uscire negativa (si riporta a 0 — "nessuna relazione affidabile
+  in questo campione", non "il prezzo scende con lo score" — e si ricalcola l'intercetta in modo
+  coerente come media pesata dei prezzi osservati, non lasciando l'estrapolazione distorta).
+  Verificato sui numeri reali di quell'asta: "offri fino a" per quel portiere è sceso da 118 a 87.
+  **Non è però la soluzione completa, e va detto chiaramente**: anche corretto il segno, il prezzo
+  resta più alto di quanto i 6 prezzi realmente osservati (10-40 crediti) suggerirebbero, perché con
+  così poche osservazioni il modello si affida ancora per il 71% al prior teorico di ruolo (θ_P=7.1
+  di default) — un valore calcolato dalla specifica in astratto, mai validato contro dati reali di
+  un'asta vera (stesso problema, mai risolto, della ricalibrazione self-play F7 già documentata più
+  sotto). Se il tuo campionato tratta i portieri sistematicamente "a poco" rispetto a quel prior,
+  l'"offri fino a" resterà probabilmente più alto del dovuto finché non ci sono più vendite di
+  portieri a punteggi più vari (non solo quelli fra 86 e 95) a correggere la stima. Test di
+  regressione con i numeri reali di questa scoperta in `test/price-model.test.ts` (incluso un test
+  property-based che verifica che la pendenza non sia mai negativa, per qualunque campione).
 - **Bug nel calcolo live, corretto**: se il TUO ruolo era già completamente pieno (tutti gli slot
   occupati, es. hai già 8/8 difensori) e valutavi un nuovo giocatore dello stesso ruolo con un
   punteggio più alto del tuo peggiore già posseduto, l'app suggeriva un "offri fino a" positivo

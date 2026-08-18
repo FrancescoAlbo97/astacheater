@@ -150,11 +150,13 @@ interface WeightedFit {
   readonly b: number; // theta
   readonly sigma2: number;
   readonly sxx: number;
+  readonly meanX: number;
+  readonly meanY: number;
 }
 
 function weightedOLS(xs: readonly number[], ys: readonly number[], weights: readonly number[]): WeightedFit {
   const sumW = weights.reduce((s, w) => s + w, 0);
-  if (sumW < 1e-9) return { a: ys[0] ?? 0, b: 0, sigma2: 0, sxx: 0 };
+  if (sumW < 1e-9) return { a: ys[0] ?? 0, b: 0, sigma2: 0, sxx: 0, meanX: 0, meanY: ys[0] ?? 0 };
   const meanX = xs.reduce((s, x, i) => s + weights[i]! * x, 0) / sumW;
   const meanY = ys.reduce((s, y, i) => s + weights[i]! * y, 0) / sumW;
   let sxx = 0;
@@ -172,7 +174,7 @@ function weightedOLS(xs: readonly number[], ys: readonly number[], weights: read
     sse += weights[i]! * resid * resid;
   }
   const sigma2 = sse / Math.max(1, sumW - 2);
-  return { a, b, sigma2, sxx };
+  return { a, b, sigma2, sxx, meanX, meanY };
 }
 
 /**
@@ -217,7 +219,7 @@ export function fitOnlinePriceCurves(
     const recencyWeights = obs.map((o) => Math.pow(0.5, (maxOrder - o.order) / config.halfLifeObservations));
 
     let huberWeights = obs.map(() => 1);
-    let fit: WeightedFit = { a: Math.log(prior.A), b: prior.theta, sigma2: 0, sxx: 0 };
+    let fit: WeightedFit = { a: Math.log(prior.A), b: prior.theta, sigma2: 0, sxx: 0, meanX: 0, meanY: Math.log(prior.A) };
     for (let iter = 0; iter < 5; iter++) {
       const combined = recencyWeights.map((w, i) => w * huberWeights[i]!);
       fit = weightedOLS(xs, ys, combined);
@@ -226,6 +228,23 @@ export function fitOnlinePriceCurves(
         const absResid = Math.abs(resid);
         return absResid <= config.huberDelta ? 1 : config.huberDelta / absResid;
       });
+    }
+
+    // §6.3.1 definisce θ_ρ come rapporto p_top/p_marg (sempre ≥ 1): un prezzo che DIMINUISCE con
+    // lo score non ha senso in questo modello per costruzione. Su un campione piccolo e/o con uno
+    // score range stretto (es. sei portieri tutti fra 86 e 95 punti) la pendenza grezza può uscire
+    // negativa per puro rumore — e siccome pendenza e intercetta sono correlate quando lo score
+    // range è stretto, l'intercetta compensa esplodendo verso l'alto per far tornare i punti
+    // osservati, restando poi enorme quando extrapolata a score più bassi (bug reale trovato su
+    // un'asta vera: 6 portieri fra score 86-95 con prezzi rumorosi 10-40 producevano un prezzo
+    // PREVISTO di 313 per score 95 e ancora 106 per score 50 — l'esatto opposto del prior, che
+    // resta comunque a malapena scalfito dal ridge perché l'intercetta estrema domina la media
+    // pesata). Si riporta la pendenza a 0 (nessuna relazione affidabile score→prezzo in questo
+    // campione, non "il prezzo scende con lo score") e si ricalcola l'intercetta in modo coerente
+    // come media pesata di log(prezzo) — non semplicemente troncando la pendenza tenendo la vecchia
+    // intercetta, che lascerebbe l'estrapolazione comunque distorta.
+    if (fit.b < 0) {
+      fit = { ...fit, a: fit.meanY, b: 0 };
     }
 
     const n = obs.length;

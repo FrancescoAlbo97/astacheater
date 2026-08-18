@@ -2,6 +2,7 @@
 // DoD F5: renormalize() soddisfa l'asserzione di §6.3.2 in 200 stati casuali.
 // DoD F8: MAE su p̂ scende monotonamente con n; un prezzo anomalo (10×) sposta θ_ρ di < 5%.
 import { describe, expect, it } from 'vitest';
+import fc from 'fast-check';
 import { DEFAULT_PRICE_CURVES, DEFAULT_PRICE_MODEL_CONFIG, DEFAULT_RESERVE_FRACTION } from '../src/core/config.js';
 import {
   capByResidualDemand,
@@ -178,6 +179,52 @@ describe('§6.3.3 / F8 fitOnlinePriceCurves', () => {
       if (n < 25) expect(fitted.confidence).toBe('media');
       else expect(fitted.confidence).toBe('alta');
     }
+  });
+
+  it('bug reale trovato su un\'asta vera: poche vendite in una fascia di score STRETTA e alta, con prezzi rumorosi/non monotoni, non deve invertire il segno del prezzo (θ < 0)', () => {
+    // Sei portieri reali, tutti fra score 86 e 95 (fascia larga solo 9 punti su 100), prezzi
+    // bassi e NON correlati con lo score (il più alto in score, 94, è il più economico, 10 cr).
+    // Prima del fix: la pendenza grezza usciva negativa (-9.3), l'intercetta esplodeva per
+    // compensare (fino a 11.66 in scala log) e sopravviveva al ridge verso il prior, producendo
+    // un prezzo PREVISTO di 313 crediti per score 95 e ancora 106 per score 50 — l'esatto
+    // contrario del significato di θ_ρ (§6.3.1: derivato da p_top/p_marg, sempre ≥ 1 per
+    // definizione). Vedi anche `test/engine.test.ts` per l'effetto end-to-end su "offri fino a".
+    const realGoalkeeperSales: SaleObservation[] = [
+      { role: 'P', score: 92, price: 30, order: 0 },
+      { role: 'P', score: 95, price: 20, order: 1 },
+      { role: 'P', score: 92, price: 20, order: 2 },
+      { role: 'P', score: 94, price: 10, order: 3 },
+      { role: 'P', score: 90, price: 40, order: 4 },
+      { role: 'P', score: 86, price: 30, order: 5 },
+    ];
+    const fitted = fitOnlinePriceCurves(realGoalkeeperSales, DEFAULT_PRICE_CURVES, DEFAULT_PRICE_MODEL_CONFIG).P;
+
+    expect(fitted.theta).toBeGreaterThanOrEqual(0);
+
+    // Il prezzo previsto dalla curva deve restare (debolmente) crescente in score: MAI il
+    // contrario, qualunque sia il rumore nel campione osservato.
+    const priceAt = (score: number) => fitted.A * Math.exp((fitted.theta * score) / 100);
+    expect(priceAt(95)).toBeGreaterThanOrEqual(priceAt(50));
+    expect(priceAt(50)).toBeGreaterThanOrEqual(priceAt(10));
+  });
+
+  it('la pendenza grezza non è mai negativa nella curva risultante, per qualunque campione piccolo e rumoroso (property-based)', () => {
+    fc.assert(
+      fc.property(
+        fc.array(
+          fc.record({
+            score: fc.double({ min: 0, max: 100, noNaN: true }),
+            price: fc.double({ min: 1, max: 500, noNaN: true }),
+          }),
+          { minLength: 5, maxLength: 15 },
+        ),
+        (points) => {
+          const obs: SaleObservation[] = points.map((p, i) => ({ role: 'P', score: p.score, price: p.price, order: i }));
+          const fitted = fitOnlinePriceCurves(obs, DEFAULT_PRICE_CURVES, DEFAULT_PRICE_MODEL_CONFIG).P;
+          return fitted.theta >= 0;
+        },
+      ),
+    );
   });
 });
 

@@ -6,7 +6,7 @@ piano di lavoro per fasi, test e criteri di accettazione numerici.
 
 **Lingua del codice:** identificatori e commenti in inglese, testi della UI in italiano.
 
-**Stato del progetto:** tutte le 13 fasi di §12 sono state completate e collaudate (240 test
+**Stato del progetto:** tutte le 13 fasi di §12 sono state completate e collaudate (242 test
 automatici). Il file eseguibile finale è `dist/fantasta.html`. Le sezioni sottostanti restano la
 specifica tecnica di riferimento per chi estende o rivede il codice; questa guida in cima serve a
 chi deve solo installarlo e usarlo.
@@ -506,6 +506,18 @@ pesata** di `log(prezzo)` su `s`:
 - **decadimento esponenziale** con emivita 40 osservazioni: l'inflazione della lega può derivare
   durante l'asta.
 - ruoli con `n_ρ < 5` usano il prior globale riscalato, non la propria regressione.
+
+> **Addendum (post-F13, bug reale corretto):** su un campione piccolo con score osservati
+> concentrati in una fascia stretta (es. 6 vendite di portieri tutte fra 86 e 95), la pendenza
+> grezza della regressione può uscire negativa per puro rumore campionario — economicamente privo
+> di senso, dato che θ_ρ è definito sopra come sempre ≥ 0. Pendenza e intercetta sono correlate
+> quando lo score varia poco nel campione: un'intercetta compensatoria può esplodere e sopravvivere
+> al ridge verso il prior, producendo prezzi previsti che DECRESCONO con lo score una volta
+> extrapolati fuori dalla fascia osservata (misurato su un'asta reale: 313 crediti per score 95, 106
+> per score 50 — il contrario di quanto il modello dovrebbe fare). Corretto in
+> `src/core/price-model.ts`: se la pendenza grezza è negativa, si riporta a 0 (nessuna relazione
+> affidabile in quel campione) e si ricalcola l'intercetta come media pesata coerente, invece di
+> lasciare l'estrapolazione distorta. Dettagli e numeri reali in MANUALE.md §7.
 
 Fattore di inflazione globale, comodo da mostrare a schermo:
 
