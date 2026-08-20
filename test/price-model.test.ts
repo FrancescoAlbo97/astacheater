@@ -4,6 +4,7 @@
 import { describe, expect, it } from 'vitest';
 import fc from 'fast-check';
 import { DEFAULT_PRICE_CURVES, DEFAULT_PRICE_MODEL_CONFIG, DEFAULT_RESERVE_FRACTION } from '../src/core/config.js';
+import type { PriceCurveConfig } from '../src/core/types.js';
 import {
   capByResidualDemand,
   fitOnlinePriceCurves,
@@ -225,6 +226,92 @@ describe('§6.3.3 / F8 fitOnlinePriceCurves', () => {
         },
       ),
     );
+  });
+
+  // §7 Session 8, parte 4 — bug reale trovato PROSEGUENDO l'indagine sul caso Meret sopra: quel
+  // fix impedisce solo il caso ESTREMO (pendenza che esce negativa). Su un'asta simulata intera,
+  // tracciando A_ρ/θ_ρ ogni 25 estrazioni, si osservava un'INSTABILITÀ più generale — pendenza
+  // positiva ma che oscillava fra 1.10 e 5.95, intercetta che arrivava a esplodere di 14× rispetto
+  // al prior (1.21→16.73) — con n=45 osservazioni, un numero che NON fa scattare il ridge n/(n+n0)
+  // in modo forte. Causa: n conta le RIGHE, non quanto le righe siano sparse in score — 45 vendite
+  // tutte concentrate in una fascia stretta identificano la pendenza molto peggio di 45 vendite
+  // sparse su tutto il range, ma ricevevano lo stesso identico peso. Corretto scalando la
+  // numerosità effettiva usata nel ridge dalla dispersione osservata (`sxx`, già calcolato per
+  // `thetaStdErr`) contro quella di un campione ben distribuito dello stesso peso totale.
+  describe('§7 Session 8 — il peso del ridge tiene conto della dispersione dei punteggi, non solo di n', () => {
+    // Prior deliberatamente lontano dal θ "vero" che genera i dati: rende inequivocabile se il
+    // fit si stia fidando dei dati (si avvicina a 2) o del prior (resta vicino a 8).
+    const farPrior: PriceCurveConfig = {
+      P: { A: 1, theta: 8 },
+      D: { A: 1, theta: 8 },
+      C: { A: 1, theta: 8 },
+      A: { A: 1, theta: 8 },
+    };
+    const config = { ...DEFAULT_PRICE_MODEL_CONFIG, priorCurves: farPrior };
+    const trueTheta = 2;
+    const trueA = 1;
+
+    function noisyObservations(scores: readonly number[]): SaleObservation[] {
+      const rng = mulberry32(7);
+      return scores.map((score, i) => {
+        const noiseMultiplier = 0.85 + rng() * 0.3; // ±15% circa, deterministico
+        const price = trueA * Math.exp((trueTheta * score) / 100) * noiseMultiplier;
+        return { role: 'P', score, price, order: i };
+      });
+    }
+
+    it('lo stesso numero di osservazioni, se concentrate in una fascia stretta, produce un fit più vicino al prior che se sparse su tutto il range', () => {
+      const wideScores = Array.from({ length: 30 }, (_, i) => 5 + i * 3); // 5..92, spread pieno
+      const narrowScores = Array.from({ length: 30 }, (_, i) => 45 + (i % 11)); // 45..55, fascia stretta
+
+      const wideFit = fitOnlinePriceCurves(noisyObservations(wideScores), farPrior, config).P;
+      const narrowFit = fitOnlinePriceCurves(noisyObservations(narrowScores), farPrior, config).P;
+
+      // Stesso n (30) per entrambi: se il fit dipendesse solo da n, θ dovrebbe uscire simile. Con
+      // la dispersione considerata, il campione stretto deve restare più vicino al prior (8) di
+      // quello sparso, che invece deve potersi avvicinare parecchio al θ vero (2).
+      const distWideFromPrior = Math.abs(wideFit.theta - farPrior.P.theta);
+      const distNarrowFromPrior = Math.abs(narrowFit.theta - farPrior.P.theta);
+      expect(distNarrowFromPrior).toBeLessThan(distWideFromPrior);
+      // Il campione sparso deve essersi mosso in modo sostanziale verso il θ vero (non solo "un
+      // po' meno lontano dal prior" per rumore casuale).
+      expect(wideFit.theta).toBeLessThan(5);
+    });
+
+    it('property-based: per qualunque θ vero e qualunque fascia stretta, il fit su una fascia stretta non è mai più lontano dal prior di quello su tutto il range, a parità di n e rumore', () => {
+      fc.assert(
+        fc.property(
+          fc.double({ min: 0.5, max: 10, noNaN: true }), // θ vero, anche molto diverso dal prior (8)
+          fc.integer({ min: 10, max: 80 }), // centro della fascia stretta
+          fc.integer({ min: 1, max: 100 }), // seed per il rumore
+          (theta, narrowCenter, seed) => {
+            const rng = mulberry32(seed);
+            const noisyAt = (scores: readonly number[]): SaleObservation[] =>
+              scores.map((score, i) => {
+                const noiseMultiplier = 0.85 + rng() * 0.3;
+                const price = Math.exp((theta * score) / 100) * noiseMultiplier;
+                return { role: 'P', score, price, order: i };
+              });
+
+            const wideScores = Array.from({ length: 30 }, (_, i) => 2 + i * 3.3);
+            const half = 5;
+            const narrowScores = Array.from({ length: 30 }, (_, i) =>
+              Math.min(100, Math.max(0, narrowCenter + ((i % (2 * half + 1)) - half))),
+            );
+
+            const wideFit = fitOnlinePriceCurves(noisyAt(wideScores), farPrior, config).P;
+            const narrowFit = fitOnlinePriceCurves(noisyAt(narrowScores), farPrior, config).P;
+
+            const distWide = Math.abs(wideFit.theta - farPrior.P.theta);
+            const distNarrow = Math.abs(narrowFit.theta - farPrior.P.theta);
+            // Piccola tolleranza: a parità di meccanismo, il rumore campionario può occasionalmente
+            // far pareggiare le due distanze quasi esattamente: quello che NON deve succedere è che
+            // il campione stretto si allontani chiaramente di più dal prior di quello sparso.
+            return distNarrow <= distWide + 1e-6;
+          },
+        ),
+      );
+    });
   });
 });
 

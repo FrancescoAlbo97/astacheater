@@ -1,0 +1,660 @@
+nome,ruolo,squadra,quotazione,media_voto,presenze,prezzo_8sq_350,prezzo_10sq_350,prezzo_8sq_500,prezzo_10sq_500
+MARTINEZ  Lautaro,A,Inter,55.0,6.41,30.0,,,,129.36
+MALEN  Donyell,A,Roma,53.0,6.72,18.0,,,,113.9
+HOJLUND  Rasmus,A,Napoli,47.0,6.21,33.0,,,,83.25
+THURAM  Marcus,A,Inter,47.0,6.43,29.0,,,,119.01
+RAMOS  Goncalo Matias,A,Milan,46.0,,,,,,102.37
+KOLO MUANI  Randal,A,Juventus,44.0,,,,,,109.48
+PAZ  Nico,A,Como,43.0,6.37,35.0,,,,87.75
+KEAN  Moise,A,Fiorentina,41.0,5.88,26.0,,,,84.44
+MCTOMINAY  Scott,C,Napoli,38.0,6.39,33.0,,,,68.94
+PULISIC  Christian,A,Milan,38.0,6.14,27.0,,,,62.45
+CALHANOGLU  Hakan,C,Inter,36.0,6.52,22.0,,,,68.81
+DOUVIKAS  Tasos,A,Como,36.0,6.18,36.0,,,,53.3
+YILDIZ  Kenan,A,Juventus,36.0,6.38,35.0,,,,52.47
+ORSOLINI  Riccardo  2025/2026,A,Bologna,34.0,6.05,34.0,48.19,55.65,56.72,79.22
+SCAMACCA  Gianluca,A,Atalanta,34.0,6.18,22.0,,,,41.69
+DAVIS  Keinan,A,Udinese,33.0,6.31,30.0,,,,47.74
+BATURINA  Martin,C,Como,31.0,6.3,25.0,,,,40.67
+BERARDI  Domenico,A,Sassuolo,31.0,6.3,26.0,,,,24.73
+DIMARCO  Federico,C,Inter,30.0,6.6,35.0,,,,63.64
+KRSTOVIC  Nikola,A,Atalanta,30.0,6.15,32.0,,,,43.1
+LEAO  Rafael,A,Milan,30.0,5.87,28.0,,,,34.62
+RABIOT  Adrien,C,Milan,30.0,6.32,29.0,,,,33.92
+DE BRUYNE  Kevin,C,Napoli,28.0,6.26,17.0,40.95,,,47.52
+DE KETELAERE  Charles,A,Atalanta,28.0,6.2,31.0,,,,32.27
+DYBALA  Paulo,A,Roma,28.0,6.26,21.0,,,,38.98
+SIMEONE  Giovanni,A,Torino,28.0,6.07,32.0,,,,31.35
+ZANIOLO  Nicolo,A,Udinese,28.0,6.25,31.0,,,,32.1
+CASTRO  Santiago,A,Roma,27.0,5.92,35.0,,,,31.27
+LAURIENTE  Armand,A,Sassuolo,27.0,6.22,37.0,,,,27.03
+PINAMONTI  Andrea,A,Sassuolo,27.0,5.88,34.0,,,,23.08
+ZACCAGNI  Mattia,A,Lazio,27.0,5.88,26.0,,,,33.65
+BARELLA  Nicolo,C,Inter,26.0,6.27,34.0,,,,34.62
+DA CUNHA  Lucas,C,Como,26.0,6.34,35.0,,,,34.62
+ESPOSITO FP  Francesco Pio,A,Inter,26.0,6.25,31.0,,,,33.87
+VLASIC  Nikola,C,Torino,25.0,6.02,37.0,,,,27.86
+DOVBYK  Artem,A,Bologna,24.0,6.0,13.0,,,,35.09
+GUDMUNDSSON  Albert,A,Fiorentina,24.0,5.87,32.0,,,,29.32
+MCKENNIE  Weston,C,Juventus,24.0,6.13,34.0,,,,29.98
+ATTA  Arthur,C,Fiorentina,23.0,6.35,32.0,,,,30.47
+MASTANTUONO  Franco,C,Fiorentina,23.0,,,,,,43.63
+NKUNKU  Christopher  2025/2026,A,Milan,23.0,5.94,26.0,36.46,43.03,40.42,55.85
+RASPADORI  Giacomo  2025/2026,A,Atalanta,23.0,6.11,13.0,41.81,49.25,44.73,75.37
+SOULE  Matias  2025/2026,A,Roma,23.0,6.12,32.0,38.22,40.03,48.82,79.72
+ESPOSITO S  Sebastiano,A,Cagliari,22.0,6.26,36.0,,,,24.38
+SVILAR  Mile,P,Roma,22.0,6.26,38.0,,,,39.7
+AKANJI  Manuel,D,Inter,21.0,6.28,32.0,,,,24.24
+BASTONI  Alessandro,D,Inter,21.0,6.19,28.0,,,,31.13
+BREMER  Gleison,D,Juventus,21.0,6.32,26.0,,,,27.91
+CONCEICAO  Fernandes Francisco,C,Juventus,21.0,6.28,30.0,,,,18.43
+DIAO  Assane,A,Como,21.0,6.0,16.0,,,,24.91
+EDERSON  -,C,Atalanta,21.0,6.25,30.0,,,,26.89
+MODRIC  Luka  2025/2026,C,Milan,21.0,6.45,33.0,27.15,31.8,24.75,33.93
+MOLINA  Nahuel,C,Roma,21.0,,,,,,29.01
+RODRIGUEZ  Jesus  2025/2026,A,Como,21.0,6.25,28.0,18.82,20.14,20.58,24.43
+ROWE  Jonathan  2025/2026,A,Bologna,21.0,6.19,28.0,28.54,34.09,21.8,28.36
+WESLEY  Franca Lima,C,Roma,21.0,6.11,30.0,,,,30.87
+ALAJBEGOVIC  Kerim-Sam,A,Juventus,20.0,,,,,,59.05
+CARNESECCHI  Marco,P,Atalanta,20.0,6.36,37.0,,,,34.27
+COLOMBO  Lorenzo,A,Genoa,20.0,5.91,37.0,,,,19.78
+KONE  Manu,C,Roma,20.0,6.25,29.0,,,,25.44
+MAIGNAN  Mike,P,Milan,20.0,6.25,37.0,,,,27.73
+MANCINI  Gianluca,D,Roma,20.0,6.25,36.0,,,,30.21
+MARTINEZ  Josep,P,Inter,20.0,6.0,5.0,,,,24.55
+PAVLOVIC  Strahinja,D,Milan,20.0,6.23,34.0,,,,24.99
+PELLEGRINI  Lorenzo  2025/2026,C,Roma,20.0,6.04,24.0,22.03,30.65,17.82,24.41
+POLITANO  Matteo,A,Napoli,20.0,6.09,33.0,,,,22.96
+TAYLOR  Kenneth  2025/2026,C,Lazio,20.0,6.06,16.0,29.15,29.23,23.96,33.87
+ANGUISSA  Andre Zambo  2025/2026,C,Napoli,19.0,6.16,18.0,22.83,26.2,25.59,39.07
+BUTEZ  Jean,P,Como,19.0,6.06,38.0,,,,27.25
+DI LORENZO  Giovanni,D,Napoli,19.0,6.07,26.0,,,,26.08
+LUKAKU  Romelu  2025/2026,A,Estero,19.0,7.0,1.0,31.48,41.08,30.17,44.67
+RRAHMANI  Amir,D,Napoli,19.0,6.23,21.0,,,,19.02
+SAMARDZIC  Lazar,C,Atalanta,19.0,5.92,21.0,,,,25.38
+VICARIO  Guglielmo  Nuovo,P,Juventus,19.0,,,,,,
+DAVID  Jonathan  2025/2026,A,Juventus,18.0,5.76,30.0,73.5,88.69,65.67,94.73
+KALULU  Pierre,D,Juventus,18.0,6.13,37.0,,,,21.2
+NDICKA  Evan  2025/2026,D,Roma,18.0,6.08,31.0,24.15,26.65,20.64,24.39
+SOLET  Oumar,D,Udinese,18.0,6.17,34.0,,,,22.84
+SPENCE  Djed,C,Inter,18.0,,,,,,30.87
+THURAM  Khephren,C,Juventus,18.0,6.1,34.0,,,,17.31
+ZIELINSKI  Piotr,C,Inter,18.0,6.25,30.0,,,,21.46
+BALDANZI  Tommaso,C,Genoa,17.0,6.14,17.0,,,,17.26
+BISSECK  Yann Aurel,D,Inter,17.0,6.21,23.0,,,,19.78
+CASADEI  Cesare,C,Torino,17.0,5.96,32.0,,,,18.15
+PERRONE  Maximo,C,Como,17.0,6.22,36.0,,,,21.55
+SAELEMAEKERS  Alexis  2025/2026,C,Milan,17.0,6.14,35.0,20.63,24.82,20.2,26.21
+STONES  John,D,Inter,17.0,,,,,,18.85
+THORSTVEDT  Kristian,C,Sassuolo,17.0,6.14,31.0,,,,19.66
+ADAMS  Che  2025/2026,A,Torino,16.0,5.98,32.0,23.9,34.22,22.61,30.35
+BOWIE  Kieron,A,Sassuolo,16.0,5.96,14.0,,,,16.01
+DE GEA  David,P,Fiorentina,16.0,6.24,37.0,,,,23.96
+PASALIC  Mario,C,Atalanta,16.0,5.93,31.0,,,,18.37
+PICCOLI  Roberto,A,Bologna,16.0,5.77,27.0,,,,21.55
+SCALVINI  Giorgio,D,Atalanta,16.0,6.06,24.0,,,,16.6
+SUCIC  Petar,C,Inter,16.0,6.07,28.0,,,,26.02
+VITINHA  -  2025/2026,A,Genoa,16.0,5.95,31.0,22.07,23.4,22.59,25.8
+ZAPATA  Duvan,A,Torino,16.0,5.82,23.0,,,,20.14
+BANDA  Lameck  2025/2026,A,Lecce,15.0,6.07,32.0,,22.68,18.29,26.17
+BONNY  Ange-Yoan,A,Inter,15.0,6.14,27.0,,,,16.78
+CAMBIASO  Andrea,C,Juventus,15.0,5.8,36.0,,,,16.07
+CUTRONE  Patrick,A,Monza,15.0,5.71,14.0,,,,15.01
+EKKELENKAMP  Jurgen,C,Udinese,15.0,6.04,31.0,,,,19.61
+FAGIOLI  Nicolo  2025/2026,C,Fiorentina,15.0,6.03,33.0,23.79,24.83,19.29,25.26
+GILA  Mario,D,Milan,15.0,6.03,31.0,,,,17.31
+ISAKSEN  Gustav,A,Lazio,15.0,6.03,27.0,,,,16.25
+KEVIN CARLOS  Omoruyi Benjamin,A,Cagliari,15.0,,,,,,15.01
+MANDRAGORA  Rolando  2025/2026,C,Fiorentina,15.0,6.04,34.0,29.93,32.12,20.52,27.24
+MERET  Alex,P,Napoli,15.0,6.22,11.0,,,,44.52
+ODGAARD  Jens  2025/2026,A,Bologna,15.0,5.9,22.0,18.13,22.11,20.14,23.56
+OSTIGARD  Leo,D,Genoa,15.0,6.13,30.0,,,,22.65
+PELLEGRINO  Mateo,A,Fiorentina,15.0,5.98,37.0,25.75,,,29.28
+RAMON  Jacobo,D,Como,15.0,6.15,32.0,,,,20.67
+RATKOV  Petar  2025/2026,A,Lazio,15.0,5.66,6.0,21.07,26.6,17.17,39.96
+STULIC  Nikola  2025/2026,A,Lecce,15.0,5.73,30.0,,26.02,19.17,22.1
+YEBOAH  John  Nuovo,A,Venezia,15.0,,,,,,
+ADAMS  Akor Jerome,A,Venezia,14.0,,,,,,14.22
+BERNABE  Adrian,C,Parma,14.0,6.17,32.0,,,,16.25
+BERNARDESCHI  Federico  2025/2026,A,Bologna,14.0,6.04,24.0,23.64,25.22,20.5,25.35
+CAMBIAGHI  Nicolo  2025/2026,A,Bologna,14.0,5.97,24.0,23.51,29.17,22.36,29.82
+CANCELLIERI  Matteo  2025/2026,A,Lazio,14.0,5.92,28.0,17.99,23.44,26.71,28.21
+CRISTANTE  Bryan,C,Roma,14.0,6.1,37.0,,,,22.26
+FERGUSON  Lewis  2025/2026,C,Bologna,14.0,5.8,23.0,18.03,18.16,18.32,21.8
+GHEDJEMIS  Fares  Nuovo,A,Frosinone,14.0,,,,,,
+KONE  Ismael  2025/2026,C,Sassuolo,14.0,6.18,35.0,26.22,27.37,22.05,29.26
+LOBOTKA  Stanislav  2025/2026,C,Napoli,14.0,6.04,31.0,19.26,23.32,17.92,24.61
+LOCATELLI  Manuel  2025/2026,C,Juventus,14.0,6.26,36.0,22.48,22.6,18.99,23.03
+NERES  David Campos,A,Napoli,14.0,6.18,16.0,16.04,,,
+SANTOS  Alisson,A,Napoli,14.0,6.34,13.0,,,,22.61
+SCHMID  Romano  Nuovo,C,Frosinone,14.0,,,,,,
+SKORUPSKI  Lukasz,P,Bologna,14.0,6.19,18.0,,,,27.6
+SOW  Djibril  Nuovo,C,Genoa,14.0,,,,,,
+BOGA  Jeremie  2025/2026,A,Juventus,13.0,6.19,13.0,24.14,29.64,18.82,24.35
+CAQUERET  Maxence  2025/2026,C,Como,13.0,6.1,28.0,20.08,21.21,21.72,22.23
+CHALOBAH  Trevoh,D,Como,13.0,,,,,,14.53
+COLPANI  Andrea  Nuovo,C,Monza,13.0,,,,,,
+DALLINGA  Thijs  2025/2026,A,Estero,13.0,5.81,19.0,14.58,17.22,13.47,18.13
+DIA  Boulaye  2025/2026,A,Lazio,13.0,5.68,25.0,24.74,30.11,38.43,39.05
+DODO  -  2025/2026,C,Fiorentina,13.0,5.98,36.0,21.35,24.19,17.7,24.0
+GAETANO  Gianluca,C,Atalanta,13.0,6.06,32.0,,,,16.96
+GEUBBELS  Willem  Nuovo,A,Lecce,13.0,,,,,,
+HERMOSO  Mario,D,Roma,13.0,6.16,27.0,,,,13.01
+HIEN  Isak  2025/2026,D,Atalanta,13.0,5.91,28.0,17.04,18.18,15.5,20.01
+NDOUR  Cher  2025/2026,C,Fiorentina,13.0,5.8,30.0,,16.73,16.32,19.42
+RAIMONDO  Antonio  Nuovo,A,Frosinone,13.0,,,,,,
+ROMERO  Jose David  Nuovo,A,Parma,13.0,,,,,,
+UNAI GOMEZ  Etxebarria,C,Udinese,13.0,,,,,,12.54
+VASQUEZ  Johan,D,Genoa,13.0,6.08,36.0,,,,13.72
+ZAPPACOSTA  Davide,C,Atalanta,13.0,6.05,35.0,,,,15.9
+BARTESAGHI  Davide  2025/2026,D,Milan,12.0,5.96,31.0,16.49,19.31,15.6,28.36
+BUONGIORNO  Alessandro  2025/2026,D,Napoli,12.0,5.89,32.0,21.1,21.14,19.71,26.08
+CALO  Giacomo,C,Frosinone,12.0,,,,,,13.25
+CAPRILE  Elia,P,Cagliari,12.0,6.28,38.0,,,,14.31
+DI GREGORIO  Michele,P,Juventus,12.0,6.08,30.0,,,,16.96
+DRAGUSIN  Radu,D,Fiorentina,12.0,,,,,,14.57
+FALCONE  Wladimiro,P,Lecce,12.0,6.4,38.0,,,,12.01
+FRENDRUP  Morten  2025/2026,C,Genoa,12.0,5.95,36.0,22.84,28.37,17.97,24.07
+GABBIA  Matteo  2025/2026,D,Milan,12.0,5.91,29.0,15.7,19.45,13.89,17.85
+JIMENEZ  Alex,D,Fiorentina,12.0,5.5,1.0,,,,13.25
+KEMPF  Marc,D,Como,12.0,6.12,29.0,,,,12.89
+MIRANDA  Juan,D,Bologna,12.0,6.0,31.0,,,,13.07
+MKHITARYAN  Henrikh  2025/2026,C,Inter,12.0,6.21,28.0,27.08,33.19,23.2,28.12
+NOSLIN  Tijjani  2025/2026,A,Lazio,12.0,6.02,23.0,,18.0,,19.96
+OKOYE  Maduka,P,Udinese,12.0,6.06,30.0,,,,13.78
+ORISTANIO  Gaetano Pio  2025/2026,A,Torino,12.0,5.77,18.0,16.27,31.75,14.36,17.6
+PESSINA  Matteo  Nuovo,C,Monza,12.0,,,,,,
+PIEROTTI  Santiago  2025/2026,A,Lecce,12.0,5.79,37.0,,20.93,17.65,22.1
+SPINAZZOLA  Leonardo  2025/2026,C,Napoli,12.0,6.16,30.0,22.97,23.52,18.73,23.88
+SULEMANA  Kamaldeen  2025/2026,A,Atalanta,12.0,6.0,21.0,16.87,23.01,17.11,20.77
+VALERI  Emanuele,D,Parma,12.0,6.05,34.0,,,,12.01
+VERGARA  Antonio  2025/2026,C,Napoli,12.0,6.25,8.0,13.79,26.89,15.61,22.74
+VOLPATO  Cristian  2025/2026,C,Sassuolo,12.0,6.14,21.0,,17.2,,7.26
+ZALEWSKI  Nicola  2025/2026,C,Atalanta,12.0,6.09,31.0,20.3,22.16,18.05,22.36
+BIJLOW  Justin  2025/2026,P,Genoa,11.0,6.06,16.0,14.9,15.79,11.98,15.92
+BUSIO  Gianluca,C,Venezia,11.0,,,,,,15.37
+CHUKWUEZE  Samuel,C,Milan,11.0,5.5,1.0,,,,14.48
+DOEKHI  Danilho,D,Lazio,11.0,,,,,,13.78
+FAZZINI  Jacopo  2025/2026,C,Cagliari,11.0,5.87,12.0,11.49,12.77,,5.83
+FRATTESI  Davide,C,Lazio,11.0,5.89,14.0,,,,13.78
+GIMENEZ  Santiago  2025/2026,A,Milan,11.0,5.5,15.0,36.15,42.73,27.01,39.8
+KARLSTROM  Jesper  2025/2026,C,Udinese,11.0,5.95,36.0,18.46,20.1,15.11,20.24
+LUCUMI  Jhon  2025/2026,D,Juventus,11.0,5.87,28.0,16.0,17.72,14.62,18.3
+MINA  Yerry,D,Cagliari,11.0,6.0,26.0,,,,14.19
+POBEGA  Tommaso  2025/2026,C,Bologna,11.0,5.82,23.0,15.26,18.58,12.07,22.47
+RRAHMANI  Albion  Nuovo,A,Venezia,11.0,,,,,,
+SUZUKI  Zion,P,Parma,11.0,6.02,20.0,,,,15.81
+VALLE  Alex,D,Como,11.0,6.05,26.0,,,,11.17
+ZHEGROVA  Edon  2025/2026,C,Juventus,11.0,5.95,12.0,25.92,32.13,24.2,29.57
+ADDAI  Jayden  2025/2026,A,Como,10.0,5.95,12.0,11.95,13.07,14.65,15.83
+ADOPO  Ndary  2025/2026,C,Cagliari,10.0,5.82,38.0,16.29,17.58,,7.95
+ADORANTE  Andrea  Nuovo,A,Venezia,10.0,,,,,,
+BASIC  Toma  2025/2026,C,Venezia,10.0,6.08,23.0,13.97,15.74,10.24,13.99
+CARLOS AUGUSTO  -,C,Inter,10.0,6.12,28.0,,,,15.19
+CELIK  Zeki  2025/2026,D,Juventus,10.0,6.17,32.0,18.07,19.14,16.13,20.63
+COCO  Saul  2025/2026,D,Torino,10.0,5.84,35.0,17.47,18.97,16.25,20.4
+COUTO  Yan Bueno,D,Como,10.0,,,,,,14.22
+DE ROON  Marten  2025/2026,C,Atalanta,10.0,5.97,34.0,21.57,21.87,19.98,24.57
+DEL PRATO  Enrico,D,Parma,10.0,5.91,35.0,,,,10.86
+ELLERTSSON  Mikael  2025/2026,C,Genoa,10.0,5.84,35.0,,16.06,,7.97
+FOFANA  Youssouf  2025/2026,C,Milan,10.0,5.84,33.0,19.89,21.69,15.41,23.37
+GANDELMAN  Omri  2025/2026,C,Lecce,10.0,5.96,16.0,,17.79,14.88,19.11
+GIOVANE  Santana do Nascimento  2025/2026,A,Napoli,10.0,6.0,31.0,13.74,13.92,16.79,18.44
+KEITA  Mandela  2025/2026,C,Parma,10.0,6.01,36.0,18.23,20.22,16.47,20.78
+KOOPMEINERS  Teun  2025/2026,C,Juventus,10.0,5.63,29.0,22.31,25.8,21.29,26.78
+KOULIERAKIS  Konstantinos  Nuovo,D,Roma,10.0,,,,,,
+LIBERALI  Mattia  2025/2026,C,Como,10.0,,,,,,
+MALDINI  Daniel,A,Cagliari,10.0,5.94,18.0,,,,10.95
+MANDAS  Christos,P,Lazio,10.0,,,,,,10.01
+MARUSIC  Adam  2025/2026,D,Lazio,10.0,5.86,33.0,17.65,18.55,15.44,19.17
+MATIC  Nemanja  2025/2026,C,Sassuolo,10.0,5.95,34.0,22.84,24.78,16.24,18.97
+NICOLUSSI CAVIGLIA  Hans  2025/2026,C,Parma,10.0,5.89,23.0,16.58,18.78,16.01,19.99
+NORTON-CUFFY  Brooke  2025/2026,C,Genoa,10.0,5.92,27.0,14.3,15.14,12.74,15.72
+OULAI  Christ Ravynel Inao  Nuovo,C,Fiorentina,10.0,,,,,,
+PEREZ  Kike  Nuovo,C,Venezia,10.0,,,,,,
+PISILLI  Niccolo,C,Roma,10.0,6.09,22.0,,,,10.64
+ROMAGNOLI  Alessio  2025/2026,D,Lazio,10.0,6.03,32.0,16.89,18.89,14.45,19.03
+ROVELLA  Nicolo  2025/2026,C,Lazio,10.0,5.72,11.0,12.82,15.94,16.78,18.71
+TIAGO GABRIEL  Coelho Oliveira  2025/2026,D,Lecce,10.0,6.0,36.0,16.57,17.53,14.75,18.53
+TOMORI  Fikayo  2025/2026,D,Milan,10.0,5.96,32.0,15.11,16.28,15.56,19.04
+TRAORE  Hamed Junior  Nuovo,C,Genoa,10.0,,,,,,
+VALDEPENAS  Victor Talavera,D,Fiorentina,10.0,,,,,,11.13
+WINKS  Harry  Nuovo,C,Cagliari,10.0,,,,,,
+AHANOR  Honest  2025/2026,C,Atalanta,9.0,5.78,21.0,1.54,2.37,4.84,3.5
+BELLANOVA  Raoul,C,Atalanta,9.0,5.81,22.0,,,,15.84
+BERNASCONI  Lorenzo,C,Atalanta,9.0,6.09,22.0,,,,6.84
+BEUKEMA  Sam  2025/2026,D,Napoli,9.0,5.93,22.0,19.15,19.28,15.59,19.74
+BORRELLI  Gennaro  2025/2026,A,Cagliari,9.0,5.92,26.0,16.51,20.32,,7.55
+COMUZZO  Pietro,D,Torino,9.0,5.75,24.0,,,,7.06
+COULIBALY  Lassana  2025/2026,C,Lecce,9.0,6.04,33.0,19.13,21.19,16.0,20.43
+DANY MOTA  -  Nuovo,A,Monza,9.0,,,,,,
+DELE-BASHIRU  Fisayo  2025/2026,C,Lazio,9.0,5.69,21.0,,13.23,,14.31
+DIOUF  Andy,C,Inter,9.0,6.15,10.0,,,,24.67
+DJIMSITI  Berat  2025/2026,D,Estero,9.0,5.86,33.0,17.55,18.58,15.33,19.35
+FELICI  Mattia  2025/2026,C,Cagliari,9.0,6.04,11.0,,,,
+GALLO  Antonino,D,Lecce,9.0,5.94,37.0,,,,7.77
+GINEITIS  Gvidas  2025/2026,C,Torino,9.0,5.87,27.0,,,,14.84
+GUTIERREZ  Miguel  2025/2026,C,Estero,9.0,5.97,21.0,17.13,20.04,16.73,19.75
+HAVEL  Elias  Nuovo,A,Genoa,9.0,,,,,,
+HEGGEM  Torbjrn  2025/2026,D,Bologna,9.0,5.84,25.0,6.76,6.13,4.8,6.41
+HOLM  Emil  2025/2026,D,Bologna,9.0,6.09,16.0,15.32,18.92,13.41,16.58
+IDZES  Jay  2025/2026,D,Sassuolo,9.0,5.94,35.0,18.82,19.95,16.39,20.93
+ISMAJLI  Ardian  2025/2026,D,Torino,9.0,5.91,24.0,16.25,20.1,13.38,16.47
+JASHARI  Ardon,C,Milan,9.0,5.7,12.0,,,,5.88
+KRISTENSEN  Thomas  2025/2026,C,Atalanta,9.0,5.98,28.0,20.74,21.34,18.96,23.69
+KVERNADZE  Giorgi  Nuovo,A,Frosinone,9.0,,,,,,
+LOFTUS-CHEEK  Ruben  2025/2026,C,Milan,9.0,6.09,21.0,19.36,22.58,24.41,27.95
+LUCCA  Lorenzo,A,Napoli,9.0,5.72,9.0,,,,19.03
+LUIS HENRIQUE  de Lima  2025/2026,C,Inter,9.0,5.88,27.0,17.87,19.64,18.68,22.34
+MARCANDALLI  Alessandro  2025/2026,D,Genoa,9.0,5.87,31.0,11.34,,,10.32
+MARTIN  Aaron  2025/2026,C,Genoa,9.0,5.96,29.0,16.69,18.59,14.46,18.91
+MILLA  Luis Manzanares  Nuovo,C,Como,9.0,,,,,,
+MORATA  Alvaro  2025/2026,A,Como,9.0,5.5,17.0,19.11,27.1,22.45,31.93
+MORO  Nikola  2025/2026,C,Bologna,9.0,5.92,28.0,,,,14.31
+MURIC  Arijanet,P,Sassuolo,9.0,6.07,32.0,,,,5.24
+NUNO TAVARES  -  2025/2026,D,Lazio,9.0,5.9,22.0,18.65,20.28,14.86,20.98
+NZOLA  M'Bala  2025/2026,A,Fiorentina,9.0,5.96,27.0,18.15,21.1,17.23,22.38
+OBRADOR  Rafa  2025/2026,D,Sassuolo,9.0,6.06,16.0,,15.2,13.07,
+ONDREJKA  Jacob  2025/2026,A,Estero,9.0,5.7,15.0,16.21,26.95,,11.98
+PAVARD  Benjamin  2025/2026,D,Inter,9.0,6.5,1.0,,,,13.78
+PEDRAZA  Alfonso Sag  Nuovo,D,Lazio,9.0,,,,,,
+PIOTROWSKI  Jakub  2025/2026,C,Udinese,9.0,5.88,30.0,,16.77,,7.95
+RENSCH  Devyne  2025/2026,D,Roma,9.0,6.15,19.0,15.33,16.46,,6.99
+ROBINSON  Jay  Nuovo,A,Monza,9.0,,,,,,
+STANKOVIC  Filip,P,Venezia,9.0,,,,,,7.42
+VOJVODA  Mergim,D,Udinese,9.0,6.01,27.0,,,,8.03
+ZORTEA  Nadir,C,Bologna,9.0,5.85,28.0,,,,7.83
+AKINSANMIRO  Ebenezer  2025/2026,C,Monza,8.0,5.8,23.0,,4.43,,0.53
+BELLA-KOTCHAP  Armel  2025/2026,D,Venezia,8.0,5.83,18.0,,1.21,5.3,3.43
+BERISHA  Medon  2025/2026,C,Lecce,8.0,6.16,12.0,13.77,13.92,11.58,13.45
+CAMARDA  Francesco,A,Milan,8.0,5.66,18.0,,,,4.94
+CATALDI  Danilo  2025/2026,C,Lazio,8.0,6.07,27.0,18.12,20.61,16.25,20.72
+CHEDDIRA  Walid  2025/2026,A,Napoli,8.0,5.81,24.0,,19.42,17.14,31.13
+CIRCATI  Alessandro  2025/2026,D,Parma,8.0,5.91,31.0,13.85,14.03,12.89,15.49
+DOMINGUEZ  Benjamin  2025/2026,A,Sassuolo,8.0,5.83,12.0,,15.2,,6.07
+FABBIAN  Giovanni  2025/2026,C,Fiorentina,8.0,5.79,22.0,19.52,24.17,17.15,21.45
+FRIGAN  Matija  2025/2026,A,Parma,8.0,,,,,,
+GRILLITSCH  Florian  Nuovo,C,Frosinone,8.0,,,,,,
+ILKHAN  Emirhan  2025/2026,C,Torino,8.0,5.82,17.0,,,,10.6
+KABASELE  Christian  2025/2026,D,Udinese,8.0,5.98,28.0,19.29,23.89,16.01,19.69
+KELLY  Lloyd  2025/2026,D,Juventus,8.0,6.01,35.0,17.94,24.07,16.36,20.37
+KOUTSOUPIAS  Ilias  Nuovo,C,Frosinone,8.0,,,,,,
+KULENOVIC  Sandro  2025/2026,A,Torino,8.0,5.71,7.0,,13.93,16.25,17.5
+MEICHTRY  Franz-Ethan  Nuovo,C,Genoa,8.0,,,,,,
+NJIE  Alieu  2025/2026,A,Torino,8.0,5.8,10.0,,1.17,,3.71
+OBERT  Adam  2025/2026,D,Cagliari,8.0,5.88,34.0,13.44,13.88,,6.0
+OLIVERA  Mathias  2025/2026,C,Napoli,8.0,5.75,22.0,14.04,17.51,12.89,16.14
+PAYERO  Martin  2025/2026,C,Estero,8.0,5.9,25.0,,12.66,,5.3
+PEDERSEN  Marcus  2025/2026,C,Torino,8.0,5.83,28.0,,12.9,,6.36
+SOHM  Simon  2025/2026,C,Venezia,8.0,5.64,24.0,14.61,16.97,16.34,21.41
+VIERY  Viery  Nuovo,D,Fiorentina,8.0,,,,,,
+WALUKIEWICZ  Sebastian  2025/2026,D,Sassuolo,8.0,5.8,34.0,17.15,21.18,,6.91
+ZERBIN  Alessio  2025/2026,C,Frosinone,8.0,5.75,29.0,13.11,15.39,,6.25
+ADZIC  Vasilije,C,Sassuolo,7.0,6.12,4.0,,,,10.42
+ALMQVIST  Pontus  2025/2026,A,Parma,7.0,5.94,9.0,,1.11,,
+AMONDARAIN  Mikel Jesus  Nuovo,C,Bologna,7.0,,,,,,
+AMORIM  Alex  2025/2026,C,Genoa,7.0,5.72,9.0,,,,2.42
+BAKOLA  Darryl  2025/2026,C,Sassuolo,7.0,6.16,3.0,,,,1.06
+BONDO  Warren  2025/2026,C,Milan,7.0,5.85,27.0,,12.66,,15.9
+BRACAGLIA  Gabriele  Nuovo,D,Frosinone,7.0,,,,,,
+BRESCIANINI  Marco  2025/2026,C,Fiorentina,7.0,5.97,18.0,15.03,19.86,20.05,23.46
+CACCIAMANI  Alessio,C,Torino,7.0,,,,,,5.78
+CICHELLA  Matteo  Nuovo,C,Frosinone,7.0,,,,,,
+CORREIA  Thierry Rendall  Nuovo,D,Venezia,7.0,,,,,,
+DOIG  Josh  2025/2026,D,Sassuolo,7.0,5.85,27.0,11.98,12.8,11.16,14.15
+DOUGLAS LUIZ  -  2025/2026,C,Juventus,7.0,,,,,,
+EKHATOR  Jeff  2025/2026,A,Juventus,7.0,5.96,25.0,,17.73,27.97,21.73
+EL AYNAOUI  Neil  2025/2026,C,Roma,7.0,5.97,21.0,15.78,19.67,14.34,18.08
+FADERA  Alieu  2025/2026,C,Como,7.0,5.91,24.0,,18.43,,6.98
+FITZ-JIM  Kian  Nuovo,C,Torino,7.0,,,,,,
+FOLORUNSHO  Michael  2025/2026,C,Napoli,7.0,6.03,26.0,15.5,15.61,13.41,17.11
+GASPAR  Kialonda  2025/2026,D,Lecce,7.0,5.83,21.0,11.69,11.83,9.72,12.77
+GHILARDI  Daniele  2025/2026,D,Roma,7.0,5.97,21.0,11.96,12.54,10.3,13.2
+GILMOUR  Billy  2025/2026,C,Napoli,7.0,6.07,13.0,,10.83,,5.3
+GONZALEZ  Nicolas  2025/2026,A,Juventus,7.0,,,,,,
+GUEYE  Idrissa  2025/2026,A,Udinese,7.0,5.75,12.0,,,,
+KAIKI  Bruno Da Silva,D,Como,7.0,,,,,,6.0
+KAMARA  Hassane  2025/2026,C,Udinese,7.0,5.88,26.0,,15.28,,6.8
+KOSSOUNOU  Odilon  2025/2026,D,Atalanta,7.0,5.93,16.0,13.81,15.31,,7.19
+KUHN  Nicolas  2025/2026,A,Como,7.0,5.96,14.0,18.91,18.97,,20.58
+LANG  Noa  2025/2026,A,Napoli,7.0,6.03,14.0,,30.4,,
+MANGAS  Ricardo Luis Chaby  Nuovo,C,Monza,7.0,,,,,,
+MILINKOVIC  Vanja  2025/2026,P,Napoli,7.0,6.2,27.0,17.37,18.39,16.97,20.92
+MIRETTI  Fabio  2025/2026,C,Juventus,7.0,5.96,15.0,13.05,16.04,16.73,17.86
+MONTERISI  Ilario  Nuovo,D,Frosinone,7.0,,,,,,
+MUTANDWA  Kingstone  Nuovo,A,Cagliari,7.0,,,,,,
+NGOM  Oumar  2025/2026,C,Lecce,7.0,5.69,13.0,,,,
+NGONGE  Cyril  2025/2026,A,Napoli,7.0,5.82,17.0,,,,
+PARISI  Fabiano  2025/2026,C,Fiorentina,7.0,6.02,23.0,13.89,14.44,13.07,14.55
+PONGRACIC  Marin  2025/2026,D,Fiorentina,7.0,5.84,35.0,14.25,14.82,12.09,15.65
+PRATI  Matteo  2025/2026,C,Cagliari,7.0,5.87,32.0,,14.8,,14.84
+RANIERI  Luca  2025/2026,D,Fiorentina,7.0,5.85,31.0,16.95,17.81,14.38,18.45
+RICCI  Samuele  2025/2026,C,Milan,7.0,6.0,28.0,22.82,28.45,21.0,25.73
+SMOLCIC  Ivan  2025/2026,D,Como,7.0,5.96,25.0,11.34,12.64,,5.3
+SORENSEN  Oliver  2025/2026,C,Parma,7.0,5.85,30.0,,18.09,,7.95
+SOTTIL  Riccardo  2025/2026,A,Fiorentina,7.0,6.02,21.0,13.67,16.88,14.08,17.97
+SULEMANA  Ibrahim  2025/2026,C,Atalanta,7.0,5.69,18.0,,1.17,4.82,3.97
+THIAM  Demba  Nuovo,P,Monza,7.0,,,,,,
+VALENTI  Lautaro  2025/2026,D,Parma,7.0,5.96,27.0,,10.95,,4.89
+VEIGA  Danilo de Melo  2025/2026,D,Lecce,7.0,5.81,36.0,,2.89,4.14,4.06
+VITIK  Martin  2025/2026,D,Bologna,7.0,5.94,18.0,11.95,14.31,10.15,14.57
+ZAPPA  Gabriele  2025/2026,C,Cagliari,7.0,5.9,25.0,15.79,16.88,12.9,16.62
+ZE PEDRO  da Silva Figueiredo Freitas  2025/2026,D,Cagliari,7.0,5.77,22.0,,1.26,,1.59
+ALVAREZ  Agustin  2025/2026,A,Estero,6.0,,,,,,
+ASLLANI  Kristjan  2025/2026,C,Inter,6.0,5.57,14.0,,,,1.06
+BALDE  Keita  Nuovo,A,Monza,6.0,,,,,,
+BERTOLA  Nicolo  2025/2026,D,Udinese,6.0,5.86,25.0,11.13,11.51,10.15,12.48
+BIRINDELLI  Samuele,C,Monza,6.0,,,,,,4.94
+BRITSCHGI  Sascha  2025/2026,D,Parma,6.0,5.75,28.0,,1.98,1.02,7.31
+CARBONI  Andrea  Nuovo,D,Monza,6.0,,,,,,
+CIURRIA  Patrick  Nuovo,C,Monza,6.0,,,,,,
+COLOMBO  Leonardo  Nuovo,C,Monza,6.0,,,,,,
+COMERT  Eray Ervin  Nuovo,D,Torino,6.0,,,,,,
+DE WINTER  Koni  2025/2026,D,Milan,6.0,5.75,24.0,16.49,17.87,15.43,18.72
+DELLI CARRI  Filippo  Nuovo,D,Monza,6.0,,,,,,
+ELPHEGE  Nesta  2025/2026,A,Parma,6.0,6.0,8.0,,,,1.06
+GATTI  Federico  2025/2026,D,Juventus,6.0,5.93,16.0,18.66,22.65,15.41,19.78
+GELLI  Francesco  Nuovo,C,Frosinone,6.0,,,,,,
+HALHAL  Redouane  Nuovo,D,Venezia,6.0,,,,,,
+HAPS  Ridgeciano  Nuovo,C,Venezia,6.0,,,,,,
+JOAO MARIO  Neto Lopes  2025/2026,C,Fiorentina,6.0,5.78,14.0,14.61,15.79,12.48,16.13
+KOFLER  Raphael  Nuovo,D,Cagliari,6.0,,,,,,
+KOLASINAC  Sead  2025/2026,D,Atalanta,6.0,6.02,17.0,13.73,14.52,12.06,15.29
+LOVRIC  Sandi  2025/2026,C,Udinese,6.0,5.75,10.0,11.36,13.83,12.49,14.77
+MAZZITELLI  Luca  2025/2026,C,Como,6.0,6.07,14.0,15.25,15.86,,6.87
+MESSIAS  Junior  2025/2026,C,Genoa,6.0,6.18,19.0,,23.75,21.96,25.03
+MILLER  Lennon  2025/2026,C,Udinese,6.0,5.92,19.0,,13.93,,5.83
+MORENO  Matias  Nuovo,D,Venezia,6.0,,,,,,
+NDRI  Konan  2025/2026,A,Lecce,6.0,5.82,17.0,,,,11.66
+PALMISANI  Lorenzo  Nuovo,P,Frosinone,6.0,,,,,,
+PEREIRA DE SOUSA  Gustavo Miguel  Nuovo,A,Monza,6.0,,,,,,
+PETAGNA  Andrea  Nuovo,A,Monza,6.0,,,,,,
+PROVSTGAARD  Oliver  2025/2026,D,Lazio,6.0,5.91,23.0,,1.16,,2.4
+ROMANO  Alessandro  2025/2026,C,Cagliari,6.0,,,,,,
+SIEBERT  Jamil  2025/2026,D,Lecce,6.0,5.68,19.0,,13.41,,6.36
+STANKOVIC  Aleksandar  Nuovo,C,Inter,6.0,,,,,,
+TERRACCIANO  Filippo  2025/2026,C,Milan,6.0,5.85,35.0,13.2,14.17,11.47,14.6
+VENTURINO  Lorenzo  2025/2026,C,Genoa,6.0,5.85,7.0,,8.77,,0.53
+ABOUKHLAL  Zakaria  2025/2026,A,Torino,5.0,5.77,11.0,,1.26,,0.5
+ARIZALA  Juan  2025/2026,C,Udinese,5.0,5.8,5.0,,,,
+ATHEKAME  Zachary  2025/2026,D,Estero,5.0,5.94,17.0,15.76,19.67,,6.57
+BENNACER  Ismael  2025/2026,C,Estero,5.0,,,,,,
+BOLOCA  Daniel  2025/2026,C,Sassuolo,5.0,5.75,2.0,,2.53,,0.53
+BUKSA  Adam  2025/2026,A,Udinese,5.0,5.88,21.0,,,,16.96
+CALVANI  Gabriele  Nuovo,D,Frosinone,5.0,,,,,,
+CANDE  Fali  2025/2026,D,Sassuolo,5.0,5.68,8.0,,2.23,,0.53
+DEIOLA  Alessandro  2025/2026,C,Cagliari,5.0,5.97,20.0,,,,
+DOSSENA  Alberto  2025/2026,D,Como,5.0,5.81,11.0,4.31,5.13,,2.38
+DUNCAN  Alfred  Nuovo,C,Venezia,5.0,,,,,,
+ESTUPINAN  Pervis  2025/2026,D,Milan,5.0,5.64,14.0,13.62,16.98,12.74,16.23
+FINI  Seydou  2025/2026,A,Frosinone,5.0,,,,,,
+FORTINI  Niccolo  2025/2026,C,Fiorentina,5.0,5.95,12.0,,,,1.59
+HAINAUT  Antoine  2025/2026,D,Venezia,5.0,,,,,,
+HASA  Luis  2025/2026,C,Frosinone,5.0,,,,,,
+HELGASON  Thorir  2025/2026,C,Venezia,5.0,5.62,4.0,,,,
+KARLSSON  Jesper  2025/2026,A,Bologna,5.0,,,,,,
+LAZZARI  Manuel  2025/2026,D,Lazio,5.0,5.81,16.0,2.32,3.56,5.88,6.36
+LIPANI  Luca  2025/2026,C,Sassuolo,5.0,5.92,21.0,,11.94,,5.83
+LUCCHESI  Lorenzo  Nuovo,D,Monza,5.0,,,,,,
+MALEH  Youssef  2025/2026,C,Lecce,5.0,5.69,21.0,,,,
+MASINI  Patrizio  2025/2026,C,Frosinone,5.0,5.97,21.0,,10.28,,14.13
+MITAJ  Mario  Nuovo,D,Genoa,5.0,,,,,,
+MOTTA  Edoardo  2025/2026,P,Lazio,5.0,6.0,9.0,4.07,3.77,1.64,2.77
+MUSAH  Yunus  2025/2026,C,Milan,5.0,5.93,16.0,11.56,,,
+ORDONEZ  Christian  2025/2026,C,Parma,5.0,5.78,21.0,,,,
+PALEARI  Alberto  2025/2026,P,Torino,5.0,6.08,29.0,1.94,3.77,2.91,6.97
+PELLEGRINI  Luca  2025/2026,D,Lazio,5.0,5.85,24.0,6.93,5.98,6.64,6.11
+POSCH  Stefan  2025/2026,D,Estero,5.0,6.06,8.0,,,,
+RODRIGUEZ  Juan  2025/2026,D,Cagliari,5.0,5.62,16.0,,,,1.06
+SALAH-EDDINE  Anass  2025/2026,C,Roma,5.0,,,,,,
+SCHINGTIENNE  Joel  Nuovo,D,Venezia,5.0,,,,,,
+TOURE  El Bilal,A,Parma,5.0,,,,,,4.59
+TROILO  Mariano  2025/2026,D,Parma,5.0,5.78,21.0,,,,9.78
+VAZ  Robinio  2025/2026,A,Roma,5.0,5.92,7.0,13.9,16.99,11.98,18.48
+ZANOLI  Alessandro  2025/2026,C,Udinese,5.0,6.05,19.0,,13.93,,5.49
+ZEMURA  Jordan  2025/2026,C,Estero,5.0,5.86,15.0,1.61,1.8,,2.12
+ALHASSANE  Abdel Rahim Bonkano  Nuovo,D,Bologna,4.0,,,,,,
+ANGELINO  Jose  2025/2026,C,Estero,4.0,5.83,6.0,13.22,14.66,18.34,22.47
+ANJORIN  Tino  2025/2026,C,Torino,4.0,5.77,9.0,,0.9,,5.3
+AURELIO  Giuseppe  Nuovo,C,Cagliari,4.0,,,,,,
+BALOGH  Botond  2025/2026,D,Parma,4.0,,,,,,
+BIRAGHI  Cristiano  2025/2026,C,Torino,4.0,5.59,11.0,3.93,6.69,6.24,5.0
+CABAL  Juan  2025/2026,C,Juventus,4.0,5.94,9.0,4.8,4.32,,1.58
+CASALE  Nicolo  2025/2026,D,Bologna,4.0,5.65,10.0,2.17,3.8,,4.77
+CHAKVETADZE  Giorgi  Nuovo,C,Udinese,4.0,,,,,,
+CITTADINI  Giorgio  Nuovo,D,Frosinone,4.0,,,,,,
+DAFFARA  Giovanni,P,Parma,4.0,,,,,,3.65
+DIALLO THIAO  Ousmane  Nuovo,A,Parma,4.0,,,,,,
+EBOSSE  Enzo  2025/2026,D,Udinese,4.0,5.75,16.0,,0.9,,
+EL AZZOUZI  Oussama  2025/2026,C,Bologna,4.0,,,,,,
+FLORIANI MUSSOLINI  Romano  2025/2026,C,Lazio,4.0,5.71,23.0,1.41,1.55,,0.7
+FORSON  Omari  Nuovo,C,Monza,4.0,,,,,,
+GOGLICHIDZE  Saba  2025/2026,D,Udinese,4.0,5.75,6.0,,,,
+HELLAND  Eivind  2025/2026,D,Bologna,4.0,5.5,6.0,,,,
+IDRISSI  Riyad  2025/2026,C,Cagliari,4.0,5.82,17.0,,11.75,,5.3
+ILIC  Ivan  2025/2026,C,Torino,4.0,6.0,8.0,,1.62,,19.08
+LONTANI  Simone  Nuovo,A,Parma,4.0,,,,,,
+MARIANUCCI  Luca  2025/2026,D,Napoli,4.0,5.72,11.0,4.42,3.81,2.93,4.18
+MARIN  Rafa  Nuovo,D,Napoli,4.0,,,,,,
+MASSOLIN  Yanis  Nuovo,C,Inter,4.0,,,,,,
+MENDY  Paul  2025/2026,A,Cagliari,4.0,6.0,5.0,,,,1.06
+MILIK  Arek  2025/2026,A,Juventus,4.0,6.0,2.0,,1.13,,
+PATRIC  -  2025/2026,D,Lazio,4.0,5.85,10.0,,4.52,,6.36
+PERIN  Mattia  2025/2026,P,Juventus,4.0,6.11,9.0,1.86,1.99,2.65,2.57
+PUCZKA  David  Nuovo,D,Genoa,4.0,,,,,,
+SABELLI  Stefano  2025/2026,C,Genoa,4.0,5.8,13.0,,,,
+SAGRADO  Richie  Nuovo,C,Venezia,4.0,,,,,,
+SVERKO  Marin  Nuovo,D,Venezia,4.0,,,,,,
+TERZIC  Aleksa  Nuovo,D,Frosinone,4.0,,,,,,
+VALENTINI  Nicolas  2025/2026,D,Estero,4.0,5.78,19.0,,1.17,,0.53
+VAN DER BREMPT  Ignace  2025/2026,D,Como,4.0,5.96,14.0,,1.78,,5.62
+AKPOGUMA  Kevin  Nuovo,D,Frosinone,3.0,,,,,,
+ALTARE  Giorgio  Nuovo,D,Serie Minori,3.0,,,,,,
+BAYO  Vakoun  2025/2026,A,Udinese,3.0,5.75,12.0,,,,7.42
+BELAHYANE  Reda  2025/2026,C,Lazio,3.0,5.77,11.0,,1.17,,
+BENEDYCZAK  Adrian  2025/2026,A,Estero,3.0,5.95,10.0,,,,
+BOHINEN  Emil  2025/2026,C,Venezia,3.0,,,,,,
+BRORSSON  Arvid  Nuovo,D,Monza,3.0,,,,,,
+CREMASCHI  Benjamin  2025/2026,C,Parma,3.0,6.0,1.0,,,,1.06
+CUENCA CEJUDO  Andres  Nuovo,D,Como,3.0,,,,,,
+DESPLANCHES  Sebastiano  Nuovo,P,Frosinone,3.0,,,,,,
+DIAWARA  Sankhoun  Nuovo,D,Milan,3.0,,,,,,
+FRANJIc  Bartol  Nuovo,D,Venezia,3.0,,,,,,
+GELLI  Jacopo  Nuovo,D,Frosinone,3.0,,,,,,
+GHION  Andrea  2025/2026,C,Sassuolo,3.0,,,,,,
+GIGOT  Samuel  2025/2026,D,Lazio,3.0,,,,,,6.52
+GOLDANIGA  Edoardo  2025/2026,D,Como,3.0,,,,,,1.06
+JEAN  Gaby  2025/2026,D,Lecce,3.0,5.8,5.0,,,,
+KONE  Ben Lhassine  2025/2026,C,Frosinone,3.0,,,,,,
+KOUADIO  Eddy  2025/2026,D,Monza,3.0,6.0,2.0,,,,
+MAZZOCCHI  Pasquale  2025/2026,C,Napoli,3.0,5.94,9.0,,,,
+MORO  Luca  2025/2026,A,Sassuolo,3.0,5.58,6.0,,,,
+MULATTIERI  Samuele  2025/2026,A,Serie Minori,3.0,,,,,,
+NDIAYE  Abdoulaye  2025/2026,D,Parma,3.0,5.59,11.0,,1.08,,
+ODENTHAL  Cas  2025/2026,D,Sassuolo,3.0,,,,,,
+OTOA  Sebastian  2025/2026,D,Genoa,3.0,5.6,10.0,,1.26,,0.53
+OYONO  Anthony  Nuovo,D,Frosinone,3.0,,,,,,
+PALMA  Matteo  2025/2026,D,Udinese,3.0,5.5,4.0,,,,
+PROVEDEL  Ivan,P,Inter,3.0,6.25,27.0,,,,3.66
+ZARRAGA  Oier  2025/2026,C,Udinese,3.0,5.75,10.0,,,,
+ALBARRACIN  Agustin  2025/2026,A,Cagliari,2.0,6.0,2.0,,,,
+AMORAN  Peter  2025/2026,D,Parma,2.0,,,,,,
+ANTOV  Valentin  Nuovo,D,Monza,2.0,,,,,,
+AZON  Ivan  2025/2026,A,Como,2.0,,,,,,
+BAKKER  Mitchel  2025/2026,C,Atalanta,2.0,,,,,,
+BAKOUNE  Adam  Nuovo,C,Monza,2.0,,,,,,
+BONFANTI  Giovanni  2025/2026,D,Estero,2.0,5.61,9.0,,,,
+BRAUNODER  Matthias  2025/2026,C,Como,2.0,,,,,,
+BURNETE  Rares  2025/2026,A,Serie Minori,2.0,,,,,,
+CARBONI  Franco Ezequiel  2025/2026,D,Parma,2.0,6.0,2.0,,,,
+CASAS  Antonio  Nuovo,A,Venezia,2.0,,,,,,
+CISSE  Alphadjo  2025/2026,A,Milan,2.0,,,,,,
+CORVI  Edoardo  2025/2026,P,Parma,2.0,6.17,17.0,,2.28,2.73,2.84
+D'ANDREA  Luca  Nuovo,A,Sassuolo,2.0,,,,,,
+DE SILVESTRI  Lorenzo  2025/2026,D,Bologna,2.0,6.05,10.0,,,,
+DEMBELE  Ali  2025/2026,C,Torino,2.0,5.0,1.0,,,,
+FOE ONDOA  Manga  Nuovo,C,Monza,2.0,,,,,,
+FOFANA  Sadik  2025/2026,C,Lecce,2.0,5.5,2.0,,,,3.18
+GROSSO  Filippo  Nuovo,A,Frosinone,2.0,,,,,,
+IANNONI  Edoardo  2025/2026,C,Sassuolo,2.0,6.0,5.0,,,,
+ILIC  Mihajlo  2025/2026,D,Serie Minori,2.0,,,,,,3.18
+JOVIC  Milos  Nuovo,A,Estero,2.0,,,,,,
+KABA  Mohamed  2025/2026,C,Lecce,2.0,5.77,11.0,,,,
+KOUASSI  Owen  2025/2026,D,Lecce,2.0,5.5,4.0,,,,
+LISMAN  Kornel  Nuovo,A,Venezia,2.0,,,,,,
+LUONGO  Andrea  Nuovo,C,Torino,2.0,,,,,,
+MISSORI  Filippo  2025/2026,D,Sassuolo,2.0,,,,,,
+MLACIC  Branimir  2025/2026,D,Udinese,2.0,5.83,3.0,,,,1.06
+OKORO  Alvin Obinna  Nuovo,A,Venezia,2.0,,,,,,
+PIERAGNOLO  Edoardo  2025/2026,D,Sassuolo,2.0,,,,,,
+PIERINI  Nicholas  2025/2026,A,Sassuolo,2.0,6.0,4.0,,,,
+ROUHI  Jonas  2025/2026,C,Serie Minori,2.0,,,,,,
+RUGANI  Daniele  2025/2026,D,Juventus,2.0,5.68,8.0,1.15,1.84,3.22,3.44
+RUI MODESTO  Muati  2025/2026,C,Udinese,2.0,5.75,2.0,,,,
+SKJELLERUP  Laurs  2025/2026,A,Sassuolo,2.0,,,,,,
+TERRACCIANO  Pietro  2025/2026,P,Milan,2.0,6.0,2.0,1.97,2.0,1.67,2.15
+VEROLI  Davide  2025/2026,D,Serie Minori,2.0,,,,,,
+VOGLIACCO  Alessandro  2025/2026,D,Serie Minori,2.0,,,,,,
+WIETESKA  Mateusz  2025/2026,D,Estero,2.0,,,,,,
+ABANKWAH  James  Nuovo,D,Udinese,1.0,,,,,,
+ADDO  Vernon  2025/2026,D,Lecce,1.0,,,,,,
+AKARAKIRI  Demi  Nuovo,C,Cagliari,1.0,,,,,,
+AMBROSINO  Giuseppe  2025/2026,A,Serie Minori,1.0,5.75,2.0,,,,
+AMEY  Wisdom  Nuovo,D,Frosinone,1.0,,,,,,
+AUDERO  Emil  2025/2026,P,Como,1.0,6.2,34.0,15.83,16.43,13.09,23.29
+BJARKASON  Bjarki  Nuovo,C,Serie Minori,1.0,,,,,,
+BORBEI  Alexandru  2025/2026,P,Lecce,1.0,,,,,,
+BRASCHI  Riccardo  2025/2026,A,Estero,1.0,,,,,,
+CAMARA  Abdoulaye  2025/2026,C,Udinese,1.0,,,,,,
+CAVUOTI  Nicolo  2025/2026,C,Cagliari,1.0,,,,,,
+CHERUBINI  Luigi  2025/2026,A,Roma,1.0,,,,,,
+CHRISTENSEN  Oliver  2025/2026,P,Fiorentina,1.0,7.5,1.0,1.08,1.36,1.33,1.41
+CIOCCI  Giuseppe  2025/2026,P,Serie Minori,1.0,,,,,,
+COLLEY  Muhammed  Nuovo,A,Frosinone,1.0,,,,,,
+CONTINI  Nikita  2025/2026,P,Napoli,1.0,,,1.37,1.63,1.01,1.18
+CORRADO  Niccolo  Nuovo,C,Frosinone,1.0,,,,,,
+DAGASSO  Matteo  Nuovo,C,Venezia,1.0,,,,,,
+DE MARZI GIORGIO  Giorgio  2025/2026,P,Roma,1.0,,,,,,
+DI GENNARO  Raffaele  2025/2026,P,Inter,1.0,6.0,1.0,1.37,1.61,1.0,1.15
+EL AZZOUZI  Anouar  Nuovo,C,Frosinone,1.0,,,,,,
+FARCOMENI  Valerio  2025/2026,C,Lazio,1.0,,,,,,
+FRUCHTL  Christian  2025/2026,P,Estero,1.0,,,,,,
+FURLANETTO  Alessio  2025/2026,P,Lazio,1.0,6.5,2.0,4.26,3.79,1.06,1.29
+GABRIELLONI  Alessandro  2025/2026,A,Como,1.0,,,,,,
+GALASSI  Bruno  Nuovo,C,Lazio,1.0,,,,,,
+GALAZZI  Nicolas  Nuovo,C,Monza,1.0,,,,,,
+GOLLINI  Pierluigi  2025/2026,P,Roma,1.0,,,1.79,1.88,1.45,1.82
+GOMES  Alejandro Furtado  Nuovo,D,Venezia,1.0,,,,,,
+GORTER  Olaf  2025/2026,C,Lecce,1.0,5.5,1.0,,,,
+GRANDI  Matteo  Nuovo,P,Venezia,1.0,,,,,,
+HAPPONEN  Ukko  2025/2026,P,Bologna,1.0,,,,,,
+ISRAEL  Franco  2025/2026,P,Torino,1.0,5.88,9.0,1.74,13.9,4.99,8.52
+KOSPO  Eman  2025/2026,D,Fiorentina,1.0,,,,,,
+KOUDA  Rachid  2025/2026,C,Parma,1.0,,,,,,
+KOVAC  Niko  2025/2026,C,Lecce,1.0,,,,,,
+LAERKE  Hjalte  Nuovo,A,Lecce,1.0,,,,,,
+LAHDO  Adrian  2025/2026,C,Como,1.0,,,,,,
+LAUBERBACH  Lion  Nuovo,A,Venezia,1.0,,,,,,
+LELLA  Nunzio  Nuovo,C,Venezia,1.0,,,,,,
+LEZZERINI  Luca  2025/2026,P,Fiorentina,1.0,,,1.45,1.64,0.98,1.24
+LIGUE  Calixte Paul  Nuovo,D,Venezia,1.0,,,,,,
+LITETA  Joseph  2025/2026,C,Cagliari,1.0,5.75,4.0,,,,
+LOLIC  Eldin  Nuovo,P,Frosinone,1.0,,,,,,
+LYSIONOK  Ernestas  2025/2026,P,Genoa,1.0,,,,,,
+MACCHIONI  Tommaso  2025/2026,D,Sassuolo,1.0,,,,,,
+MARIANI  Edoardo  Nuovo,C,Serie Minori,1.0,,,,,,
+MASCARDI  Diego  Nuovo,P,Torino,1.0,,,,,,
+MATTURRO  Alan  Nuovo,D,Genoa,1.0,,,,,,
+NDABA  Corrie  2025/2026,D,Lecce,1.0,5.5,9.0,,,,
+ODOGU  David  2025/2026,D,Milan,1.0,,,,1.39,,
+OYONO  Jeremy  Nuovo,D,Frosinone,1.0,,,,,,
+PADELLI  Daniele  2025/2026,P,Udinese,1.0,6.25,2.0,,,,
+PAZ  Yeferson  2025/2026,D,Sassuolo,1.0,,,,,,
+PENEV  Plamen  2025/2026,P,Lecce,1.0,,,,,,
+PEREZ  Matias  2025/2026,D,Lecce,1.0,5.0,1.0,,,,
+PESSINA  Massimo  2025/2026,P,Bologna,1.0,6.12,4.0,2.77,2.68,1.57,1.66
+PIANA  Edoardo  Nuovo,P,Udinese,1.0,,,,,,
+PINSOGLIO  Carlo  2025/2026,P,Juventus,1.0,,,1.94,2.04,0.88,1.16
+PISSERI  Matteo  Nuovo,P,Frosinone,1.0,,,,,,
+PIZZIGNACCO  Semuel  Nuovo,P,Monza,1.0,,,,,,
+POZZI  Alessio  Nuovo,P,Venezia,1.0,,,,,,
+PRZYBOREK  Adrian  2025/2026,C,Lazio,1.0,,,,,,3.71
+RADUNOVIC  Boris  2025/2026,P,Cagliari,1.0,,,,,,
+RATERINK  Othniel  2025/2026,D,Estero,1.0,,,,,,
+RAVAGLIA  Federico  2025/2026,P,Estero,1.0,6.2,17.0,3.11,2.96,2.35,2.58
+RENZETTI  Davide  2025/2026,P,Lazio,1.0,,,,,,
+ROSSI  Francesco  2025/2026,P,Atalanta,1.0,,,1.46,1.69,1.01,1.21
+RUSSO  Alessandro  2025/2026,P,Sassuolo,1.0,,,,,,
+SAMOOJA  Jasper  2025/2026,P,Estero,1.0,,,,,,
+SATALINO  Giacomo  2025/2026,P,Sassuolo,1.0,,,,,,
+SHERRI  Alen  2025/2026,P,Cagliari,1.0,,,,,,
+SIDIBE  Franck Ahmed  Nuovo,D,Estero,1.0,,,,,,
+SIVIERO  Lapo  2025/2026,P,Torino,1.0,,,,,,
+SOMMARIVA  Daniele  2025/2026,P,Genoa,1.0,5.75,2.0,,,,
+SPORTIELLO  Marco  2025/2026,P,Atalanta,1.0,5.5,1.0,1.39,1.67,1.33,1.51
+STOLZ  Franz  Nuovo,P,Genoa,1.0,,,,,,
+STRAJNAR  Aljaz  Nuovo,P,Monza,1.0,,,,,,
+TORNQVIST  Noel  2025/2026,P,Como,1.0,,,,1.25,0.88,1.16
+TORRIANI  Lorenzo  2025/2026,P,Milan,1.0,,,2.52,2.43,1.02,1.36
+TREPY  Yael  2025/2026,A,Cagliari,1.0,6.12,4.0,,1.08,,0.53
+TURATI  Stefano  2025/2026,P,Sassuolo,1.0,6.16,6.0,1.0,5.83,12.19,10.6
+VASQUEZ  Devis  2025/2026,P,Roma,1.0,,,1.23,1.51,1.27,1.37
+VIGORITO  Mauro  2025/2026,P,Como,1.0,,,4.48,3.91,,0.52
+VINCIATI  Giulio  2025/2026,A,Udinese,1.0,,,,,,
+VISMARA  Paolo  2025/2026,P,Atalanta,1.0,,,,,,
+WIAFE  Samuel  Nuovo,C,Genoa,1.0,,,,,,
+ZACCHI  Gioele  2025/2026,P,Serie Minori,1.0,,,,,,
+ZELEZNY  Radoslaw  2025/2026,P,Serie Minori,1.0,,,,1.07,0.97,1.2
+ZIOLKOWSKI  Jan  2025/2026,D,Roma,1.0,5.94,9.0,,1.66,,5.85
+ANDREALLI  Francesco  2025/2026,C,Como,0.0,,,,,,
+ASTALDI  Gianluca  2025/2026,P,Parma,0.0,,,,,,
+BAFFOH NANA  Jeffrey  Nuovo,C,Sassuolo,0.0,,,,,,
+BARBARO  Elia  Nuovo,C,Bologna,0.0,,,,,,
+BARBINI  Matteo  Nuovo,D,Genoa,0.0,,,,,,
+BONANNO  Piergiorgio  2025/2026,C,Fiorentina,0.0,,,,,,
+BOZHIDAROV PAPAZOV  Dimitar  Nuovo,D,Bologna,0.0,,,,,,
+BRUNO  Kevin  Nuovo,C,Sassuolo,0.0,,,,,,
+CASSANO  Riccardo  Nuovo,C,Como,0.0,,,,,,
+CIARDI  Alessandro  2025/2026,C,Parma,0.0,,,,,,
+CINQUEGRANO  Simone  2025/2026,D,Sassuolo,0.0,,,,,,
+D'INTINO  Roberto  2025/2026,D,Parma,0.0,,,,,,
+DABO  Lamine  Nuovo,C,Venezia,0.0,,,,,,
+DELLA ROCCA  Mattia  2025/2026,C,Roma,0.0,,,,,,
+DESOLE  Fabio  2025/2026,D,Torino,0.0,,,,,,
+DI BITONTO  Alessandro  Nuovo,D,Sassuolo,0.0,,,,,,
+DI TOMMASO  Leonardo  Nuovo,C,Lazio,0.0,,,,,,
+DOUCOURe  Mamedi  2025/2026,D,Genoa,0.0,,,,,,
+DROBNIC  Dominik  2025/2026,D,Parma,0.0,,,,,,
+ESPOSITO  Sebastian  2025/2026,D,Lecce,0.0,,,,,,
+FARJI  Marko  Nuovo,C,Venezia,0.0,,,,,,
+FERRARI  Flavio  Nuovo,A,Bologna,0.0,,,,,,
+FONTANAROSA  Alessandro  Nuovo,D,Inter,0.0,,,,,,
+GABELLINI  Tommaso  2025/2026,A,Torino,0.0,,,,,,
+GONZALEZ  Joan  Nuovo,C,Lecce,0.0,,,,,,
+GRANDU  Nicola  2025/2026,C,Cagliari,0.0,,,,,,
+ILIEV  Velizar-Iliya  2025/2026,P,Cagliari,0.0,,,,,,
+JOUJOU  Antoine  2025/2026,A,Parma,0.0,,,,,,
+KONATE  Abdou-Salam  2025/2026,C,Parma,0.0,,,,,,
+KOWALSKI  Mateusz  2025/2026,A,Parma,0.0,,,,,,
+LEONE  Kevin  Nuovo,C,Serie Minori,0.0,,,,,,
+MINICANGELI  Francesco  Nuovo,P,Frosinone,0.0,,,,,,
+MINTA  Amoako  Nuovo,A,Sassuolo,0.0,,,,,,
+MOUT  Mathis  Nuovo,A,Monza,0.0,,,,,,
+MUNOZ  Cristo  2025/2026,C,Lazio,0.0,,,,,,
+NYARKO  Lorenzo  2025/2026,P,Sassuolo,0.0,,,,,,
+PEJICIC  David  2025/2026,A,Udinese,0.0,,,,,,
+PESSOLANI  Gabriele  Nuovo,A,Genoa,0.0,,,,,,
+PISATI  Samuele  2025/2026,A,Como,0.0,,,,,,
+PLICCO  Elia  2025/2026,C,Parma,0.0,,,,,,
+ROMANO  Marco  Nuovo,C,Genoa,0.0,,,,,,
+SCAGLIONE  Roberto  Nuovo,C,Genoa,0.0,,,,,,
+SECK  Mohamed  2025/2026,D,Roma,0.0,,,,,,
+SPICUGLIA  Elia  Nuovo,C,Genoa,0.0,,,,,,
+SPINELLI  David  2025/2026,P,Napoli,0.0,,,,,,
+TARANTINO  Jacopo  Nuovo,A,Fiorentina,0.0,,,,,,
+TRABUCCHI  Nicolas  2025/2026,D,Parma,0.0,,,,,,
+UBANI  Marlon  Nuovo,D,Lecce,0.0,,,,,,
+VAZ  Marcelo  Nuovo,D,Genoa,0.0,,,,,,
+VENTURI  Michael  Nuovo,D,Venezia,0.0,,,,,,
+VEZZOSI  Giorgio  Nuovo,D,Sassuolo,0.0,,,,,,
+YILMAZ  Enes  Nuovo,C,Lecce,0.0,,,,,,

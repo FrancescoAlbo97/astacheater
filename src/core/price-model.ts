@@ -152,11 +152,12 @@ interface WeightedFit {
   readonly sxx: number;
   readonly meanX: number;
   readonly meanY: number;
+  readonly sumW: number;
 }
 
 function weightedOLS(xs: readonly number[], ys: readonly number[], weights: readonly number[]): WeightedFit {
   const sumW = weights.reduce((s, w) => s + w, 0);
-  if (sumW < 1e-9) return { a: ys[0] ?? 0, b: 0, sigma2: 0, sxx: 0, meanX: 0, meanY: ys[0] ?? 0 };
+  if (sumW < 1e-9) return { a: ys[0] ?? 0, b: 0, sigma2: 0, sxx: 0, meanX: 0, meanY: ys[0] ?? 0, sumW: 0 };
   const meanX = xs.reduce((s, x, i) => s + weights[i]! * x, 0) / sumW;
   const meanY = ys.reduce((s, y, i) => s + weights[i]! * y, 0) / sumW;
   let sxx = 0;
@@ -174,7 +175,7 @@ function weightedOLS(xs: readonly number[], ys: readonly number[], weights: read
     sse += weights[i]! * resid * resid;
   }
   const sigma2 = sse / Math.max(1, sumW - 2);
-  return { a, b, sigma2, sxx, meanX, meanY };
+  return { a, b, sigma2, sxx, meanX, meanY, sumW };
 }
 
 /**
@@ -219,7 +220,15 @@ export function fitOnlinePriceCurves(
     const recencyWeights = obs.map((o) => Math.pow(0.5, (maxOrder - o.order) / config.halfLifeObservations));
 
     let huberWeights = obs.map(() => 1);
-    let fit: WeightedFit = { a: Math.log(prior.A), b: prior.theta, sigma2: 0, sxx: 0, meanX: 0, meanY: Math.log(prior.A) };
+    let fit: WeightedFit = {
+      a: Math.log(prior.A),
+      b: prior.theta,
+      sigma2: 0,
+      sxx: 0,
+      meanX: 0,
+      meanY: Math.log(prior.A),
+      sumW: 0,
+    };
     for (let iter = 0; iter < 5; iter++) {
       const combined = recencyWeights.map((w, i) => w * huberWeights[i]!);
       fit = weightedOLS(xs, ys, combined);
@@ -247,8 +256,30 @@ export function fitOnlinePriceCurves(
       fit = { ...fit, a: fit.meanY, b: 0 };
     }
 
+    // Il peso dei dati non può dipendere solo da n: n osservazioni tutte concentrate in una fascia
+    // di punteggio stretta identificano la pendenza molto peggio delle stesse n osservazioni
+    // sparse su tutto il range — eppure ottenevano lo stesso identico dataWeight (bug reale,
+    // trovato proseguendo l'indagine sul caso Meret: durante un'unica asta simulata, con n=45
+    // osservazioni ma raggruppate in una fascia stretta in un certo momento dell'asta, A_ρ
+    // oscillava di oltre 10× e θ_ρ crollava a un quarto — instabile, ma non abbastanza da far
+    // scattare il guardrail esistente sulla pendenza negativa qualche riga sopra, che intercetta
+    // solo il caso estremo, non questa via di mezzo).
+    //
+    // `fit.sxx` (già calcolato da weightedOLS) è la somma pesata degli scarti al quadrato di
+    // x = score/100 dalla loro media: è la STESSA quantità che compare al denominatore della
+    // varianza della pendenza (Var(b) = σ²/sxx), quindi misura direttamente quanta informazione
+    // sulla pendenza il campione porta davvero — non solo quante righe ha. Un campione ben speso su
+    // tutto il range possibile di score/100 ([0,1]) con peso totale `sumW` avrebbe, per una
+    // distribuzione uniforme, sxx ≈ sumW/12 (varianza di Uniforme[0,1]): si usa questo come
+    // riferimento di "quanto sarebbe disperso un campione ben distribuito di quel peso totale", e
+    // si scala la numerosità effettiva usata nel ridge dal rapporto fra la dispersione osservata e
+    // quella di riferimento — mai oltre n (un campione compatto ma fortunatamente più disperso del
+    // solito non deve valere più della sua numerosità reale).
     const n = obs.length;
-    const dataWeight = n / (n + config.ridgeN0);
+    const referenceSxx = fit.sumW / 12;
+    const spreadRatio = referenceSxx > 1e-9 ? Math.min(1, fit.sxx / referenceSxx) : 0;
+    const effectiveN = n * spreadRatio;
+    const dataWeight = effectiveN / (effectiveN + config.ridgeN0);
     const priorWeight = 1 - dataWeight;
     const theta = dataWeight * fit.b + priorWeight * prior.theta;
     const logA = dataWeight * fit.a + priorWeight * Math.log(prior.A);

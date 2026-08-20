@@ -142,7 +142,8 @@ function simulateContinuation(
   myStart: SimManagerState,
   order: readonly RolloutPoolPlayer[],
   opponentNoiseByDraw: readonly ReadonlyMap<string, number>[],
-  fillerScoreByRole: Readonly<Record<Role, number>>,
+  sortedScoresByRole: Readonly<Record<Role, readonly number[]>>,
+  referenceCreditsPerSlot: number,
 ): number {
   const managers = new Map<string, SimManagerState>();
   for (const [id, s] of othersInit) managers.set(id, id === input.myManagerId ? myStart : cloneSimState(s));
@@ -191,7 +192,7 @@ function simulateContinuation(
         const poolFromHere = order.slice(i + 1);
         const roleInputs = buildMyRoleInputs(me, poolFromHere, input.leagueSlots, input.slotWeights, valueCurves, roleWeights);
         const scaledBudget = Math.max(1, Math.floor(me.credits / DUALS_BUDGET_GRANULARITY));
-        const duals = computeDuals({ budget: scaledBudget, roleInputs, ownedCountByRole: me.ownedByRole });
+        const duals = computeDuals({ budget: scaledBudget, roleInputs });
         dualsCache = { ...duals, lambda: duals.lambda / DUALS_BUDGET_GRANULARITY };
         drawsSinceRecalc = 0;
         creditsAtLastRecalc = me.credits;
@@ -229,7 +230,8 @@ function simulateContinuation(
   // artificiosamente prezioso (il rango vuoto assegnerebbe comunque il peso più alto disponibile
   // a un singolo giocatore debole). Si completa ogni ruolo incompleto con il valore-filler fino a
   // slotCount, cosicché il confronto vinco/perdo isoli il contributo REALE della decisione.
-  const playersByRole = {} as Record<Role, SurrogatePlayerInput[]>;
+  const ownedByRoleForPadding = {} as Record<Role, SurrogatePlayerInput[]>;
+  let totalMissingAtEnd = 0;
   for (const role of ROLES) {
     const owned = me.ownedScores[role]!.map((score) => ({
       rankValue: roleWeightedPlayerValue(role, score, roleWeights, { curves: valueCurves }),
@@ -237,8 +239,34 @@ function simulateContinuation(
       // confronto vinco/perdo, non la preferenza — stesso principio già seguito per il rischio.
       potential: 38 * fantamedia(role, score, valueCurves),
     }));
-    const fillerV = roleWeightedPlayerValue(role, fillerScoreByRole[role], roleWeights, { curves: valueCurves });
-    const fillerPotential = 38 * fantamedia(role, fillerScoreByRole[role], valueCurves);
+    ownedByRoleForPadding[role] = owned;
+    totalMissingAtEnd += Math.max(0, input.leagueSlots[role] - owned.length);
+  }
+
+  // Bug reale trovato dall'utente (asta reale, non simulazione): il filler assunto per gli slot
+  // NON coperti dall'orizzonte troncato era una percentuale FISSA (20°) del pool, identica sia che
+  // il ramo simulato mi lasci con 350 crediti per 23 slot sia che me ne lasci 22 per 22 — come se
+  // spendere quasi tutto il budget su UN giocatore non avesse alcun costo per il resto della rosa.
+  // Misurato: per un difensore mediocre (score 71) con TUTTI e 8 gli slot D ancora liberi, la banda
+  // Monte Carlo indicava un p10=mediana=p90 di 333 crediti (praticamente tutto il budget) — zero
+  // varianza su 2000 iterazioni, un segno che qualcosa saturava sempre allo stesso modo — mentre il
+  // motore esatto (che tiene il budget in un unico libro mastro coerente, §6.5) diceva correttamente
+  // "non serve" per lo stesso giocatore. Corretto: si scala il percentile assunto per il filler in
+  // base a quanto budget-per-slot REALE resta a fine ramo simulato, rispetto a quanto ce n'era
+  // PRIMA di questa decisione (crediti fungibili fra ruoli, quindi il confronto è su tutta la rosa,
+  // non ruolo per ruolo) — un ramo che mi lascia più povero del solito assume filler più scarsi, uno
+  // che mi lascia comodo assume filler pari o migliori, invece del 20° fisso sempre uguale.
+  const creditsPerSlotAtEnd = totalMissingAtEnd > 0 ? me.credits / totalMissingAtEnd : referenceCreditsPerSlot;
+  const affordabilityRatio = referenceCreditsPerSlot > 0 ? Math.max(0, Math.min(2, creditsPerSlotAtEnd / referenceCreditsPerSlot)) : 1;
+  const effectivePercentile = Math.max(0, Math.min(0.5, 0.2 * affordabilityRatio));
+
+  const playersByRole = {} as Record<Role, SurrogatePlayerInput[]>;
+  for (const role of ROLES) {
+    const owned = ownedByRoleForPadding[role]!;
+    const scores = sortedScoresByRole[role]!;
+    const fillerScore = scores.length > 0 ? scores[Math.min(scores.length - 1, Math.floor(effectivePercentile * scores.length))]! : 20;
+    const fillerV = roleWeightedPlayerValue(role, fillerScore, roleWeights, { curves: valueCurves });
+    const fillerPotential = 38 * fantamedia(role, fillerScore, valueCurves);
     const missing = Math.max(0, input.leagueSlots[role] - owned.length);
     const padding = Array.from({ length: missing }, () => ({ rankValue: fillerV, potential: fillerPotential }));
     playersByRole[role] = [...owned, ...padding];
@@ -264,15 +292,24 @@ export function runRollout(input: RolloutInput, rng: Rng): RolloutResult {
     ),
   );
 
-  const fillerScoreByRole = {} as Record<Role, number>;
+  // Ordinati (ascendente) una volta sola per ruolo: alla fine di OGNI ramo simulato si userà una
+  // fascia di percentile diversa (vedi sotto), non sempre il 20° fisso — servono i punteggi grezzi
+  // per poter scegliere l'indice giusto ramo per ramo.
+  const sortedScoresByRole = {} as Record<Role, readonly number[]>;
   for (const role of ROLES) {
-    const scores = input.remainingPool.filter((p) => p.role === role).map((p) => p.myScore).sort((a, b) => a - b);
-    fillerScoreByRole[role] = scores.length > 0 ? scores[Math.floor(0.2 * scores.length)]! : 20;
+    sortedScoresByRole[role] = input.remainingPool.filter((p) => p.role === role).map((p) => p.myScore).sort((a, b) => a - b);
   }
 
   const horizon = Math.min(input.maxHorizon ?? 80, input.remainingPool.length);
   const managersInit = initManagerStates(input);
   const meInit = managersInit.get(input.myManagerId)!;
+
+  // Passo di riferimento PRIMA di questa decisione (crediti residui / slot ancora scoperti, su
+  // tutti i ruoli insieme, perché il budget è fungibile fra ruoli): usato sotto per capire se un
+  // ramo simulato mi lascia PIÙ o MENO comodo di adesso, non un valore assoluto arbitrario.
+  const missingAtStart = ROLES.reduce((s, r) => s + Math.max(0, input.leagueSlots[r] - meInit.ownedByRole[r]), 0);
+  const referenceCreditsPerSlot = missingAtStart > 0 ? meInit.credits / missingAtStart : 1;
+
   const pStars: number[] = [];
 
   for (let r = 0; r < input.rolloutConfig.rollouts; r++) {
@@ -311,7 +348,15 @@ export function runRollout(input: RolloutInput, rng: Rng): RolloutResult {
         loseOthersInit.set(winnerId, winnerState);
       }
     }
-    const vLose = simulateContinuation(input, loseOthersInit, cloneSimState(meInit), shuffled, opponentNoiseByDraw, fillerScoreByRole);
+    const vLose = simulateContinuation(
+      input,
+      loseOthersInit,
+      cloneSimState(meInit),
+      shuffled,
+      opponentNoiseByDraw,
+      sortedScoresByRole,
+      referenceCreditsPerSlot,
+    );
 
     const diffs: { p: number; diff: number }[] = [];
     for (const p of grid) {
@@ -324,7 +369,15 @@ export function runRollout(input: RolloutInput, rng: Rng): RolloutResult {
           [input.targetRole]: [...meInit.ownedScores[input.targetRole]!, input.targetMyScore],
         },
       };
-      const vWin = simulateContinuation(input, managersInit, meWin, shuffled, opponentNoiseByDraw, fillerScoreByRole);
+      const vWin = simulateContinuation(
+        input,
+        managersInit,
+        meWin,
+        shuffled,
+        opponentNoiseByDraw,
+        sortedScoresByRole,
+        referenceCreditsPerSlot,
+      );
       diffs.push({ p, diff: vWin - vLose });
     }
 

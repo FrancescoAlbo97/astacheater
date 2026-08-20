@@ -29,7 +29,7 @@ import {
 import { ceilingForRole, maxSingleBid, operationalMaxBid, expectedPriceFromCeiling } from './ceiling.js';
 import { computeMaxBid } from './max-bid.js';
 import { combineRoles, computeRolePlan, type DPCandidate, type RoleDPInput } from './plan-dp.js';
-import { approxMaxBid, computeDuals } from './base-policy.js';
+import { approxMaxBid, computeDuals, weightAndMuForCandidate } from './base-policy.js';
 import type { RolloutInput } from './rollout.js';
 
 /** Curve di valore corrette per la propensione al rischio configurata (§6.8), o quelle di default
@@ -194,6 +194,32 @@ export interface PlayerDecision {
 }
 
 /**
+ * Bug reale segnalato dall'utente da un'asta vera: "non serve" per il piano OTTIMO esatto (§6.6)
+ * significa "esiste una combinazione di ALTRI candidati del pool, tutti ottenibili al loro prezzo
+ * atteso p̂, strettamente migliore" — un'ipotesi di CERTEZZA (nessuna concorrenza reale su QUEI
+ * candidati) che non vale in un'asta vera con altri 9 manager che li vogliono anche loro. Misurato
+ * su un'asta reale: con TUTTI e 8 gli slot D ancora liberi (zero posseduti, quindi "certamente
+ * ottengo gli 8 migliori del pool" è l'ipotesi più fragile possibile), un difensore via via
+ * discreto (score 62-71) risultava SEMPRE "non serve" — semplicemente perché il pool ha ≥8
+ * difensori più forti, non perché il giocatore non serva davvero. "È inutile scrivere 'non serve':
+ * non serve rispetto a cosa? […] Bisogna fare in modo che quelli forti ci sia sempre un valore
+ * d'offerta" (dall'utente). Quando ho ancora slot liberi in quel ruolo (altrimenti "non serve" è un
+ * vincolo VERO, non un'ipotesi: lo slot non esiste fisicamente — mai scavalcato), si usa la stima
+ * approssimata `approxPStar` come COPERTURA invece di azzerare — usa solo il rango fra i giocatori
+ * che possiedo GIÀ (certi), non fra quelli che spero ancora di prendere, quindi non eredita la
+ * stessa ipotesi di certezza. Il piano ottimo esatto resta comunque calcolato e disponibile
+ * (`phiLose`/`phiWinAtOperational`), non viene scartato: la spiegazione "perché questo numero" può
+ * ancora mostrare che il piano teoricamente migliore non include questo giocatore, ferma restando
+ * la copertura come offerta operativa. Non forza un'offerta per chiunque: un candidato genuinamente
+ * scarso ha `approxPStar` anch'esso ≤ 0 (stesso conto, valore reale troppo basso), quindi resta
+ * "non serve" — la copertura scatta solo quando le due stime DIVERGONO.
+ */
+export function applyHedge(maxBidResult: MaxBidResult, approxPStar: number, hasOpenSlotInRole: boolean): MaxBidResult {
+  const useHedge = maxBidResult.reason === 'not-useful' && hasOpenSlotInRole && approxPStar > 0;
+  return useHedge ? { pStar: approxPStar, phiLose: maxBidResult.phiLose, reason: 'hedge' } : maxBidResult;
+}
+
+/**
  * Il numero deterministico da mostrare nella schermata di asta (§6.6, §11): p* esatto per
  * bisezione, tetto avversari, offerta operativa massima. Deve restare velocissimo (§13.9): niente
  * Monte Carlo qui dentro (quello è il rollout, in un Web Worker separato).
@@ -230,7 +256,30 @@ export function computeDecisionForPlayer(state: AuctionState, playerId: string):
     maxAffordable: maxSingleBid(me),
   });
 
-  const operationalMax = operationalMaxBid(maxBidResult.pStar, ceiling);
+  // Duali e stima approssimata (§6.6), calcolati QUI perché servono anche per l'aggiustamento
+  // "copertura" subito sotto, non solo per la riga "perché questo numero" più in basso.
+  //
+  // Bug reale segnalato dall'utente ("la parte dello slot del ruolo fa un casino"): questi duali
+  // NON vanno calcolati sul pool con il target ESCLUSO (`roleInputsWithoutTarget`, che serve solo
+  // al DP esatto sopra per poterlo poi reinserire a un prezzo di prova, §6.6). λ è la derivata
+  // dell'inviluppo dell'INTERO mercato (`marginalValue` in plan-dp.ts, ricerca all'indietro
+  // dell'ultimo gradino) ed è per costruzione sensibile a QUALE candidato è nel pool: escludere un
+  // giocatore diverso per ogni singola query lo fa saltare anche del 2-3× fra un candidato e
+  // l'altro nella STESSA istantanea d'asta (misurato su dati reali: λ passava da 1.05 a 0.42
+  // togliendo un solo centrocampista dal pool, producendo una "STIMA RAPIDA" nel pannello "perché
+  // questo numero" di 350+ crediti per un giocatore il cui p* esatto era 30) — non un caso limite
+  // raro, capitava per un giocatore su dieci nel listone reale. auction-sim.ts già calcola questi
+  // stessi duali sul pool COMPLETO, senza esclusioni per-candidato (ricalcolati periodicamente,
+  // §6.7): qui si allinea allo stesso pattern, corretto e già in uso altrove.
+  const roleInputsForDuals = buildRoleInputsForMe(state, snapshot, null, valueCurves);
+  const duals = computeDuals({ budget: me.creditsRemaining, roleInputs: roleInputsForDuals });
+  const lambda = duals.lambda;
+  const { weight: nextSlotWeight, mu: muRole } = weightAndMuForCandidate(myValue, role, duals);
+  const approxPStar = approxMaxBid(myValue, role, duals, maxSingleBid(me));
+
+  const effectiveMaxBidResult = applyHedge(maxBidResult, approxPStar, me.slotsRemaining[role] > 0);
+
+  const operationalMax = operationalMaxBid(effectiveMaxBidResult.pStar, ceiling);
   const expectedPrice = expectedPriceFromCeiling(capByResidualDemand(pHat, ceiling), ceiling);
 
   // Φ_win / Φ_lose per la riga "se lo prendi / se lo lasci" (§6.6, ricalcolo esatto e veloce:
@@ -249,16 +298,6 @@ export function computeDecisionForPlayer(state: AuctionState, playerId: string):
   }
   const phiLose = phiForcingTargetAt(null);
   const phiWinAtOperational = operationalMax > 0 ? phiForcingTargetAt(operationalMax) : phiLose;
-
-  // Scomposizione al primo ordine per la riga "perché" (§6.6): p* ≈ (w_ρ,t·v − μ_ρ)/λ. È solo una
-  // SPIEGAZIONE per l'utente, non il numero mostrato come "offri fino a" (quello è pStar esatto).
-  const ownedCountByRole = { P: 0, D: 0, C: 0, A: 0 };
-  for (const entry of me.roster) ownedCountByRole[entry.player.role]++;
-  const duals = computeDuals({ budget: me.creditsRemaining, roleInputs: roleInputsWithoutTarget, ownedCountByRole });
-  const lambda = duals.lambda;
-  const muRole = duals.muByRole[role];
-  const nextSlotWeight = duals.nextSlotWeight[role];
-  const approxPStar = approxMaxBid(myValue, role, duals, maxSingleBid(me));
 
   // Alternative dopo di lui: i migliori 3 rimasti nello stesso ruolo per il mio score.
   const alternatives: DecisionAlternative[] = snapshot.pool
@@ -293,8 +332,8 @@ export function computeDecisionForPlayer(state: AuctionState, playerId: string):
     role,
     myValue,
     pHat,
-    pStar: maxBidResult.pStar,
-    reason: maxBidResult.reason,
+    pStar: effectiveMaxBidResult.pStar,
+    reason: effectiveMaxBidResult.reason,
     ceiling,
     operationalMax,
     expectedPrice,

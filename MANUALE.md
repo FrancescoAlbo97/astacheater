@@ -398,7 +398,7 @@ aggiornato a ridosso della tua asta**, non usato così com'è se l'asta è fra s
 Per chi vuole guardare sotto il cofano o rifare le verifiche:
 
 ```bash
-npm test                          # tutti i test automatici (247, dovrebbero passare tutti)
+npm test                          # tutti i test automatici (260, dovrebbero passare tutti)
 npm run typecheck                 # controllo dei tipi TypeScript
 npm run build                     # produce dist/fantasta.html
 npx tsx src/sim/cli.ts bench 200        # statistiche di realismo su 200 aste simulate
@@ -415,6 +415,157 @@ bruta sui calcoli esatti, controlli numerici sulle formule, ecc.). Diversi bug r
 trovati e corretti durante lo sviluppo (vedi sotto); **alcuni limiti restano documentati e non
 ancora risolti del tutto**, per trasparenza:
 
+- **Bug reale corretto: i "duali" (λ) usati per la stima rapida e per il pannello "perché questo
+  numero" dipendevano da QUALE giocatore si stava prezzando — segnalato dall'utente come "ci sono
+  ancora tanti errori... vedo giocatori con valori più bassi che mi propone prezzi più alti... la
+  parte dello slot del ruolo fa un casino"**. Indagine su un'asta reale, prima dell'inizio (zero
+  vendite): confrontando i primi 12 giocatori per ruolo, alcuni "punteggio più basso → prezzo più
+  alto" erano in realtà corretti (il valore vero per te non è il punteggio grezzo ma punteggio ×
+  titolarità: un giocatore con punteggio leggermente più basso ma titolarità più alta può valere
+  DAVVERO di più — non un bug, `myValue` fa esattamente questo). Un altro gruppo era spiegabile da
+  un ragionamento di "occasione": un giocatore con prezzo di mercato atteso bassissimo (perché il
+  suo punteggio grezzo è basso) ma valore quasi identico a un'alternativa molto più cara, riceve
+  giustamente un p* più alto — se non lo prendi ora a poco, l'alternativa equivalente ti costerà
+  molto di più (anche questo NON è un bug, è arbitraggio corretto). Ma un residuo di casi non si
+  spiegava con nessuno dei due: es. Cande (valore 195.2, prezzo atteso 1) e Kalulu (valore 195.9,
+  prezzo atteso 22) nello stesso ruolo, stessa istantanea d'asta — chiedendo "quanto offrire per
+  Kalulu" si otteneva λ = 1.052; chiedendo "quanto offrire per Cande" (un giocatore diverso!) si
+  otteneva λ = 0.422, più della metà. Causa: `computeDuals` veniva chiamato sul pool con il
+  giocatore-bersaglio ESCLUSO (`roleInputsWithoutTarget`) — necessario per la programmazione
+  dinamica esatta (deve poter reinserire il bersaglio a un prezzo di prova senza contarlo due
+  volte), ma riusato per comodità anche per i duali, che non ne hanno bisogno. λ (`marginalValue` in
+  `plan-dp.ts`) è una ricerca all'indietro dell'ultimo "gradino" nell'inviluppo di valore
+  dell'intero mercato: escludere un candidato diverso a ogni query può spostare quel gradino a un
+  budget completamente diverso, con salti anche di 2-3×. Sintomo pratico osservato: il pannello
+  "perché questo numero" mostrava una "stima rapida" di 350+ crediti per un centrocampista il cui
+  prezzo massimo VERO (dalla programmazione dinamica esatta, non toccata dal bug) era 30 — un
+  numero platealmente assurdo che alimentava esattamente la sfiducia "l'algoritmo non funziona".
+  Confermato che `sim/auction-sim.ts` (il simulatore) non ha mai avuto questo problema: lì i duali
+  si ricalcolano periodicamente sul pool INTERO, mai escludendo un candidato specifico — la stessa
+  soluzione è stata applicata anche qui. **Corretto**: i duali ora si calcolano una sola volta per
+  istantanea, sul pool completo (bersaglio incluso, dato che i pesi di slot dipendono solo da chi
+  possiedi già, non dal pool opzionale). Verificato sui dati reali: λ ora è identico (1.052) per
+  tutti i 496 giocatori del listone, e la stima rapida per Cande/Kalulu/Bremer/Solet/Dimarco/Wesley
+  torna monotona nel loro valore vero. Aggiunti 2 test (uno diretto, uno a proprietà casuali) che
+  verificano che λ non cambi in base al giocatore scelto come bersaglio nella stessa istantanea.
+  **Non ancora un bug, ma un rischio segnalato onestamente**: nessun caso reale in questo listone
+  aveva ANCHE `reason: 'not-useful'` nello stesso momento (quindi la "copertura" del punto
+  successivo non aveva mai mostrato un numero assurdo come "offri fino a"), ma la combinazione era
+  possibile prima di questo fix — risolta alla radice, non solo mascherata.
+- **Segnalazione confermata ma NON un bug: l'aggressività non sposta il prezzo in modo percepibile
+  ("cambio il valore con l'aggressività e non si smuove")**. Rifatta la misura sui dati reali con
+  risk = −1/−0.5/0/+0.5/+1 sugli stessi giocatori: `myValue` cambia sempre in modo monotono (come
+  atteso), ma il prezzo massimo finale spesso si muove di 0-5 crediti su un range di decine, e in un
+  caso (un difensore da top-lista) l'effetto è risultato addirittura a "U" fra gli estremi — la
+  stessa saturazione già documentata più sotto in questa sezione, non una regressione nuova.
+  Nessuna ulteriore azione: l'alternativa a bonus di varianza è già stata provata e scartata (vedi
+  più sotto, "tentativo di un'alternativa"); resta lo slider per-decisione in Predizione come
+  strumento più diretto, con l'effetto debole ormai atteso e documentato.
+- **Segnalazione confermata e presa sul serio: "non funziona sui primi giocatori... vanno aspettati
+  che almeno siano stati estratti un tot"**. Verificato: con zero vendite registrate, il prezzo di
+  mercato atteso (p̂) di ogni ruolo è la curva teorica pura (nessun dato reale di QUESTA lega ancora
+  disponibile, confidenza "bassa" per definizione) e dipende SOLO dal punteggio grezzo, non dalla
+  tua titolarità personalizzata — quindi un giocatore con punteggio basso ma titolarità alta (per
+  te) può avere un p̂ quasi a pavimento (1 credito) mentre il suo valore vero per te è alto: è
+  proprio l'ingrediente che rende il meccanismo di "occasione" del punto sopra più aggressivo e più
+  rumoroso a inizio asta, quando c'è meno da perdere nel fidarsi di quella stima. La sezione
+  "confidenza bassa/media/alta" esisteva già in piccolo in fondo al pannello ma passava
+  inosservata; **aggiunto un avviso più visibile** in cima al pannello di decisione quando la
+  confidenza è "bassa" ("Prezzi di mercato ancora poco affidabili... possono sembrare incoerenti fra
+  un giocatore e l'altro finché non se ne vendono un po' di più"). Non impedisce di usare l'app da
+  subito (l'utente non ha chiesto di bloccarla, solo di capire perché sembra "impazzita" all'inizio)
+  ma rende esplicito il motivo invece di lasciarlo indovinare.
+- **Bug reale corretto: "non serve" per il piano matematico esatto non deve azzerare l'offerta se
+  hai ancora slot liberi — segnalato dall'utente, con l'esempio del fix precedente ancora vivo**.
+  Anche dopo il fix del punto successivo, l'utente ha segnalato che il problema persisteva: "non
+  funziona, li mette tutti comunque nel primo... il ragionamento deve essere che, per un giocatore,
+  al di là di quanto è forte, io provo a piazzarlo... va bene anche se ne ho quattro migliori da
+  acquistare, perché poi quei quattro migliori li acquisterò... è inutile scrivere 'non serve': non
+  serve rispetto a cosa?" Analizzando un'asta reale: con TUTTI e 8 gli slot D ancora liberi (zero
+  posseduti — quindi "sicuramente prendo gli 8 migliori del pool" è l'ipotesi più fragile
+  possibile), difensori discreti (score 62-71, su 175 candidati nel pool) risultavano SEMPRE "non
+  serve". Causa: il piano ottimo esatto (§6.5-6.6) confronta "prendo questo giocatore" con "prendo
+  la MIGLIOR combinazione possibile degli altri candidati del pool, tutti ottenibili al loro prezzo
+  atteso" — un'ipotesi di CERTEZZA (nessuna concorrenza reale su quei candidati) che non regge in
+  un'asta vera con altri 9 manager che li vogliono anche loro. Prima tappa (verifica, non ancora
+  soluzione): controllato se la banda Monte Carlo (che dovrebbe già modellare questa incertezza)
+  desse un'indicazione diversa — sì, ma in modo ROTTO: **trovato un secondo bug reale**, la banda
+  indicava 333 crediti (quasi tutto il budget) con zero varianza su 2000 simulazioni per lo stesso
+  difensore, perché il calcolo di fine orizzonte simulato assumeva SEMPRE di riuscire a riempire gli
+  slot non ancora simulati con giocatori di qualità "filler" — **indipendentemente da quanti crediti
+  restassero davvero** dopo aver speso una fortuna su un giocatore. Corretto in `rollout.ts`: la
+  qualità del filler assunta ora scala con quanto budget-per-slot resta REALMENTE a fine simulazione
+  rispetto a prima della decisione — per lo stesso difensore, la banda è scesa a un molto più
+  sensato 101. **Soluzione principale**: quando ho ancora slot liberi in un ruolo (altrimenti "non
+  serve" è un vincolo VERO, fisico, non un'ipotesi — resta cosi) e il piano esatto dice "non serve"
+  solo per l'ipotesi di certezza sopra, si usa al suo posto una stima di copertura basata SOLO sui
+  giocatori che possiedo già (nessuna ipotesi su chi prenderò in futuro) — per lo stesso difensore,
+  "offri fino a" passa da 0 a 34. Un candidato genuinamente scarso resta "non serve": la copertura
+  non forza un'offerta per chiunque, solo per chi le due stime (esatta e approssimata) valutano
+  diversamente. Aggiunta anche una nota esplicita nel pannello "perché questo numero" quando scatta
+  questo caso, perché altrimenti il numero "offri fino a" sembrerebbe contraddire la riga "se lo
+  prendi → rosa finale X pt" appena sotto (che resta calcolata con l'ipotesi di certezza, per
+  trasparenza — non nascosta, spiegata). Test aggiunti: 5 su una funzione dedicata (`applyHedge` in
+  `engine.ts`, incluso uno con proprietà casuali) più un test end-to-end che verifica che un ruolo
+  DAVVERO pieno resti "non serve" senza eccezioni.
+- **Bug reale corretto: il "prossimo slot" era calcolato per QUANTI giocatori possiedi, non per
+  QUANTO valgono — segnalato dall'utente**. "I calciatori che compro non sono in ordine per peso,
+  quindi considerare il primo acquisto come diretto primo slot è sbagliato: un giocatore buono e
+  titolare, anche se ne ho già presi molti altri in quel ruolo, è comunque ottimo potenzialmente
+  come 7° o 8° slot preso a 1-2 crediti, è stupido lasciarlo." Verificato leggendo il codice: nel
+  calcolo APPROSSIMATO del "peso ombra" (§6.6, `base-policy.ts`), il peso applicato al prossimo
+  acquisto in un ruolo veniva scelto in base a QUANTI giocatori possiedi già in quel ruolo (un
+  conteggio), non in base a dove il nuovo candidato si piazzerebbe DAVVERO per valore fra quelli
+  già posseduti. Un giocatore ottimo trovato a poco prezzo dopo averne già comprati 6 mediocri nello
+  stesso ruolo veniva quindi valutato con il peso minuscolo riservato al 7° slot (nei pesi di
+  default, circa 0.03-0.05), come se non potesse mai scavalcare i mediocri già in rosa — esattamente
+  il sintomo segnalato. **Buona notizia verificata**: il numero PRINCIPALE "offri fino a" che vedi
+  in asta non aveva questo problema — la programmazione dinamica esatta (§6.5) ha sempre ordinato
+  TUTTI i candidati, posseduti e no, per valore decrescente prima di assegnare i pesi, mai per
+  ordine di acquisto. Il bug era isolato all'approssimazione più veloce usata per tre cose diverse:
+  (1) la riga "perché questo numero?" nel pannello di spiegazione, (2) la banda Monte Carlo
+  (Predizione, rollout), (3) il manager razionale del simulatore (Prova a secco e tutti gli
+  strumenti diagnostici di questa sessione). **Corretto**: ora si tengono i valori reali dei
+  giocatori già posseduti in quel ruolo (non quanti sono), ordinati dal migliore al peggiore, e si
+  calcola dove il nuovo candidato si piazzerebbe DAVVERO in quella lista — esattamente la stessa
+  logica già usata dalla DP esatta. Effetto verificato: sulla lega simulata, la quota di budget per
+  ruolo si è spostata un po' (attaccanti giù, portieri su) — un effetto atteso di aver smesso di
+  sottovalutare buoni giocatori "in ritardo" per un ruolo, non un nuovo problema. Test aggiunti in
+  `test/base-policy.test.ts`, incluso uno con proprietà casuali che verifica che l'ORDINE con cui
+  hai comprato i tuoi giocatori non cambi mai la valutazione di un nuovo candidato — solo il valore
+  conta.
+- **Instabilità della curva di prezzo in corso d'asta, ridotta (non eliminata) — trovato da un
+  confronto con dati reali di mercato che l'utente ha allegato**. L'utente ha condiviso una pagina
+  reale di Fantacalcio-Online ("i più comprati") e ha fatto notare un meccanismo concreto: a inizio
+  asta i prezzi restano vicini alla quotazione ufficiale, poi via via che gli slot si riempiono si
+  allontanano parecchio — un effetto reale e prevedibile (scarsità), non rumore. Ha chiesto di
+  ragionarci e capire come ristrutturare l'algoritmo. Tracciando come cambiava la curva di prezzo
+  (A_ρ, θ_ρ) ogni 25 estrazioni durante un'intera asta simulata, è emerso che il modello CAMBIA
+  prezzo in corso d'asta, ma non nel modo giusto: l'intercetta di ruolo per gli attaccanti è arrivata
+  a esplodere di **14 volte** il valore iniziale (da 1,21 a 16,73) e la ripidità della curva è
+  crollata a un quarto, con 45 vendite reali osservate — un numero che non dovrebbe più produrre
+  questa instabilità. Un attaccante buono mai venduto (score 81) passava da "offri fino a 17" a
+  inizio asta a "offri fino a 0" (non conviene comprarlo a nessun prezzo) entro metà asta, pur avendo
+  ancora uno slot libero per quel ruolo e crediti disponibili. **Causa, la stessa famiglia del bug di
+  Meret già corretto ma non ancora sanata del tutto**: poche vendite reali concentrate in una fascia
+  di punteggio stretta identificano male la vera pendenza della curva, e quella incertezza si scarica
+  sull'intercetta, che oscilla parecchio — il modello contava solo QUANTE vendite aveva osservato,
+  non QUANTO fossero disperse per punteggio, quindi 45 vendite strette venivano trattate con la
+  stessa fiducia di 45 vendite ben distribuite. **Distinzione importante fatta con l'utente**: quello
+  che lui descriveva (prezzi che si allontanano dalla quotazione per scarsità, mano a mano che
+  l'asta avanza) è un effetto ECONOMICO reale, diverso da questo, che è invece RUMORE statistico —
+  stesso sintomo superficiale ("i prezzi cambiano molto durante l'asta"), causa diversa. **Corretto**
+  in `src/core/price-model.ts`: il peso dato ai dati osservati (rispetto al prior teorico/reale) ora
+  dipende anche da quanto sono disperse le vendite per punteggio, non solo da quante sono — un
+  campione di vendite tutte simili in punteggio riceve automaticamente meno fiducia. **Non è la
+  soluzione completa**: sullo stesso caso osservato l'instabilità si riduce parecchio (l'intercetta
+  non supera più circa 4-5× il prior, invece di 14×) ma non sparisce — è un problema statistico di
+  fondo (con pochissime vendite reali per ruolo in una singola lega, ~30-80 in tutta l'asta, un po'
+  di rumore resta strutturale), non un bug con una soluzione definitiva. Aggiunti test dedicati (uno
+  con numeri fissi, uno con proprietà casuali) in `test/price-model.test.ts` che verificano
+  esplicitamente che un campione concentrato in una fascia stretta resti più vicino al prior di uno
+  sparso, a parità di numero di osservazioni — così un regresso futuro di questa protezione viene
+  intercettato da un test che fallisce, non scoperto di nuovo da un'altra segnalazione utente.
 - **Crediti non spesi nelle aste simulate, corretto (non del tutto) — trovato proseguendo
   l'indagine sul punto successivo**. Con lo strumento del punto successivo l'utente ha visto che i
   suoi acquisti simulati erano quasi tutti "overpay" secondo il motore esatto, ma ha poi notato il

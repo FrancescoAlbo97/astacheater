@@ -13,6 +13,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "sim": "tsx src/sim/cli.ts",
     "fixtures": "tsx scripts/make-fixtures.ts",
+    "aste-prova": "tsx scripts/genera-aste-prova.ts",
     "test:e2e": "tsx scripts/e2e-smoke.ts"
   },
   "dependencies": {

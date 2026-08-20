@@ -6,7 +6,7 @@ piano di lavoro per fasi, test e criteri di accettazione numerici.
 
 **Lingua del codice:** identificatori e commenti in inglese, testi della UI in italiano.
 
-**Stato del progetto:** tutte le 13 fasi di §12 sono state completate e collaudate (247 test
+**Stato del progetto:** tutte le 13 fasi di §12 sono state completate e collaudate (260 test
 automatici). Il file eseguibile finale è `dist/fantasta.html`. Le sezioni sottostanti restano la
 specifica tecnica di riferimento per chi estende o rivede il codice; questa guida in cima serve a
 chi deve solo installarlo e usarlo.
@@ -541,7 +541,8 @@ Ogni acquisto registrato è un'osservazione `(ρ, s, prezzo)`. Per ruolo, regres
 pesata** di `log(prezzo)` su `s`:
 
 - **prior come ridge:** penalizza lo scostamento da `(log A_ρ, θ_ρ)` iniziali con peso equivalente a
-  `n0 = 15` osservazioni. Il peso dei dati è `n / (n + n0)`.
+  `n0 = 15` osservazioni. Il peso dei dati è `n_eff / (n_eff + n0)`, dove `n_eff` è la numerosità
+  EFFETTIVA (vedi addendum post-F14 sotto), non il conteggio grezzo `n`.
 - **perdita di Huber** (δ = 1.0 in scala log) o troncamento del 10% dei residui estremi: un singolo
   sovrapprezzo folle non deve ruotare la curva. **Obbligatorio**, è la causa di fallimento più
   comune di questo tipo di stimatore.
@@ -560,6 +561,22 @@ pesata** di `log(prezzo)` su `s`:
 > `src/core/price-model.ts`: se la pendenza grezza è negativa, si riporta a 0 (nessuna relazione
 > affidabile in quel campione) e si ricalcola l'intercetta come media pesata coerente, invece di
 > lasciare l'estrapolazione distorta. Dettagli e numeri reali in MANUALE.md §7.
+
+> **Addendum (post-F14, instabilità generale non solo al segno)**: l'addendum sopra impedisce solo
+> il caso ESTREMO (pendenza che esce negativa). Tracciando A_ρ/θ_ρ ogni 25 estrazioni su un'asta
+> simulata intera si è osservata un'instabilità più ampia — pendenza sempre positiva ma che
+> oscillava fra 1.10 e 5.95, intercetta fino a 14× il prior — con n anche non piccolissimo (45).
+> Causa: `n` conta le RIGHE del campione, non quanto siano sparse in punteggio; n osservazioni
+> concentrate in una fascia stretta identificano la pendenza molto peggio delle stesse n osservazioni
+> sparse su tutto il range, ma ricevevano lo stesso peso nel ridge. Corretto sostituendo `n` con una
+> numerosità effettiva `n_eff = n · min(1, sxx / (sumW/12))`, dove `sxx` (già calcolato per
+> `thetaStdErr`) è la dispersione pesata osservata di `score/100` e `sumW/12` è quella attesa da un
+> campione con lo stesso peso totale ma disperso UNIFORMEMENTE su tutto `[0,1]` (varianza di una
+> uniforme standard) — un campione stretto o pesantemente scontato per recency/Huber riceve quindi
+> automaticamente meno fiducia, senza una soglia arbitraria aggiuntiva. Non elimina del tutto
+> l'instabilità (è un problema statistico di fondo, non solo di peso) ma la riduce sostanzialmente:
+> sullo stesso caso osservato, l'intercetta non supera più ~4-5× il prior invece di 14×. Dettagli in
+> MANUALE.md §7.
 
 Fattore di inflazione globale, comodo da mostrare a schermo:
 
@@ -715,6 +732,71 @@ p* ≈ ( w_ρi,t · v_i − μ_ρi ) / λ
 
 con `μ_ρ` valore ombra di uno slot del ruolo. Serve a rispondere in UI alla domanda "perché questo
 numero", e come politica base rapida dentro i rollout (§6.7).
+
+> **Addendum (post-F14, bug reale corretto — segnalato dall'utente)**: `w_ρ,t` qui sopra è il peso
+> del "prossimo" slot da riempire nel ruolo. Fino a questa revisione, `t` era calcolato come
+> `ownedCount` — quanti giocatori di quel ruolo possiedi già, un CONTEGGIO — assumendo implicitamente
+> che il primo giocatore comprato in un ruolo occupi lo slot 1, il secondo lo slot 2, ecc. Sbagliato:
+> un giocatore ottimo trovato a poco prezzo DOPO averne già comprati 6 mediocri nello stesso ruolo
+> veniva valutato con il peso minuscolo del 7° slot, invece di scavalcarli. La DP esatta (§6.5) non
+> ha mai avuto questo problema — ordina SEMPRE tutti i candidati, posseduti e no, per valore
+> decrescente prima di assegnare i pesi (vedi la nota sopra su "giocatori già acquistati") — quindi
+> l'**"offri fino a" principale mostrato in asta è sempre stato corretto**. Il bug era isolato
+> all'approssimazione qui sopra, usata per: (1) la riga esplicativa "perché questo numero", (2) la
+> politica base dentro i rollout (§6.7, quindi la banda Monte Carlo), (3) il manager 'rational' del
+> simulatore (§9.3, quindi Prova a secco, `bench`/`validate`/`calibrate`). Corretto in
+> `base-policy.ts`: si tengono i VALORI dei posseduti per ruolo (non il conteggio), ordinati
+> decrescente, e si inserisce il valore del candidato in quella lista per trovarne il vero rango.
+> Effetto misurato: la quota di budget per ruolo nel self-play si sposta un po' (A scende, P sale) —
+> atteso, non un nuovo scostamento da rincorrere. Dettagli in MANUALE.md §7.
+
+> **Addendum 2 (post-F14, "non serve" non è sempre affidabile quando ho ancora slot liberi)**:
+> l'addendum sopra dice che l'"offri fino a" esatto è sempre corretto rispetto al bug ORDINE-vs-
+> VALORE — resta vero, ma l'utente ha trovato un limite diverso, più di fondo, nello stesso "non
+> serve": il piano ottimo esatto (`computeMaxBid`, §6.6) confronta prendere il candidato con
+> ottenere la MIGLIOR combinazione possibile degli ALTRI candidati del pool, tutti al loro prezzo
+> atteso p̂ — un'ipotesi di CERTEZZA (nessuna concorrenza reale su quei candidati specifici) che non
+> vale contro altri 9 manager che li vogliono anche loro. Misurato: con TUTTI gli 8 slot D liberi
+> (zero posseduti, l'ipotesi più fragile possibile) e un pool profondo, difensori discreti (score
+> 62-71 su 175 candidati) risultavano SEMPRE "non serve". **Un secondo bug reale trovato per strada,
+> mentre si verificava se la banda Monte Carlo raccontasse una storia diversa**: sì, ma in modo
+> rotto — indicava 333 crediti (quasi tutto il budget) con ZERO varianza su 2000 simulazioni,
+> perché il completamento degli slot non ancora simulati a fine orizzonte (§6.7 sopra, "si completa
+> ogni ruolo incompleto con il valore-filler") usava una qualità di filler FISSA, indipendente da
+> quanti crediti restassero DAVVERO dopo aver speso una fortuna sul candidato in esame — corretto in
+> `rollout.ts` scalando la qualità del filler assunta in base al reale budget-per-slot residuo a
+> fine ramo simulato, non più una percentuale fissa del pool (333→101 crediti sullo stesso caso).
+> **Fix principale**: quando ho ancora slot liberi in quel ruolo (altrimenti "non serve" resta un
+> vincolo VERO, fisico) e il piano esatto dice "non serve" solo per l'ipotesi di certezza sopra, si
+> usa al suo posto l'approssimazione al primo ordine di §6.6 (`approxPStar`) come stima di
+> COPERTURA — usa il rango solo fra i giocatori GIÀ posseduti (nessuna ipotesi sul futuro), quindi
+> non eredita la stessa fragilità. `MaxBidResult.reason` guadagna un quarto valore, `'hedge'`,
+> distinto da `'not-useful'` — la UI lo spiega esplicitamente invece di lasciare un'apparente
+> contraddizione con "se lo prendi/se lo lasci" (che restano calcolati con l'ipotesi di certezza,
+> per trasparenza). Un candidato genuinamente scarso resta "non serve": la copertura non forza
+> un'offerta ovunque, solo dove le due stime divergono. Dettagli e funzione dedicata (`applyHedge`,
+> `engine.ts`) in MANUALE.md §7.
+
+> **Addendum 3 (post-F14, bug reale corretto — i duali λ dipendevano da chi si stava prezzando)**:
+> `computeDuals` (quindi `w_ρ,t`, `μ_ρ` e `p*≈` di questa sezione) veniva chiamato su
+> `roleInputsWithoutTarget` — il pool con il giocatore-bersaglio ESCLUSO, necessario a
+> `computeMaxBid` (§6.6, deve reinserire il bersaglio a un prezzo di prova senza contarlo due volte)
+> ma riusato per comodità anche qui, dove non serve. λ (`marginalValue`, §6.5, ricerca all'indietro
+> dell'ultimo "gradino" dell'inviluppo di TUTTO il mercato) è per costruzione sensibile a quale
+> candidato è nel pool: escludere un giocatore diverso a ogni query può spostare quel gradino a un
+> budget completamente diverso. Misurato su un'asta reale, prima istantanea (zero vendite): chiedere
+> "quanto offro per Kalulu" dava λ=1.052; chiedere "quanto offro per Cande" (un altro candidato dello
+> stesso ruolo, stessa istantanea) dava λ=0.422 — più della metà, solo per aver escluso un candidato
+> diverso dal pool. Sintomo visibile: il pannello "perché questo numero" mostrava una "stima rapida"
+> di 350+ crediti per un giocatore il cui p* ESATTO (non toccato da questo bug) era 30 — un numero
+> assurdo, causa concreta della sensazione "l'algoritmo è impazzito" segnalata dall'utente.
+> `sim/auction-sim.ts` non ha mai avuto questo problema (ricalcola i duali periodicamente sul pool
+> INTERO, mai per-candidato) — la stessa idea è stata applicata qui. **Fix**: i duali si calcolano
+> ora una sola volta per istantanea, sul pool completo (bersaglio incluso: i pesi di slot dipendono
+> solo da chi possiedi già, il bersaglio in più nel pool OPZIONALE non li cambia). Verificato: λ
+> torna identico per tutti i 496 giocatori di un listone reale, e la "stima rapida" torna monotona
+> nel valore vero dei candidati. 2 test aggiunti (diretto + a proprietà casuali) in `engine.test.ts`.
+> Dettagli in MANUALE.md §7.
 
 ---
 

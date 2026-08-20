@@ -76,10 +76,6 @@ interface RationalCache {
 
 const MAX_OPTIONAL_CANDIDATES_FOR_DUALS = 50;
 
-function zeroCounts(): SlotCounts {
-  return { P: 0, D: 0, C: 0, A: 0 };
-}
-
 export function runAuctionSim(config: AuctionSimConfig): AuctionSimResult {
   const { league } = config;
   const M = league.managers.length;
@@ -120,7 +116,6 @@ export function runAuctionSim(config: AuctionSimConfig): AuctionSimResult {
     roster: [],
   }));
 
-  const ownedCountByRole: SlotCounts[] = managers.map(() => zeroCounts());
   const allTeams = Array.from({ length: 20 }, (_, t) => `team-${t}`);
   // Lista obiettivo per `targetChaser` (§10.1): i 25 giocatori con lo score percepito più alto
   // dal punto di vista di QUEL manager, calcolata una volta sola per manager.
@@ -244,7 +239,7 @@ export function runAuctionSim(config: AuctionSimConfig): AuctionSimResult {
       if (needsRecalc || cache.duals === null) {
         const roleInputs = buildRoleInputsForManager(m);
         const scaledBudget = Math.max(1, Math.floor(mgr.creditsRemaining / DUALS_BUDGET_GRANULARITY));
-        const duals = computeDuals({ budget: scaledBudget, roleInputs, ownedCountByRole: ownedCountByRole[m]! });
+        const duals = computeDuals({ budget: scaledBudget, roleInputs });
         // λ è un valore per credito: ricalcolato sulla scala grezza (blocchi da
         // DUALS_BUDGET_GRANULARITY crediti), va riportato alla scala reale dividendo.
         cache.duals = { ...duals, lambda: duals.lambda / DUALS_BUDGET_GRANULARITY };
@@ -363,7 +358,6 @@ export function runAuctionSim(config: AuctionSimConfig): AuctionSimResult {
       mgr.roster.push({ player: { id: player.id, name: player.id, team: player.team, role }, price: finalPrice });
       mgr.creditsRemaining -= finalPrice;
       mgr.slotsRemaining[role] -= 1;
-      ownedCountByRole[winner.i]![role] += 1;
 
       sales.push({ playerId: player.id, role, managerId: mgr.manager.id, price: finalPrice, drawIndex });
     }

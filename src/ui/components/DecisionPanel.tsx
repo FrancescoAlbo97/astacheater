@@ -82,6 +82,7 @@ export function DecisionPanel({ state, playerId, mode, onOpenFull }: DecisionPan
   if (!decision || !player || !state.config) return null;
 
   const isNotUseful = decision.reason === 'not-useful';
+  const isHedge = decision.reason === 'hedge';
   const isGuaranteed = decision.ceiling.c1 === 0;
   const bandText = rolloutBand
     ? `banda ${formatNum(rolloutBand.p10)} – ${formatNum(rolloutBand.p90)}`
@@ -146,6 +147,17 @@ export function DecisionPanel({ state, playerId, mode, onOpenFull }: DecisionPan
         </div>
       </section>
 
+      {decision.priceConfidence.confidence === 'bassa' && (
+        <div className="banner banner-warn">
+          ⚠️ Prezzi di mercato ancora poco affidabili
+          <span className="banner-sub">
+            solo {decision.priceConfidence.n} vendite registrate finora nel ruolo {decision.role}: il "prezzo atteso" e
+            "offri fino a" qui sotto si basano ancora sulla curva teorica, non su come sta andando QUESTA asta —
+            possono sembrare incoerenti fra un giocatore e l'altro finché non se ne vendono un po' di più.
+          </span>
+        </div>
+      )}
+
       {decision.scarcity.mySlotsRemaining > 0 &&
         decision.scarcity.poolRemaining <= decision.scarcity.mySlotsRemaining + decision.scarcity.opponentsSlotsRemaining && (
           <section className="card scarcity-card">
@@ -206,6 +218,15 @@ export function DecisionPanel({ state, playerId, mode, onOpenFull }: DecisionPan
           </p>
         )}
 
+        {isHedge && (
+          <p className="hint" style={{ marginTop: '0.6rem' }}>
+            Il piano matematico esatto (righe sotto, "se lo prendi/se lo lasci") direbbe "non serve", ma solo perché
+            assume di trovare CON CERTEZZA di meglio più avanti nello stesso ruolo — un'ipotesi ottimistica quando altri
+            9 manager competono per gli stessi giocatori. Questo numero è una stima di copertura basata solo su chi hai
+            già in rosa: se poi trovi davvero di meglio, punterai su quello; se no, non hai perso l'occasione per niente.
+          </p>
+        )}
+
         {!isNotUseful && (
           <PriceScale expectedPrice={decision.expectedPrice} operationalMax={decision.operationalMax} ceiling={decision.ceiling.c1} />
         )}
@@ -257,7 +278,10 @@ export function DecisionPanel({ state, playerId, mode, onOpenFull }: DecisionPan
               <div className="why-step">
                 <div className="step-label">1 · PESO SLOT</div>
                 <div className="step-value">{decision.nextSlotWeight.toFixed(2)}</div>
-                <div className="step-desc">peso del prossimo slot da riempire in {decision.role}</div>
+                <div className="step-desc">
+                  peso dello slot che occuperebbe in {decision.role}, per quanto vale rispetto a chi hai già preso
+                  (non l'ordine in cui lo compreresti)
+                </div>
               </div>
               <div className="why-step">
                 <div className="step-label">2 · VALORE PER TE</div>

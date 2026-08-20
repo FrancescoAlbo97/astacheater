@@ -1020,6 +1020,22 @@ button {
   font-size: 0.82rem;
 }
 
+.banner-warn {
+  background: var(--warn-soft-bg);
+  border: 1px solid var(--warn-soft-border);
+  color: var(--warn);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.banner-warn .banner-sub {
+  font-weight: 400;
+  color: var(--text-dim, #b8a888);
+  font-size: 0.82rem;
+}
+
 .hero-label {
   font-weight: 700;
   font-size: 0.7rem;

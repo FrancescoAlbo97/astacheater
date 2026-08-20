@@ -254,5 +254,10 @@ export interface PlanResult {
 export interface MaxBidResult {
   readonly pStar: number;
   readonly phiLose: number;
-  readonly reason: 'ok' | 'not-useful' | 'capped-by-ceiling' | 'capped-by-budget';
+  /** 'hedge' (§7 Session 8): il piano OTTIMO esatto dice "non serve" solo perché assume di poter
+   * ottenere con certezza candidati migliori del pool ai loro prezzi attesi — un'ipotesi fragile
+   * quando ho ancora slot liberi in quel ruolo. In quel caso specifico si usa una stima di
+   * copertura (rango solo fra i giocatori GIÀ posseduti, quindi senza quell'ipotesi) al posto di
+   * azzerare l'offerta — vedi `engine.ts`'s `computeDecisionForPlayer`. */
+  readonly reason: 'ok' | 'not-useful' | 'capped-by-ceiling' | 'capped-by-budget' | 'hedge';
 }

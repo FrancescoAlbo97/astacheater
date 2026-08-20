@@ -2,11 +2,11 @@
 // entro 100ms (§13.9, A10); C¹=0 riconosciuto; p*=0 mostrato come "non serve".
 import { describe, expect, it } from 'vitest';
 import fc from 'fast-check';
-import { computeDecisionForPlayer } from '../src/core/engine.js';
+import { applyHedge, computeDecisionForPlayer } from '../src/core/engine.js';
 import { reduce } from '../src/core/state.js';
 import { makeDefaultLeagueConfig } from '../src/core/config.js';
 import { ROLES } from '../src/core/types.js';
-import type { AuctionEvent, Player } from '../src/core/types.js';
+import type { AuctionEvent, MaxBidResult, Player } from '../src/core/types.js';
 
 const league = makeDefaultLeagueConfig();
 
@@ -95,6 +95,50 @@ describe('§11 / §13.9 computeDecisionForPlayer', () => {
   it('ritorna null se la lega non è ancora configurata', () => {
     const state = reduce([{ t: 'players.load', players: buildPool(1) }]);
     expect(computeDecisionForPlayer(state, 'A0')).toBeNull();
+  });
+});
+
+describe('§7 Session 8 — i duali (λ) non dipendono da QUALE candidato si sta prezzando', () => {
+  // Bug reale segnalato dall'utente ("la parte dello slot del ruolo fa un casino"): computeDuals
+  // veniva chiamato su roleInputsWithoutTarget (il target escluso dal pool), quindi ogni query per
+  // un giocatore diverso escludeva un candidato diverso — e siccome λ (marginalValue, plan-dp.ts) è
+  // una ricerca all'indietro dell'ultimo "gradino" dell'inviluppo, escludere candidati diversi può
+  // spostare quel gradino a un budget completamente diverso. Su dati reali λ saltava da 1.05 a 0.42
+  // togliendo un solo centrocampista dal pool — qui riprodotto in piccolo: λ deve essere lo stesso
+  // qualunque sia il giocatore che si sta valutando nella STESSA istantanea d'asta, esattamente come
+  // già fa correttamente sim/auction-sim.ts (duali ricalcolati sul pool intero, mai per-candidato).
+  it('due giocatori diversi, stessa istantanea: stesso λ', () => {
+    const players = buildPool(40, 'A');
+    const log: AuctionEvent[] = [
+      { t: 'league.setup', config: league },
+      { t: 'players.load', players },
+      ...scoreEvents(players, (p) => 20 + (Number(p.id.replace('A', '')) % 40) * 1.7),
+    ];
+    const state = reduce(log);
+
+    const lambdas = players.map((p) => computeDecisionForPlayer(state, p.id)!.lambda);
+    for (const l of lambdas) expect(l).toBeCloseTo(lambdas[0]!, 9);
+  });
+
+  it('property-based: λ è invariante rispetto al giocatore scelto come target, su pool casuali', () => {
+    fc.assert(
+      fc.property(
+        fc.array(fc.double({ min: 1, max: 99, noNaN: true }), { minLength: 8, maxLength: 25 }),
+        (scores) => {
+          const players = buildPool(scores.length, 'A');
+          const log: AuctionEvent[] = [
+            { t: 'league.setup', config: league },
+            { t: 'players.load', players },
+            ...players.map((p, i) => ({ t: 'player.score' as const, playerId: p.id, score: scores[i]! })),
+          ];
+          const state = reduce(log);
+          const lambdas = players.map((p) => computeDecisionForPlayer(state, p.id)!.lambda);
+          const [first, ...rest] = lambdas;
+          return rest.every((l) => Math.abs(l - first!) < 1e-9);
+        },
+      ),
+      { numRuns: 30 },
+    );
   });
 });
 
@@ -327,5 +371,89 @@ describe('§6.2/§11 Setup — audit di robustezza su config personalizzate avve
         if (target) computeDecisionForPlayer(state, target.id);
       }).not.toThrow();
     }
+  });
+});
+
+describe('§7 Session 8 applyHedge — "non serve" per il piano ottimo non deve azzerare l\'offerta se ho ancora slot liberi', () => {
+  // Bug reale segnalato dall'utente da un'asta vera: con TUTTI gli slot di un ruolo ancora liberi
+  // e un pool profondo (molti candidati migliori del target), il piano OTTIMO esatto (§6.6) dice
+  // "non serve" per un giocatore comunque discreto — perché assume di poter ottenere con CERTEZZA
+  // gli N migliori del pool ai loro prezzi attesi, un'ipotesi che non vale contro altri 9 manager
+  // che li vogliono anche loro. Misurato su un'asta reale (175 candidati D per 8 slot): un
+  // difensore score 62-71 risultava SEMPRE "non serve", pur con tutti gli 8 slot D liberi.
+  // "Bisogna fare in modo che quelli forti ci sia sempre un valore d'offerta [...] è inutile
+  // scrivere 'non serve': non serve rispetto a cosa?" (dall'utente).
+  //
+  // Testato direttamente su `applyHedge` (non ricostruendo uno scenario completo): riprodurre in
+  // un test unitario le condizioni esatte in cui il piano ottimo diverge dall'approssimazione si è
+  // rivelato fragile (il synthetic pool con punteggi sintetici e mercato fresco a 10 manager non
+  // riproduce la stessa dinamica di un'asta reale a metà); la funzione pura isola esattamente la
+  // decisione che conta, verificabile senza quella fragilità. Il comportamento end-to-end reale è
+  // comunque confermato: sullo stesso export dell'asta reale che ha originato la segnalazione,
+  // Gila (score 71, 8/8 slot D liberi) passa da pStar=0/"not-useful" a pStar=34/"hedge".
+  function notUseful(phiLose = 100): MaxBidResult {
+    return { pStar: 0, phiLose, reason: 'not-useful' };
+  }
+
+  it('non-useful + slot libero + copertura positiva ⇒ usa la copertura, non azzera', () => {
+    const result = applyHedge(notUseful(), 34, true);
+    expect(result.reason).toBe('hedge');
+    expect(result.pStar).toBe(34);
+    expect(result.phiLose).toBe(100);
+  });
+
+  it('non-useful + slot libero + copertura ANCH\'ESSA ≤ 0 (candidato genuinamente scarso) ⇒ resta "non serve", non forza un\'offerta per chiunque', () => {
+    const result = applyHedge(notUseful(), 0, true);
+    expect(result.reason).toBe('not-useful');
+    expect(result.pStar).toBe(0);
+  });
+
+  it('non-useful + RUOLO REALMENTE PIENO (nessuno slot libero) ⇒ resta "non serve" anche con copertura positiva: è un vincolo vero, non un\'ipotesi da correggere', () => {
+    const result = applyHedge(notUseful(), 34, false);
+    expect(result.reason).toBe('not-useful');
+    expect(result.pStar).toBe(0);
+  });
+
+  it('reason diverso da "not-useful" (es. "ok", "capped-by-budget") non viene mai toccato dalla copertura', () => {
+    const ok: MaxBidResult = { pStar: 55, phiLose: 100, reason: 'ok' };
+    expect(applyHedge(ok, 999, true)).toEqual(ok);
+    const capped: MaxBidResult = { pStar: 0, phiLose: 100, reason: 'capped-by-budget' };
+    expect(applyHedge(capped, 999, true)).toEqual(capped);
+  });
+
+  it('property-based: il risultato è sempre "hedge" con pStar=copertura, oppure identico all\'originale — mai un terzo caso', () => {
+    fc.assert(
+      fc.property(
+        fc.constantFrom<MaxBidResult['reason']>('ok', 'not-useful', 'capped-by-ceiling', 'capped-by-budget'),
+        fc.double({ min: -50, max: 500, noNaN: true }),
+        fc.boolean(),
+        fc.double({ min: 0, max: 500, noNaN: true }),
+        (reason, approxPStar, hasOpenSlot, phiLose) => {
+          const original: MaxBidResult = { pStar: 0, phiLose, reason };
+          const result = applyHedge(original, approxPStar, hasOpenSlot);
+          const shouldHedge = reason === 'not-useful' && hasOpenSlot && approxPStar > 0;
+          if (shouldHedge) {
+            return result.reason === 'hedge' && result.pStar === approxPStar && result.phiLose === phiLose;
+          }
+          return result === original;
+        },
+      ),
+    );
+  });
+
+  it('quando il ruolo è REALMENTE pieno (zero slot in config), "non serve" resta un vincolo vero end-to-end, non viene scavalcato dalla copertura', () => {
+    const POOL_SIZE = 70;
+    const zeroSlotsConfig = { ...league, slots: { ...league.slots, D: 0 }, slotWeights: { ...league.slotWeights, D: [] } };
+    const pool = buildPool(POOL_SIZE, 'D');
+    const log: AuctionEvent[] = [
+      { t: 'league.setup', config: zeroSlotsConfig },
+      { t: 'players.load', players: pool },
+      ...scoreEvents(pool, (p) => 96 - Math.round((Number(p.id.replace('D', '')) * 76) / (POOL_SIZE - 1))),
+    ];
+    const state = reduce(log);
+    const target = pool[0]!; // il migliore del pool: sarebbe sicuramente "utile" se ci fosse spazio
+    const decision = computeDecisionForPlayer(state, target.id)!;
+    expect(decision.reason).toBe('not-useful');
+    expect(decision.pStar).toBe(0);
   });
 });
