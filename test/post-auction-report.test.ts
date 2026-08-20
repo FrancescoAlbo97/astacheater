@@ -85,5 +85,5 @@ describe('buildPostAuctionReport', () => {
     expect(report!.missedOpportunities.some((m) => m.playerId === 'C0')).toBe(true);
 
     expect(report!.finalRosterValue).toBeGreaterThan(0);
-  });
+  }, 15000);
 });

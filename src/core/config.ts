@@ -171,12 +171,11 @@ export function normalizeSlotWeights(weights: SlotWeights | undefined, slots: Sl
  * ruolo). Errore standard di θ piccolo rispetto al coefficiente su tutti i ruoli (n=52..135),
  * quindi non è rumore di campionamento.
  */
-export const DEFAULT_THETA: Record<Role, number> = { P: 3.76, D: 4.07, C: 4.03, A: 4.02 };
+export const DEFAULT_THETA: Record<Role, number> = { P: 4.10, D: 3.80, C: 4.20, A: 4.70 };
 
-/** Quote iniziali di budget per ruolo: P 5%, D 15%, C 30%, A 50%. Usate solo dal self-play di
- * simulazione (§ sim/archetypes.ts), non dal pricing dal vivo (quello deriva la ripartizione fra
- * ruoli direttamente da A_ρ/θ_ρ tramite il water-filling di `renormalize`). */
-export const DEFAULT_BUDGET_SHARES: BudgetShares = { P: 0.05, D: 0.15, C: 0.3, A: 0.5 };
+/** Quote iniziali di budget per ruolo: P 8%, D 18%, C 28%, A 46%. Calibrate sulla distribuzione
+ * reale dei crediti spesi in leghe 10x500 (PMA). */
+export const DEFAULT_BUDGET_SHARES: BudgetShares = { P: 0.08, D: 0.18, C: 0.28, A: 0.46 };
 
 export const DEFAULT_RESERVE_FRACTION = 0.015;
 export const DEFAULT_RIDGE_N0 = 15;
@@ -187,12 +186,11 @@ export const DEFAULT_MIN_OBSERVATIONS_FOR_OWN_FIT = 5;
 export const DEFAULT_CONFIDENCE_THRESHOLDS = { low: 8, medium: 25 };
 
 /**
- * A_ρ: prezzo prior a score 0. Stessa provenienza di `DEFAULT_THETA` sopra (fit reale, stessa
- * regressione, stesso campione di 396 giocatori) — non più derivato teoricamente da una quota di
- * budget assunta. La differenza assoluta fra ruoli riflette la reale disparità di valutazione di
- * mercato fra P/D/C/A osservata nelle quotazioni reali, non una policy scelta a mano.
+ * A_ρ: prezzo prior a score 0. Calibrato congiuntamente a DEFAULT_THETA per ancorare i top player
+ * alle quotazioni reali PMA di Serie A (Lautaro/top A ~130-145, top C ~65-75, top D ~35-45, top P ~35-45)
+ * e i filler di coda al pavimento di 1 credito.
  */
-export const DEFAULT_A: Record<Role, number> = { P: 0.64, D: 0.91, C: 1.06, A: 1.21 };
+export const DEFAULT_A: Record<Role, number> = { P: 0.70, D: 0.95, C: 1.10, A: 1.21 };
 
 export const DEFAULT_PRICE_CURVES: PriceCurveConfig = ROLES.reduce((acc, role) => {
   acc[role] = { A: DEFAULT_A[role], theta: DEFAULT_THETA[role] };
@@ -231,8 +229,16 @@ export const DEFAULT_RISK_CONFIG: RiskConfig = {
 // §6.7 — Monte Carlo
 // ---------------------------------------------------------------------------
 
+// §7 Session 8: `rollouts` scende da 2000 a 150 nello stesso cambio che rende OGNI manager (non
+// solo "me") un bidder a base di valore vero, ricalcolato periodicamente, su un orizzonte molto più
+// profondo (`rollout.ts`, `DEFAULT_MAX_HORIZON`) — il costo per iterazione è cresciuto di un fattore
+// ~10 (un ricalcolo di duali in più per ciascuno dei 9 avversari, non solo per "me"), quindi lo
+// stesso budget di tempo complessivo richiede meno iterazioni. 150 resta ben sopra il minimo di
+// affidabilità statistica ("almeno 100", richiesto esplicitamente) e la banda risultante (p10/
+// mediana/p90) resta stabile fra run diversi con lo stesso seed di stato (verificato empiricamente,
+// non solo assunto).
 export const DEFAULT_ROLLOUT_CONFIG: RolloutConfig = {
-  rollouts: 2000,
+  rollouts: 150,
   priceNoiseSigma: 0.25, // ricalibrato in F7 sui residui della regressione
   dualsRecalcEveryDraws: 20,
   dualsRecalcOnBudgetDropFraction: 0.1,

@@ -8,9 +8,16 @@ import { DEFAULT_ROLE_WEIGHTS } from '../core/config.js';
 import { playerValue, riskAdjustedPlayerValue } from '../core/value-model.js';
 import { renormalize, type PoolPlayer } from '../core/price-model.js';
 import { maxSingleBid, totalSlotsRemaining } from '../core/ceiling.js';
-import { computeDuals, approxMaxBid, shouldRecalcDuals, type DualState } from '../core/base-policy.js';
-import type { RoleDPInput, DPCandidate } from '../core/plan-dp.js';
+import type { RoleDPInput } from '../core/plan-dp.js';
 import { mulberry32, randNormal, shuffle, type Rng } from '../core/rng.js';
+import {
+  buildRationalRoleInputs,
+  computeRationalBase,
+  applyUrgencyAndNoise,
+  freshRationalBidderCache,
+  type RationalBidderCache,
+  type RationalCandidateInput,
+} from '../core/rational-bidder.js';
 import { generateScenario, type Scenario } from './generator.js';
 import { archetypeWillingness, initArchetypeState, type ArchetypeId, type ArchetypeManagerState } from './archetypes.js';
 
@@ -66,12 +73,6 @@ export interface AuctionSimResult {
   readonly unsold: readonly string[];
   readonly finalManagers: readonly ManagerState[];
   readonly slotCrisisCount: number;
-}
-
-interface RationalCache {
-  duals: DualState | null;
-  drawsSinceRecalc: number;
-  creditsAtLastRecalc: number;
 }
 
 const MAX_OPTIONAL_CANDIDATES_FOR_DUALS = 50;
@@ -132,11 +133,7 @@ export function runAuctionSim(config: AuctionSimConfig): AuctionSimResult {
   const archetypeStates: (ArchetypeManagerState | null)[] = config.archetypesByManager.map((a, i) =>
     a === 'rational' ? null : initArchetypeState(a, decisionRngs[i]!, allTeams, a === 'targetChaser' ? targetIdsFor(i) : undefined),
   );
-  const rationalCaches: RationalCache[] = config.archetypesByManager.map(() => ({
-    duals: null,
-    drawsSinceRecalc: Infinity,
-    creditsAtLastRecalc: league.budget,
-  }));
+  const rationalCaches: RationalBidderCache[] = config.archetypesByManager.map(() => freshRationalBidderCache(league.budget));
 
   // Lo score in PoolPlayer serve solo al PRIOR (§6.3.1), che è "pubblico": usiamo la percezione
   // del manager 0 come proxy di mercato. Non è usato altrove: il valore v_j di ciascun manager
@@ -192,33 +189,28 @@ export function runAuctionSim(config: AuctionSimConfig): AuctionSimResult {
   function buildRoleInputsForManager(m: number): Record<Role, RoleDPInput> {
     const scores = scenario.scoresByManager[m]!;
     const mgr = managers[m]!;
-    const roleInputs = {} as Record<Role, RoleDPInput>;
-    for (const role of ROLES) {
-      const forced: DPCandidate[] = mgr.roster
-        .filter((r) => roleByPlayer.get(r.player.id) === role)
-        .map((r) => ({ v: myValue(role, scores.get(r.player.id) ?? 50), price: 0, forced: true }));
-      // La DP dei "duali" (base-policy.ts) è una politica APPROSSIMATA ricalcolata periodicamente
-      // (§6.7): tenere solo i migliori MAX_OPTIONAL_CANDIDATES_FOR_DUALS per v è coerente con
-      // l'assunzione della spec ("riduce tipicamente a 30-50 candidati", §6.5) e necessario per le
-      // prestazioni (fino a 190 candidati per ruolo altrimenti, ricalcolati ~12 volte/asta per
-      // manager razionale). Il calcolo ESATTO di p* (§6.6, max-bid.ts) non usa questa scorciatoia.
-      const optional: DPCandidate[] = poolByRole(role)
-        .map((p) => ({
-          v: myValue(role, scores.get(p.id) ?? 50),
-          price: Math.max(1, Math.ceil((pHat.get(p.id) ?? 1) / DUALS_BUDGET_GRANULARITY)),
-          forced: false,
-        }))
-        .sort((a, b) => b.v - a.v)
-        .slice(0, MAX_OPTIONAL_CANDIDATES_FOR_DUALS);
-      const p20score = percentile20(role, (id) => scores.get(id) ?? 50);
-      roleInputs[role] = {
-        candidates: [...forced, ...optional],
-        fillerValue: myValue(role, p20score),
-        slotCount: league.slots[role],
-        weights: config.slotWeights[role],
-      };
+    const ownedScoresByRole = {} as Record<Role, number[]>;
+    for (const role of ROLES) ownedScoresByRole[role] = [];
+    for (const r of mgr.roster) {
+      const role = roleByPlayer.get(r.player.id);
+      if (role) ownedScoresByRole[role]!.push(scores.get(r.player.id) ?? 50);
     }
-    return roleInputs;
+    const poolCandidatesByRole = {} as Record<Role, RationalCandidateInput[]>;
+    for (const role of ROLES) {
+      poolCandidatesByRole[role] = poolByRole(role).map((p) => ({
+        score: scores.get(p.id) ?? 50,
+        pHat: pHat.get(p.id) ?? 1,
+      }));
+    }
+    return buildRationalRoleInputs(
+      ownedScoresByRole,
+      poolCandidatesByRole,
+      league.slots,
+      config.slotWeights,
+      myValue,
+      MAX_OPTIONAL_CANDIDATES_FOR_DUALS,
+      DUALS_BUDGET_GRANULARITY,
+    );
   }
 
   function computeWillingness(m: number, playerId: string, role: Role, drawIndex: number): number {
@@ -229,25 +221,18 @@ export function runAuctionSim(config: AuctionSimConfig): AuctionSimResult {
     let base: number;
     if (archetype === 'rational') {
       const cache = rationalCaches[m]!;
-      const needsRecalc = shouldRecalcDuals(
-        cache.drawsSinceRecalc,
-        config.dualsRecalcEveryDraws,
-        cache.creditsAtLastRecalc,
-        mgr.creditsRemaining,
-        config.dualsRecalcOnBudgetDropFraction,
-      );
-      if (needsRecalc || cache.duals === null) {
-        const roleInputs = buildRoleInputsForManager(m);
-        const scaledBudget = Math.max(1, Math.floor(mgr.creditsRemaining / DUALS_BUDGET_GRANULARITY));
-        const duals = computeDuals({ budget: scaledBudget, roleInputs });
-        // λ è un valore per credito: ricalcolato sulla scala grezza (blocchi da
-        // DUALS_BUDGET_GRANULARITY crediti), va riportato alla scala reale dividendo.
-        cache.duals = { ...duals, lambda: duals.lambda / DUALS_BUDGET_GRANULARITY };
-        cache.drawsSinceRecalc = 0;
-        cache.creditsAtLastRecalc = mgr.creditsRemaining;
-      }
       const v = myValue(role, scenario.scoresByManager[m]!.get(playerId) ?? 50);
-      base = approxMaxBid(v, role, cache.duals, maxSingleBid(mgr));
+      base = computeRationalBase({
+        cache,
+        creditsRemaining: mgr.creditsRemaining,
+        maxSingleBidForManager: maxSingleBid(mgr),
+        buildRoleInputs: () => buildRoleInputsForManager(m),
+        targetRole: role,
+        targetValue: v,
+        budgetGranularity: DUALS_BUDGET_GRANULARITY,
+        dualsRecalcEveryDraws: config.dualsRecalcEveryDraws,
+        dualsRecalcOnBudgetDropFraction: config.dualsRecalcOnBudgetDropFraction,
+      });
     } else {
       const state = archetypeStates[m]!;
       base = archetypeWillingness(state, {
@@ -311,19 +296,21 @@ export function runAuctionSim(config: AuctionSimConfig): AuctionSimResult {
     // contemporaneamente, non un compromesso che ne aggiusta una peggiorandone un'altra. Quota di
     // budget per ruolo si sposta un po' (specialmente A, che scende di alcuni punti percentuali)
     // ma resta dentro la tolleranza già accettata (±12pp, `test/sim.test.ts`).
-    const slotsLeft = totalSlotsRemaining(mgr);
-    const actualPace = slotsLeft > 0 ? mgr.creditsRemaining / slotsLeft : 0;
-    const excessPerSlot = Math.max(0, actualPace - fairPacePerSlot);
-    const avgBudgetShare = 0.25; // media su 4 ruoli equipesati, per normalizzare il moltiplicatore
-    const roleShareMultiplier = config.priceModelConfig.budgetShares[role] / avgBudgetShare;
-    const urgencyBoost = base > 0 ? excessPerSlot * 20 * roleShareMultiplier : 0;
-
-    const noisy = (base + urgencyBoost) * Math.exp(randNormal(decisionRngs[m]!) * config.priceNoiseSigma);
     // Un manager "eligible" (slot libero, può permettersi almeno minPrice) è per definizione
     // disposto a pagare almeno il prezzo minimo pur di riempire uno slot che gli serve: altrimenti
     // rose non necessariamente scarse restano con slot vuoti solo perché la willingness calcolata
-    // scende sotto 1 credito, violando "slot riempiti 250/250 sempre" (§9.5).
-    return Math.max(league.minPrice, Math.min(noisy, maxSingleBid(mgr)));
+    // scende sotto 1 credito, violando "slot riempiti 250/250 sempre" (§9.5). Applicato dentro
+    // `applyUrgencyAndNoise` (`minPrice`/tetto fisico), non ripetuto qui.
+    return applyUrgencyAndNoise({
+      base,
+      creditsRemaining: mgr.creditsRemaining,
+      totalSlotsRemaining: totalSlotsRemaining(mgr),
+      fairPacePerSlot,
+      roleBudgetShare: config.priceModelConfig.budgetShares[role],
+      minPrice: league.minPrice,
+      maxSingleBidForManager: maxSingleBid(mgr),
+      noiseFactor: Math.exp(randNormal(decisionRngs[m]!) * config.priceNoiseSigma),
+    });
   }
 
   for (let drawIndex = 0; drawIndex < drawOrder.length; drawIndex++) {

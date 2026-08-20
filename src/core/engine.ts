@@ -460,10 +460,12 @@ export function buildRolloutInput(state: AuctionState, playerId: string): Rollou
   const me = snapshot.managers.find((m) => m.manager.id === myManagerId);
   if (!me) return null;
 
-  const myOwned = me.roster.map((entry) => ({
-    role: entry.player.role,
-    myScore: myScoreOf(state, entry.player.id),
-  }));
+  const ownedByManager = new Map(
+    snapshot.managers.map((m) => [
+      m.manager.id,
+      m.roster.map((entry) => ({ role: entry.player.role, myScore: myScoreOf(state, entry.player.id) })),
+    ]),
+  );
 
   const remainingPool = snapshot.pool
     .filter((p) => p.id !== playerId)
@@ -477,16 +479,16 @@ export function buildRolloutInput(state: AuctionState, playerId: string): Rollou
   return {
     myManagerId,
     managers: snapshot.managers,
-    myOwned,
+    ownedByManager,
     targetRole: player.role,
     targetMyScore: myScoreOf(state, playerId),
     targetPHat: Math.max(1, snapshot.pHat.get(playerId) ?? 1),
     remainingPool,
     leagueSlots: state.config.slots,
+    leagueBudget: state.config.budget,
     minPrice: state.config.minPrice,
     slotWeights: mySlotWeights(state),
     rolloutConfig: DEFAULT_ROLLOUT_CONFIG,
-    maxHorizon: 80,
     valueCurves: riskAdjustedCurves(state),
     roleWeights: myRoleWeights(state),
   };

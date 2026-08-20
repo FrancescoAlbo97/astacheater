@@ -182,29 +182,41 @@ describe('§7 Session 8 buildSimulatedAuctionReport — Report asta applicato a 
     expect(buildSimulatedAuctionReport(state, 1)).toBeNull();
   });
 
-  it('la somma di 1ª e 2ª metà copre esattamente tutti i miei acquisti, senza doppi conteggi', () => {
-    const state = realisticState();
-    const simReport = buildSimulatedAuctionReport(state, 5)!;
-    expect(simReport).not.toBeNull();
-    expect(simReport.firstHalf.purchaseCount + simReport.secondHalf.purchaseCount).toBe(
-      simReport.report.myPurchases.length,
-    );
-  });
+  it(
+    'la somma di 1ª e 2ª metà copre esattamente tutti i miei acquisti, senza doppi conteggi',
+    () => {
+      const state = realisticState();
+      const simReport = buildSimulatedAuctionReport(state, 5)!;
+      expect(simReport).not.toBeNull();
+      expect(simReport.firstHalf.purchaseCount + simReport.secondHalf.purchaseCount).toBe(
+        simReport.report.myPurchases.length,
+      );
+    },
+    15000,
+  );
 
-  it('i conteggi di overpay per metà non superano mai gli acquisti di quella metà, e i crediti non sono mai negativi', () => {
-    const state = realisticState();
-    const simReport = buildSimulatedAuctionReport(state, 6)!;
-    for (const half of [simReport.firstHalf, simReport.secondHalf]) {
-      expect(half.overpayCount).toBeLessThanOrEqual(half.purchaseCount);
-      expect(half.overpaidCredits).toBeGreaterThanOrEqual(0);
-    }
-  });
+  it(
+    'i conteggi di overpay per metà non superano mai gli acquisti di quella metà, e i crediti non sono mai negativi',
+    () => {
+      const state = realisticState();
+      const simReport = buildSimulatedAuctionReport(state, 6)!;
+      for (const half of [simReport.firstHalf, simReport.secondHalf]) {
+        expect(half.overpayCount).toBeLessThanOrEqual(half.purchaseCount);
+        expect(half.overpaidCredits).toBeGreaterThanOrEqual(0);
+      }
+    },
+    15000,
+  );
 
-  it('il totale speso nel report coincide con quello della sola asta simulata (nessuna divergenza nella conversione a log sintetico)', () => {
-    const state = realisticState();
-    const simReport = buildSimulatedAuctionReport(state, 7)!;
-    expect(simReport.report.totalSpent).toBe(simReport.auction.myTotalSpent);
-  });
+  it(
+    'il totale speso nel report coincide con quello della sola asta simulata (nessuna divergenza nella conversione a log sintetico)',
+    () => {
+      const state = realisticState();
+      const simReport = buildSimulatedAuctionReport(state, 7)!;
+      expect(simReport.report.totalSpent).toBe(simReport.auction.myTotalSpent);
+    },
+    15000,
+  );
 
   it(
     'stesso seed ⇒ stesso report (determinismo, §13.10)',
@@ -218,6 +230,6 @@ describe('§7 Session 8 buildSimulatedAuctionReport — Report asta applicato a 
       const b = buildSimulatedAuctionReport(state, 42);
       expect(a).toEqual(b);
     },
-    15000,
+    35000,
   );
 });

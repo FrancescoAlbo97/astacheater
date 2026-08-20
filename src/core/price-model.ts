@@ -100,6 +100,50 @@ export function renormalize(
   return { pHat, reserve, ctot, residual };
 }
 
+/**
+ * Calcola il moltiplicatore di scarsità dinamica per ruolo:
+ * Se la domanda di titolari aperti nei manager con budget supera l'offerta di top player rimasti nel pool,
+ * il prezzo atteso dei giocatori di fascia alta/titolari sale (fino a +35%).
+ * Per i giocatori di fascia bassa o quando l'offerta è abbondante, resta neutro (1.0).
+ */
+export function computeRoleScarcityMultiplier(
+  role: Role,
+  score: number,
+  managers: readonly ManagerState[],
+  pool: readonly PoolPlayer[],
+  slotsConfig?: Record<Role, number>,
+): number {
+  if (score < 60) return 1.0;
+
+  const defaultSlots: Record<Role, number> = { P: 3, D: 8, C: 8, A: 6 };
+  const slots = slotsConfig ?? defaultSlots;
+  const starterSlotsPerManager: Record<Role, number> = {
+    P: 1,
+    D: Math.min(4, slots.D),
+    C: Math.min(4, slots.C),
+    A: Math.min(3, slots.A),
+  };
+
+  let openStarterDemand = 0;
+  for (const m of managers) {
+    const totalRoleSlots = slots[role] ?? 1;
+    const remainingRoleSlots = m.slotsRemaining[role] ?? 0;
+    const filledInRole = totalRoleSlots - remainingRoleSlots;
+    const neededStarter = starterSlotsPerManager[role]!;
+    if (filledInRole < neededStarter && m.creditsRemaining >= remainingRoleSlots * 2) {
+      openStarterDemand += (neededStarter - filledInRole);
+    }
+  }
+
+  const topAvailableInPool = pool.filter((p) => p.role === role && p.score >= 65).length;
+  if (openStarterDemand <= 0 || topAvailableInPool <= 0) return 1.0;
+
+  const ratio = openStarterDemand / Math.max(1, topAvailableInPool);
+  const qualityWeight = Math.min(1, Math.max(0, (score - 60) / 40));
+  const scarcityEffect = Math.max(-0.15, Math.min(0.35, (ratio - 1) * 0.25));
+  return 1 + scarcityEffect * qualityWeight;
+}
+
 /** κ = Σ_venduti prezzo / Σ_venduti B_prior — fattore di inflazione globale (§6.3.3). */
 export function inflationFactor(
   sales: readonly { role: Role; score: number; price: number }[],

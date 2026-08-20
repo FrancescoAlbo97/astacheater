@@ -1,6 +1,9 @@
 // §6.7 / §13.9 — Il Monte Carlo gira in un Web Worker: non deve mai bloccare la UI. Il numero
 // deterministico (max-bid.ts) compare entro 100ms sul thread principale; questo worker calcola la
-// banda e la invia quando pronta (fino a 3s), senza congelare l'interfaccia nel frattempo.
+// banda e la invia quando pronta, senza congelare l'interfaccia nel frattempo. Tempo tipico più alto
+// da quando ogni avversario simulato ragiona a base di valore vero (§7 Session 8, non solo rumore
+// attorno al prezzo atteso): qualche secondo, non più "fino a 3s" — un compromesso deliberato,
+// accettabile perché non blocca mai il thread principale.
 
 import { runRollout, type RolloutInput } from '../core/rollout.js';
 import { mulberry32 } from '../core/rng.js';

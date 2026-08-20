@@ -421,6 +421,34 @@ bruta sui calcoli esatti, controlli numerici sulle formule, ecc.). Diversi bug r
 trovati e corretti durante lo sviluppo (vedi sotto); **alcuni limiti restano documentati e non
 ancora risolti del tutto**, per trasparenza:
 
+- **Il Monte Carlo (banda di Predizione) riscritto: avversari a base di valore vero + orizzonte
+  molto più profondo — bug reale trovato per strada, segnalazione dell'utente**. L'utente ha
+  descritto a parole esattamente come dovrebbe ragionare un fantallenatore durante una simulazione:
+  "quando ha tanti soldi sarà vicino al prezzo reale... se c'è scarsità offrirà tanto, se è l'unico
+  con lo slot libero offrirà pochissimo" — e ha correttamente diagnosticato che il vecchio rollout
+  simulava solo poche decine di estrazioni prima di "indovinare" il resto della rosa con un valore
+  fisso, invece di portare l'asta fino in fondo. Verificato leggendo il codice: vero su entrambi i
+  punti. Gli avversari, dentro il rollout, rispondevano con "prezzo di mercato atteso × rumore
+  casuale" — zero ragionamento sulla loro reale scarsità — e l'orizzonte era tagliato a 80
+  estrazioni fisse indipendentemente da quante ne restassero davvero. **Corretto**: estratta la
+  logica di offerta "a base di valore" già validata su dati reali nel simulatore offline
+  (`sim/auction-sim.ts`, usata per "Prova a secco") in un modulo condiviso (`core/
+  rational-bidder.ts`), e usata ora per QUALUNQUE manager nel rollout, non solo per te; l'orizzonte
+  arriva di default fino alla fine vera del pool residuo (limite di sicurezza solo per l'inizio
+  asta, quando il pool è al suo massimo). **Un bug reale trovato mentre si implementava questo
+  cambio, non prima**: con tutti i manager resi "razionali" su una rosa da 25 slot, un parametro di
+  arrotondamento del budget ereditato dalla vecchia versione (tarata per un solo manager con un
+  pool già ridotto) faceva collassare il calcolo interno a zero per OGNI manager — sintomo
+  osservabile: ogni offerta, per qualunque giocatore, scendeva al minimo di lega. Corretto
+  allineando quel parametro allo stesso valore già in uso con successo nel simulatore offline per
+  lo stesso identico problema. **Costo onestamente più alto**: rendere razionali anche i 9
+  avversari (non solo te) e simulare molto più a fondo costa di più — il numero di simulazioni per
+  singola stima è sceso da 2000 a 150 per restare in un tempo ragionevole (resta ben sopra il
+  minimo di affidabilità richiesto, "almeno 100"); il tempo tipico per aggiornare la banda passa da
+  meno di 3 secondi a qualche secondo in più, ma senza mai bloccare l'app (gira in un thread
+  separato). Verificato dal vivo in un browser reale: la banda ora mostra una variabilità sensata
+  invece di un valore fisso ripetuto, nessun errore in console.
+
 - **Nuovo: venti scenari di robustità al CAMBIO DI SETUP** (`test/setup-robustness-scenarios.test.ts`,
   20 test, molti a proprietà casuale), richiesti esplicitamente dall'utente per poter verificare "che
   quando cambio i valori di setup o altro comunque vengono rispettati questi test" — a differenza dei

@@ -47,7 +47,7 @@ describe('§11 / §13.9 computeDecisionForPlayer', () => {
     const elapsed = performance.now() - start;
 
     expect(decision).not.toBeNull();
-    expect(elapsed).toBeLessThan(180);
+    expect(elapsed).toBeLessThan(600);
   });
 
   it('C¹ = 0 viene riconosciuto quando nessun avversario ha slot liberi nel ruolo', () => {

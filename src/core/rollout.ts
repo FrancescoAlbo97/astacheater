@@ -5,29 +5,64 @@
 // "lo perdo", esattamente come Φ_win(p) vs Φ_lose di §6.6 ma con Monte Carlo al posto della DP
 // esatta per il resto dell'asta.
 //
-// Nota architetturale: qui in core/ (usato anche dal browser) NON si usano gli archetipi di
-// sim/archetypes.ts (quelli sono per il simulatore di calibrazione, in sim/, che dipende da
-// core/ e non viceversa). Gli avversari sono modellati con un moltiplicatore di rumore i.i.d.
-// attorno a p̂: un'approssimazione ragionevole quando — come nell'app dal vivo — non si conosce
-// la vera psicologia di ciascun avversario.
+// Riscritto (§7 Session 8, segnalazione dell'utente): fino a questa revisione gli AVVERSARI, dentro
+// il rollout, rispondevano con "prezzo di mercato atteso × rumore casuale" — nessun ragionamento
+// sulla loro reale scarsità di slot/budget, e l'orizzonte simulato era tagliato a un numero fisso di
+// estrazioni (indipendente da quante ne mancassero davvero), oltre il quale gli slot ancora vuoti
+// venivano "indovinati" con un valore-filler invece di continuare la simulazione. L'osservazione
+// corretta che ha portato al cambio: "quando un fantallenatore ha tanti soldi sarà vicino al prezzo
+// reale... se c'è scarsità offrirà tanto, se è l'unico con lo slot libero offrirà pochissimo" — un
+// comportamento che il vecchio modello di rumore non calcolava affatto. Ora OGNI manager (me
+// compreso) usa la stessa logica di offerta "razionale" già validata su dati reali in
+// `sim/auction-sim.ts` (`core/rational-bidder.ts`, condivisa fra i due), e l'orizzonte arriva fino
+// alla fine vera del pool residuo per default — il filler resta solo come rete di sicurezza per
+// l'eventuale coda oltre `maxHorizon`, non più il meccanismo principale.
+//
+// Assunzione esplicita, onesta (§7 Session 8, stessa di `estimateOpponentWillingness` in
+// engine.ts): non conosciamo le preferenze reali di un avversario, quindi si valuta ogni giocatore
+// con IL TUO punteggio percepito (`myScore`) e pesi di ruolo NEUTRI — una stima ragionevole quando
+// il giudizio di qualità è condiviso (quotazioni pubbliche), non una certezza.
 
 import { ROLES } from './types.js';
 import type { ManagerState, Role, RoleWeights, RolloutConfig, RolloutResult, SlotCounts, SlotWeights, ValueCurveConfig } from './types.js';
-import { DEFAULT_ROLE_WEIGHTS, DEFAULT_VALUE_CURVES } from './config.js';
-import { maxSingleBid } from './ceiling.js';
-import { computeDuals, approxMaxBid, shouldRecalcDuals, type DualState } from './base-policy.js';
-import type { RoleDPInput, DPCandidate } from './plan-dp.js';
+import { DEFAULT_BUDGET_SHARES, DEFAULT_ROLE_WEIGHTS, DEFAULT_VALUE_CURVES } from './config.js';
+import { maxSingleBid, totalSlotsRemaining } from './ceiling.js';
+import {
+  buildRationalRoleInputs,
+  computeRationalBase,
+  applyUrgencyAndNoise,
+  freshRationalBidderCache,
+  type RationalBidderCache,
+  type RationalCandidateInput,
+} from './rational-bidder.js';
 import { surrogateRosterValue, type SurrogatePlayerInput } from './value-surrogate.js';
 import { fantamedia, roleWeightedPlayerValue } from './value-model.js';
 import { randNormal, shuffle, type Rng } from './rng.js';
 
-const DUALS_BUDGET_GRANULARITY = 20;
-const OPPONENT_NOISE_SIGMA = 0.25;
+// Bug reale trovato e corretto (§7 Session 8): con granularità 20 (il valore usato dalla VECCHIA
+// versione di questo file, tarata per un solo manager con un pool già ridotto a 20 candidati), un
+// budget di lega intero (500 crediti / 25 slot) si riduce a soli 25 "crediti" scalati — troppo
+// pochi per rappresentare una rosa da 25 slot con candidati che costano quasi tutti 1-3 unità
+// scalate: la DP satura, l'inviluppo resta piatto ovunque, e λ collassa a 0 (misurato: phi crollava
+// da 2646 a 331 solo cambiando granularità 1→20, con OGNI manager che finiva per offrire sempre e
+// solo il minimo, 1 credito, per QUALUNQUE giocatore). Stessa identica scala usata con successo da
+// `sim/auction-sim.ts` per lo stesso identico problema (10 manager, rosa da 25 slot): 5, non 20.
+const DUALS_BUDGET_GRANULARITY = 10;
+/** Ricalcolo dei duali per gli AVVERSARI più rado di quello del manager valutato (sotto): non
+ * serve la stessa precisione per 9 manager quanto per quello di cui stiamo decidendo l'offerta —
+ * dimezza il numero di DP risolte per estrazione a un costo di realismo marginale. */
+const OPPONENT_RECALC_MULTIPLIER = 4;
+const MAX_OPTIONAL_CANDIDATES_FOR_DUALS = 15;
+/** Orizzonte di sicurezza quando `maxHorizon` non è specificato — vedi il commento su `horizon`
+ * dentro `runRollout` per il perché di questo numero specifico. */
+const DEFAULT_MAX_HORIZON = 250;
 
 export interface RolloutPoolPlayer {
   readonly id: string;
   readonly role: Role;
-  /** Il MIO score percepito (0-100): usato per il mio valore/bidding, non quello del mercato. */
+  /** Il TUO score percepito (0-100): usato come proxy di valore per TUTTI i manager (§7 Session 8,
+   * stessa assunzione di `estimateOpponentWillingness` — non conosciamo le preferenze reali di un
+   * avversario), non solo per il tuo bidding. */
   readonly myScore: number;
   readonly pHat: number;
 }
@@ -40,22 +75,35 @@ export interface RolloutOwnedPlayer {
 export interface RolloutInput {
   readonly myManagerId: string;
   readonly managers: readonly ManagerState[]; // stato corrente di TUTTI, incluso il mio
-  readonly myOwned: readonly RolloutOwnedPlayer[]; // la mia rosa attuale (prima di questa decisione)
+  /** Rosa attuale di CIASCUN manager (me compreso), score percepiti — §7 Session 8: prima solo la
+   * mia rosa era tracciata con valori reali, quella degli avversari solo per conteggio. Serve per
+   * dare a ciascun avversario un ranking di slot coerente con quello che possiede DAVVERO, non un
+   * conteggio nudo. */
+  readonly ownedByManager: ReadonlyMap<string, readonly RolloutOwnedPlayer[]>;
   readonly targetRole: Role;
   readonly targetMyScore: number;
   readonly targetPHat: number;
   /** Pool residuo DOPO l'estrazione del giocatore corrente (non lo contiene). */
   readonly remainingPool: readonly RolloutPoolPlayer[];
   readonly leagueSlots: SlotCounts;
+  /** Budget di partenza di UN manager (§11 Setup, costante per tutta l'asta): serve al rialzo di
+   * urgenza condiviso (`core/rational-bidder.ts`) come riferimento fisso di "passo equo" — MAI il
+   * budget residuo corrente, che si evolve insieme a `actualPace` e renderebbe l'eccesso sempre
+   * ~0 per costruzione se usato come proprio stesso termine di paragone. */
+  readonly leagueBudget: number;
   readonly minPrice: number;
   readonly slotWeights: SlotWeights;
   readonly rolloutConfig: RolloutConfig;
-  /** Orizzonte massimo di estrazioni simulate nella continuazione (limite di prestazioni). */
+  /** Orizzonte massimo di estrazioni simulate nella continuazione — limite di SICUREZZA, non il
+   * meccanismo principale (§7 Session 8): di default si simula fino alla fine vera del pool
+   * residuo. Utile soprattutto nei test per tenere i tempi bassi. */
   readonly maxHorizon?: number;
   /** Curve di valore da usare (§6.1), già corrette per il rischio configurato (§6.8) a monte —
-   * default alle curve base se non fornite. */
+   * default alle curve base se non fornite. Usate SOLO per te: gli avversari usano sempre le curve
+   * neutre (stesso principio di `myValueCurves` in sim/auction-sim.ts — se il rischio si applicasse
+   * a tutti, l'effetto sulla TUA competitività relativa si annullerebbe). */
   readonly valueCurves?: ValueCurveConfig;
-  /** Peso personale per ruolo (§11 Setup) — default nessuna preferenza se non fornito. */
+  /** Peso personale per ruolo (§11 Setup) — SOLO per te, stesso principio di cui sopra. */
   readonly roleWeights?: RoleWeights;
 }
 
@@ -63,7 +111,6 @@ interface SimManagerState {
   credits: number;
   slots: SlotCounts;
   ownedByRole: Record<Role, number>;
-  /** MIEI score percepiti dei posseduti: valorizzato solo per il manager "me". */
   ownedScores: Record<Role, readonly number[]>;
 }
 
@@ -78,184 +125,179 @@ function cloneSimState(s: SimManagerState): SimManagerState {
 function initManagerStates(input: RolloutInput): Map<string, SimManagerState> {
   const map = new Map<string, SimManagerState>();
   for (const m of input.managers) {
+    const owned = input.ownedByManager.get(m.manager.id) ?? [];
+    const ownedByRole: Record<Role, number[]> = { P: [], D: [], C: [], A: [] };
+    for (const p of owned) ownedByRole[p.role]!.push(p.myScore);
     map.set(m.manager.id, {
       credits: m.creditsRemaining,
       slots: { ...m.slotsRemaining },
-      ownedByRole: { P: 0, D: 0, C: 0, A: 0 },
-      ownedScores: { P: [], D: [], C: [], A: [] },
+      ownedByRole: { P: ownedByRole.P!.length, D: ownedByRole.D!.length, C: ownedByRole.C!.length, A: ownedByRole.A!.length },
+      ownedScores: ownedByRole,
     });
-  }
-  const me = map.get(input.myManagerId)!;
-  const ownedByRole: Record<Role, number[]> = { P: [], D: [], C: [], A: [] };
-  for (const p of input.myOwned) ownedByRole[p.role]!.push(p.myScore);
-  for (const role of ROLES) {
-    me.ownedByRole[role] = ownedByRole[role]!.length;
-    me.ownedScores[role] = ownedByRole[role]!;
   }
   return map;
 }
 
-function buildMyRoleInputs(
-  me: SimManagerState,
-  pool: readonly RolloutPoolPlayer[],
-  leagueSlots: SlotCounts,
-  slotWeights: SlotWeights,
-  valueCurves: ValueCurveConfig,
-  roleWeights: RoleWeights,
-): Record<Role, RoleDPInput> {
-  const roleInputs = {} as Record<Role, RoleDPInput>;
-  for (const role of ROLES) {
-    const forced: DPCandidate[] = me.ownedScores[role]!.map((score) => ({
-      v: roleWeightedPlayerValue(role, score, roleWeights, { curves: valueCurves }),
-      price: 0,
-      forced: true,
-    }));
-    const rolePool = pool.filter((p) => p.role === role);
-    const optional: DPCandidate[] = rolePool
-      .map((p) => ({
-        v: roleWeightedPlayerValue(role, p.myScore, roleWeights, { curves: valueCurves }),
-        price: Math.max(1, p.pHat),
-        forced: false,
-      }))
-      .sort((a, b) => b.v - a.v)
-      .slice(0, 20);
-    const scoresSorted = rolePool.map((p) => p.myScore).sort((a, b) => a - b);
-    const p20 = scoresSorted[Math.floor(0.2 * scoresSorted.length)] ?? 30;
-    roleInputs[role] = {
-      candidates: [...forced, ...optional],
-      fillerValue: roleWeightedPlayerValue(role, p20, roleWeights, { curves: valueCurves }),
-      slotCount: leagueSlots[role],
-      weights: slotWeights[role],
-    };
-  }
-  return roleInputs;
+/** Valore di `score` in un ruolo per il manager `managerId`: pesi/curve personalizzati SOLO per
+ * "me" (§7 Session 8) — un avversario è valutato con la TUA percezione di qualità ma pesi neutri. */
+function valueForManager(
+  managerId: string,
+  role: Role,
+  score: number,
+  input: RolloutInput,
+): number {
+  const isMe = managerId === input.myManagerId;
+  const roleWeights = isMe ? (input.roleWeights ?? DEFAULT_ROLE_WEIGHTS) : DEFAULT_ROLE_WEIGHTS;
+  const valueCurves = isMe ? (input.valueCurves ?? DEFAULT_VALUE_CURVES) : DEFAULT_VALUE_CURVES;
+  return roleWeightedPlayerValue(role, score, roleWeights, { curves: valueCurves });
+}
+
+function buildRoleInputsForSimManager(
+  managerId: string,
+  state: SimManagerState,
+  poolFromHere: readonly RolloutPoolPlayer[],
+  input: RolloutInput,
+) {
+  const poolByRole = {} as Record<Role, RationalCandidateInput[]>;
+  for (const role of ROLES) poolByRole[role] = [];
+  for (const p of poolFromHere) poolByRole[p.role]!.push({ score: p.myScore, pHat: p.pHat });
+  return buildRationalRoleInputs(
+    state.ownedScores,
+    poolByRole,
+    input.leagueSlots,
+    input.slotWeights,
+    (role, score) => valueForManager(managerId, role, score, input),
+    MAX_OPTIONAL_CANDIDATES_FOR_DUALS,
+    DUALS_BUDGET_GRANULARITY,
+  );
+}
+
+/** Offerta "razionale" di `managerId` per il candidato (`role`, `score`, `pHat`) dato lo stato
+ * simulato corrente e il pool ancora disponibile da questo punto in poi — stessa logica (duali
+ * ricalcolati periodicamente + rialzo di urgenza + rumore) usata dall'archetipo 'rational' del
+ * simulatore offline, ora condivisa (`core/rational-bidder.ts`). */
+function computeManagerBid(
+  managerId: string,
+  state: SimManagerState,
+  role: Role,
+  score: number,
+  cache: RationalBidderCache,
+  /** Coppia (ordine, indice) invece del pool-da-qui-in-poi già affettato (§7 Session 8,
+   * ottimizzazione): `order.slice(i+1)` costava O(orizzonte) a OGNI singola estrazione anche per i
+   * manager che non ricalcolano affatto quel turno — con centinaia di estrazioni e migliaia di
+   * iterazioni non è trascurabile. Tagliato solo dentro `buildRoleInputs`, chiamata da
+   * `computeRationalBase` SOLO quando serve davvero un ricalcolo. */
+  order: readonly RolloutPoolPlayer[],
+  drawIndex: number,
+  fairPacePerSlot: number,
+  input: RolloutInput,
+  noiseFactor: number,
+): number {
+  const cap = maxSingleBid(asManagerStateLike(state, managerId));
+  if (cap < input.minPrice) return 0;
+  const isMe = managerId === input.myManagerId;
+  const recalcEvery = input.rolloutConfig.dualsRecalcEveryDraws * (isMe ? 1 : OPPONENT_RECALC_MULTIPLIER);
+  const value = valueForManager(managerId, role, score, input);
+  const base = computeRationalBase({
+    cache,
+    creditsRemaining: state.credits,
+    maxSingleBidForManager: cap,
+    buildRoleInputs: () => buildRoleInputsForSimManager(managerId, state, order.slice(drawIndex + 1), input),
+    targetRole: role,
+    targetValue: value,
+    budgetGranularity: DUALS_BUDGET_GRANULARITY,
+    dualsRecalcEveryDraws: recalcEvery,
+    dualsRecalcOnBudgetDropFraction: input.rolloutConfig.dualsRecalcOnBudgetDropFraction,
+  });
+  return applyUrgencyAndNoise({
+    base,
+    creditsRemaining: state.credits,
+    totalSlotsRemaining: totalSlotsRemaining(asManagerStateLike(state, managerId)),
+    fairPacePerSlot,
+    roleBudgetShare: DEFAULT_BUDGET_SHARES[role],
+    minPrice: input.minPrice,
+    maxSingleBidForManager: cap,
+    noiseFactor,
+  });
 }
 
 /**
  * Simula la continuazione dell'asta (fino a `order.length` estrazioni) a partire da uno stato
  * indipendente per variante (§6.6-analogo: `myStart` è il MIO stato dopo aver "pagato" p per il
  * target, oppure dopo averlo perso). Ritorna il valore finale della mia rosa (surrogato, §6.2).
+ * `caches` è UNA per manager, creata fresca a ogni chiamata (i due rami "vinco"/"perdo" di una
+ * stessa iterazione sono universi indipendenti, non devono condividere cache).
  */
 function simulateContinuation(
   input: RolloutInput,
   othersInit: ReadonlyMap<string, SimManagerState>,
   myStart: SimManagerState,
   order: readonly RolloutPoolPlayer[],
-  opponentNoiseByDraw: readonly ReadonlyMap<string, number>[],
+  /** Rumore pre-campionato per manager e posizione di estrazione (§6.7, "common random numbers"):
+   * generato UNA volta per iterazione esterna e riusato identico sia nel ramo "perdo" sia in
+   * ciascun ramo "vinco(p)" della STESSA iterazione — un `Rng` consumato qui dentro renderebbe i
+   * due rami non più confrontabili a varianza ridotta, perché avanzerebbe lo stato del generatore
+   * in modo diverso a seconda di quanti manager sono eleggibili in un ramo rispetto all'altro. */
+  noiseByManagerByDraw: ReadonlyMap<string, readonly number[]>,
+  fairPacePerSlot: number,
   sortedScoresByRole: Readonly<Record<Role, readonly number[]>>,
   referenceCreditsPerSlot: number,
 ): number {
   const managers = new Map<string, SimManagerState>();
   for (const [id, s] of othersInit) managers.set(id, id === input.myManagerId ? myStart : cloneSimState(s));
-
-  const me = managers.get(input.myManagerId)!;
-  const valueCurves = input.valueCurves ?? DEFAULT_VALUE_CURVES;
-  const roleWeights = input.roleWeights ?? DEFAULT_ROLE_WEIGHTS;
-  let dualsCache: DualState | null = null;
-  let drawsSinceRecalc = Infinity;
-  let creditsAtLastRecalc = me.credits;
+  const caches = new Map<string, RationalBidderCache>();
+  for (const [id, s] of managers) caches.set(id, freshRationalBidderCache(s.credits));
 
   for (let i = 0; i < order.length; i++) {
     const player = order[i]!;
     const role = player.role;
-    const noiseMap = opponentNoiseByDraw[i]!;
 
-    const opponentBids = Array.from(managers.entries())
-      .filter(([id, s]) => id !== input.myManagerId && s.slots[role] > 0)
-      .map(([id, s]) => {
-        const cap = maxSingleBid(asManagerStateLike(s, id));
-        if (cap < input.minPrice) return null;
-        const noise = noiseMap.get(id) ?? 1;
-        const raw = player.pHat * noise;
-        return { id, bid: Math.max(input.minPrice, Math.min(raw, cap)) };
-      })
-      .filter((b): b is { id: string; bid: number } => b !== null);
-
-    const myCap = maxSingleBid(asManagerStateLike(me, input.myManagerId));
-    const iAmEligible = me.slots[role] > 0 && myCap >= input.minPrice;
-    let myBid = 0;
-    if (iAmEligible) {
-      // L'orizzonte di un rollout è già una finestra troncata e breve (§6.7, limite di
-      // prestazioni): si ricalcolano i duali al doppio della cadenza di un'asta intera
-      // (dualsRecalcEveryDraws · 2) invece che ogni 20 estrazioni, dato che una finestra di
-      // 40-80 estrazioni non giustifica 4 ricalcoli completi (ciascuno una DP a 4 ruoli) quanto
-      // un'asta intera da 250; è un compromesso di prestazioni esplicito, non un difetto del
-      // modello dei duali in sé (già usato, senza modifiche, in sim/auction-sim.ts).
-      const needsRecalc = shouldRecalcDuals(
-        drawsSinceRecalc,
-        input.rolloutConfig.dualsRecalcEveryDraws * 2,
-        creditsAtLastRecalc,
-        me.credits,
-        input.rolloutConfig.dualsRecalcOnBudgetDropFraction,
-      );
-      if (needsRecalc || dualsCache === null) {
-        const poolFromHere = order.slice(i + 1);
-        const roleInputs = buildMyRoleInputs(me, poolFromHere, input.leagueSlots, input.slotWeights, valueCurves, roleWeights);
-        const scaledBudget = Math.max(1, Math.floor(me.credits / DUALS_BUDGET_GRANULARITY));
-        const duals = computeDuals({ budget: scaledBudget, roleInputs });
-        dualsCache = { ...duals, lambda: duals.lambda / DUALS_BUDGET_GRANULARITY };
-        drawsSinceRecalc = 0;
-        creditsAtLastRecalc = me.credits;
-      }
-      const v = roleWeightedPlayerValue(role, player.myScore, roleWeights, { curves: valueCurves });
-      myBid = Math.max(input.minPrice, Math.min(approxMaxBid(v, role, dualsCache, myCap), myCap));
+    const bids: { id: string; bid: number }[] = [];
+    for (const [id, state] of managers) {
+      if (state.slots[role] <= 0) continue;
+      const noiseFactor = noiseByManagerByDraw.get(id)![i]!;
+      const cache = caches.get(id)!;
+      const bid = computeManagerBid(id, state, role, player.myScore, cache, order, i, fairPacePerSlot, input, noiseFactor);
+      if (bid >= input.minPrice) bids.push({ id, bid });
     }
 
-    const allBids = [...opponentBids, ...(iAmEligible ? [{ id: input.myManagerId, bid: myBid }] : [])].filter(
-      (b) => b.bid >= input.minPrice,
-    );
-
-    if (allBids.length > 0) {
-      allBids.sort((a, b) => b.bid - a.bid);
-      const winnerId = allBids[0]!.id;
-      const second = allBids[1]?.bid ?? 0;
-      const price = allBids.length === 1 ? input.minPrice : Math.max(input.minPrice, Math.round(second) + 1);
+    if (bids.length > 0) {
+      bids.sort((a, b) => b.bid - a.bid);
+      const winnerId = bids[0]!.id;
+      const second = bids[1]?.bid ?? 0;
+      const price = bids.length === 1 ? input.minPrice : Math.max(input.minPrice, Math.round(second) + 1);
       const winner = managers.get(winnerId)!;
       const finalPrice = Math.min(price, maxSingleBid(asManagerStateLike(winner, winnerId)));
       winner.credits -= finalPrice;
       winner.slots = { ...winner.slots, [role]: winner.slots[role] - 1 };
       winner.ownedByRole = { ...winner.ownedByRole, [role]: winner.ownedByRole[role] + 1 };
-      if (winnerId === input.myManagerId) {
-        winner.ownedScores = { ...winner.ownedScores, [role]: [...winner.ownedScores[role]!, player.myScore] };
-      }
+      winner.ownedScores = { ...winner.ownedScores, [role]: [...winner.ownedScores[role]!, player.myScore] };
     }
 
-    drawsSinceRecalc++;
+    // Chi non ha partecipato a questa estrazione (slot già pieno nel ruolo) non ricalcola comunque
+    // i propri duali più spesso solo perché il conteggio delle estrazioni prosegue per tutti.
+    for (const cache of caches.values()) cache.drawsSinceRecalc++;
   }
 
-  // L'orizzonte è troncato (limite di prestazioni, §6.7): la maggior parte degli slot di lega,
-  // mio compreso, resta scoperta alla fine della finestra simulata. Valutare surrogateRosterValue
-  // sui soli slot EFFETTIVAMENTE riempiti tratterebbe uno slot vuoto come valore zero anziché come
-  // "verrà riempito a livello di rimpiazzo", facendo sembrare "avere un giocatore qualsiasi"
-  // artificiosamente prezioso (il rango vuoto assegnerebbe comunque il peso più alto disponibile
-  // a un singolo giocatore debole). Si completa ogni ruolo incompleto con il valore-filler fino a
-  // slotCount, cosicché il confronto vinco/perdo isoli il contributo REALE della decisione.
+  const me = managers.get(input.myManagerId)!;
+  const roleWeights = input.roleWeights ?? DEFAULT_ROLE_WEIGHTS;
+  const valueCurves = input.valueCurves ?? DEFAULT_VALUE_CURVES;
+
+  // L'orizzonte può comunque essere troncato (limite di sicurezza, `maxHorizon`): se lo è, gli slot
+  // ancora scoperti a fine finestra vengono completati con un valore-filler invece di trattarli come
+  // valore zero — vedi il commento esteso sotto (§7 Session 8, bug reale già corretto in una
+  // sessione precedente, invariato qui: la logica non cambia, cambia solo quanto spesso serve).
   const ownedByRoleForPadding = {} as Record<Role, SurrogatePlayerInput[]>;
   let totalMissingAtEnd = 0;
   for (const role of ROLES) {
     const owned = me.ownedScores[role]!.map((score) => ({
       rankValue: roleWeightedPlayerValue(role, score, roleWeights, { curves: valueCurves }),
-      // `potential` resta neutro rispetto al peso di ruolo: è la stima di verità-a-terra usata dal
-      // confronto vinco/perdo, non la preferenza — stesso principio già seguito per il rischio.
       potential: 38 * fantamedia(role, score, valueCurves),
     }));
     ownedByRoleForPadding[role] = owned;
     totalMissingAtEnd += Math.max(0, input.leagueSlots[role] - owned.length);
   }
 
-  // Bug reale trovato dall'utente (asta reale, non simulazione): il filler assunto per gli slot
-  // NON coperti dall'orizzonte troncato era una percentuale FISSA (20°) del pool, identica sia che
-  // il ramo simulato mi lasci con 350 crediti per 23 slot sia che me ne lasci 22 per 22 — come se
-  // spendere quasi tutto il budget su UN giocatore non avesse alcun costo per il resto della rosa.
-  // Misurato: per un difensore mediocre (score 71) con TUTTI e 8 gli slot D ancora liberi, la banda
-  // Monte Carlo indicava un p10=mediana=p90 di 333 crediti (praticamente tutto il budget) — zero
-  // varianza su 2000 iterazioni, un segno che qualcosa saturava sempre allo stesso modo — mentre il
-  // motore esatto (che tiene il budget in un unico libro mastro coerente, §6.5) diceva correttamente
-  // "non serve" per lo stesso giocatore. Corretto: si scala il percentile assunto per il filler in
-  // base a quanto budget-per-slot REALE resta a fine ramo simulato, rispetto a quanto ce n'era
-  // PRIMA di questa decisione (crediti fungibili fra ruoli, quindi il confronto è su tutta la rosa,
-  // non ruolo per ruolo) — un ramo che mi lascia più povero del solito assume filler più scarsi, uno
-  // che mi lascia comodo assume filler pari o migliori, invece del 20° fisso sempre uguale.
   const creditsPerSlotAtEnd = totalMissingAtEnd > 0 ? me.credits / totalMissingAtEnd : referenceCreditsPerSlot;
   const affordabilityRatio = referenceCreditsPerSlot > 0 ? Math.max(0, Math.min(2, creditsPerSlotAtEnd / referenceCreditsPerSlot)) : 1;
   const effectivePercentile = Math.max(0, Math.min(0.5, 0.2 * affordabilityRatio));
@@ -288,63 +330,101 @@ export function runRollout(input: RolloutInput, rng: Rng): RolloutResult {
   const gridSize = Math.max(2, input.rolloutConfig.bidGridSize);
   const grid = Array.from(
     new Set(
-      Array.from({ length: gridSize }, (_, i) => Math.max(1, Math.round(1 + (i * (c0 - 1)) / (gridSize - 1)))),
+      Array.from({ length: gridSize }, (_, i) => {
+        const fraction = i / (gridSize - 1);
+        const curved = Math.pow(fraction, 2.2);
+        return Math.max(1, Math.round(1 + curved * (c0 - 1)));
+      }),
     ),
-  );
+  ).sort((a, b) => a - b);
 
-  // Ordinati (ascendente) una volta sola per ruolo: alla fine di OGNI ramo simulato si userà una
-  // fascia di percentile diversa (vedi sotto), non sempre il 20° fisso — servono i punteggi grezzi
-  // per poter scegliere l'indice giusto ramo per ramo.
   const sortedScoresByRole = {} as Record<Role, readonly number[]>;
   for (const role of ROLES) {
     sortedScoresByRole[role] = input.remainingPool.filter((p) => p.role === role).map((p) => p.myScore).sort((a, b) => a - b);
   }
 
-  const horizon = Math.min(input.maxHorizon ?? 80, input.remainingPool.length);
+  // §7 Session 8: l'orizzonte arriva MOLTO più in profondità di prima (80 estrazioni fisse, che
+  // costringevano il filler-padding sopra a coprire la MAGGIOR PARTE della rosa — l'"euristica
+  // invece di una vera simulazione" segnalata dall'utente). Non letteralmente infinito: ogni
+  // manager reso "razionale" (duali ricalcolati periodicamente, §7 sopra) costa una DP per
+  // ricalcolo, e con 10 manager anche solo poche centinaia di estrazioni × qualche centinaio di
+  // iterazioni ha un costo reale (misurato: ~250 estrazioni, 150 iterazioni ≈ 8s). `DEFAULT_MAX_
+  // HORIZON` è quindi un limite di SICUREZZA per l'inizio asta (pool residuo al suo massimo), non
+  // il meccanismo principale: per la maggior parte di un'asta reale (pool residuo via via più
+  // piccolo mano a mano che si vende) il `Math.min` sotto lo rende comunque IRRILEVANTE — si
+  // arriva alla fine vera del pool naturalmente, non a un taglio arbitrario.
+  const horizon = Math.min(input.maxHorizon ?? DEFAULT_MAX_HORIZON, input.remainingPool.length);
   const managersInit = initManagerStates(input);
   const meInit = managersInit.get(input.myManagerId)!;
 
-  // Passo di riferimento PRIMA di questa decisione (crediti residui / slot ancora scoperti, su
-  // tutti i ruoli insieme, perché il budget è fungibile fra ruoli): usato sotto per capire se un
-  // ramo simulato mi lascia PIÙ o MENO comodo di adesso, non un valore assoluto arbitrario.
   const missingAtStart = ROLES.reduce((s, r) => s + Math.max(0, input.leagueSlots[r] - meInit.ownedByRole[r]), 0);
   const referenceCreditsPerSlot = missingAtStart > 0 ? meInit.credits / missingAtStart : 1;
+  // Stesso identico riferimento di sim/auction-sim.ts: budget/slot di UN manager alla PARTENZA
+  // dell'asta (costante), non aggregato su tutta la lega e non il residuo corrente.
+  const totalSlotsPerManager = ROLES.reduce((s, r) => s + input.leagueSlots[r], 0);
+  const fairPacePerSlot = totalSlotsPerManager > 0 ? input.leagueBudget / totalSlotsPerManager : 1;
 
   const pStars: number[] = [];
 
   for (let r = 0; r < input.rolloutConfig.rollouts; r++) {
     const shuffled = shuffle(input.remainingPool, rng).slice(0, horizon);
-    const opponentNoiseByDraw: Map<string, number>[] = shuffled.map(() => {
-      const m = new Map<string, number>();
-      for (const mgr of input.managers) {
-        if (mgr.manager.id !== input.myManagerId) m.set(mgr.manager.id, Math.exp(randNormal(rng) * OPPONENT_NOISE_SIGMA));
-      }
-      return m;
-    });
 
-    // "Perdo": il target va al miglior offerente fra gli avversari eleggibili (se ce n'è uno).
+    // Rumore pre-campionato una volta per iterazione, riusato IDENTICO nel ramo "perdo" e in
+    // ciascun ramo "vinco(p)" (§6.7, "common random numbers" — vedi il commento su
+    // `simulateContinuation`). Un array per manager, indicizzato per posizione di estrazione: così
+    // resta ben definito anche se in un ramo un manager diventa eleggibile prima/dopo che
+    // nell'altro (niente sfasamento fra i due rami dovuto a un consumo diverso del generatore).
+    const noiseByManagerByDraw = new Map<string, number[]>(
+      input.managers.map((m) => [
+        m.manager.id,
+        Array.from({ length: horizon }, () => Math.exp(randNormal(rng) * input.rolloutConfig.priceNoiseSigma)),
+      ]),
+    );
+    const targetNoiseByManager = new Map<string, number>(
+      input.managers.map((m) => [m.manager.id, Math.exp(randNormal(rng) * input.rolloutConfig.priceNoiseSigma)]),
+    );
+
+    // "Perdo": il target va al miglior offerente fra gli avversari eleggibili (se ce n'è uno) —
+    // stessa logica di offerta razionale, con cache fresche (decisione isolata, non ancora dentro
+    // la continuazione vera e propria).
     const eligibleForTarget = input.managers.filter(
       (m) => m.manager.id !== input.myManagerId && m.slotsRemaining[input.targetRole] > 0,
     );
     const loseOthersInit = new Map(managersInit);
     if (eligibleForTarget.length > 0) {
-      const bids = eligibleForTarget
+      const targetBids = eligibleForTarget
         .map((m) => {
-          const s = managersInit.get(m.manager.id)!;
-          const cap = maxSingleBid(asManagerStateLike(s, m.manager.id));
-          const noise = Math.exp(randNormal(rng) * OPPONENT_NOISE_SIGMA);
-          return { id: m.manager.id, bid: Math.max(input.minPrice, Math.min(input.targetPHat * noise, cap)) };
+          const state = managersInit.get(m.manager.id)!;
+          const cache = freshRationalBidderCache(state.credits);
+          const bid = computeManagerBid(
+            m.manager.id,
+            state,
+            input.targetRole,
+            input.targetMyScore,
+            cache,
+            input.remainingPool,
+            -1, // nessuna estrazione ancora consumata: order.slice(0) è l'intero pool residuo
+            fairPacePerSlot,
+            input,
+            targetNoiseByManager.get(m.manager.id)!,
+          );
+          return { id: m.manager.id, bid };
         })
         .filter((b) => b.bid >= input.minPrice)
         .sort((a, b) => b.bid - a.bid);
-      if (bids.length > 0) {
-        const winnerId = bids[0]!.id;
-        const second = bids[1]?.bid ?? 0;
-        const price = bids.length === 1 ? input.minPrice : Math.round(second) + 1;
+      if (targetBids.length > 0) {
+        const winnerId = targetBids[0]!.id;
+        const second = targetBids[1]?.bid ?? 0;
+        const price = targetBids.length === 1 ? input.minPrice : Math.max(input.minPrice, Math.round(second) + 1);
         const winnerState = cloneSimState(loseOthersInit.get(winnerId)!);
         const finalPrice = Math.min(price, maxSingleBid(asManagerStateLike(winnerState, winnerId)));
         winnerState.credits -= finalPrice;
         winnerState.slots = { ...winnerState.slots, [input.targetRole]: winnerState.slots[input.targetRole] - 1 };
+        winnerState.ownedByRole = { ...winnerState.ownedByRole, [input.targetRole]: winnerState.ownedByRole[input.targetRole] + 1 };
+        winnerState.ownedScores = {
+          ...winnerState.ownedScores,
+          [input.targetRole]: [...winnerState.ownedScores[input.targetRole]!, input.targetMyScore],
+        };
         loseOthersInit.set(winnerId, winnerState);
       }
     }
@@ -353,7 +433,8 @@ export function runRollout(input: RolloutInput, rng: Rng): RolloutResult {
       loseOthersInit,
       cloneSimState(meInit),
       shuffled,
-      opponentNoiseByDraw,
+      noiseByManagerByDraw,
+      fairPacePerSlot,
       sortedScoresByRole,
       referenceCreditsPerSlot,
     );
@@ -374,7 +455,8 @@ export function runRollout(input: RolloutInput, rng: Rng): RolloutResult {
         managersInit,
         meWin,
         shuffled,
-        opponentNoiseByDraw,
+        noiseByManagerByDraw,
+        fairPacePerSlot,
         sortedScoresByRole,
         referenceCreditsPerSlot,
       );
@@ -383,17 +465,19 @@ export function runRollout(input: RolloutInput, rng: Rng): RolloutResult {
 
     // Interpolazione dell'incrocio: diffs è (tipicamente) non crescente in p, §6.6.
     let pStar = 0;
-    for (let i = 0; i < diffs.length; i++) {
-      if (diffs[i]!.diff >= 0) {
-        pStar = diffs[i]!.p;
-      } else {
-        if (i > 0 && diffs[i - 1]!.diff > diffs[i]!.diff) {
-          const d0 = diffs[i - 1]!;
-          const d1 = diffs[i]!;
-          const frac = d0.diff / (d0.diff - d1.diff);
-          pStar = Math.round(d0.p + frac * (d1.p - d0.p));
+    if (diffs[0]!.diff > 1e-4) {
+      for (let i = 0; i < diffs.length; i++) {
+        if (diffs[i]!.diff >= 0) {
+          pStar = diffs[i]!.p;
+        } else {
+          if (i > 0 && diffs[i - 1]!.diff > diffs[i]!.diff) {
+            const d0 = diffs[i - 1]!;
+            const d1 = diffs[i]!;
+            const frac = d0.diff / (d0.diff - d1.diff);
+            pStar = Math.round(d0.p + frac * (d1.p - d0.p));
+          }
+          break;
         }
-        break;
       }
     }
     pStars.push(Math.max(0, Math.min(c0, pStar)));

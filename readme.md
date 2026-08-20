@@ -870,25 +870,67 @@ esporti al rischio peggiore, cioè arrivare in fondo con slot da riempire e solo
 
 ```
 rollout(statoCorrente, decisione):
-  ordine = permutazione uniforme del pool residuo
+  ordine = permutazione uniforme del pool residuo, fino all'orizzonte (§7 Session 8: di
+           default fino alla fine vera del pool residuo, non più poche decine di estrazioni)
   per ogni giocatore estratto:
-    per ogni avversario m con slot libero nel ruolo:
-        willingness_m = p̂_j · moltiplicatoreArchetipo_m · exp(N(0, σ))   troncata a c_m
+    per ogni manager m (me COMPRESO) con slot libero nel ruolo:
+        base_m    = p* approssimato dai duali di m, ricalcolati periodicamente (§6.6)
+        willingness_m = (base_m + rialzo di urgenza) · exp(N(0, σ))   troncata a c_m
     prezzo   = secondo massimo delle willingness + 1
-    io offro secondo la politica base (p* approssimato dai duali, §6.6)
     aggiorna budget e slot di tutti
   ritorna valore finale della mia rosa con il surrogato additivo (§6.2)
 ```
 
 - `σ` (rumore sul prezzo) da calibrare nella fase 6 sui residui della regressione.
-- Politica base: duali ricalcolati ogni 20 estrazioni o quando il budget cala di oltre il 10%.
-  Ricalcolare la DP a ogni passo di ogni rollout è troppo lento; questo compromesso è necessario.
-- `R = 2000` rollout. Griglia di 8 valori di `p`, si valuta la differenza fra vincere a `p` e
-  perdere, si interpola l'incrocio.
+- Politica base: duali ricalcolati ogni 20 estrazioni (io) / 80 (avversari, §7 Session 8) o quando
+  il budget cala di oltre il 10%. Ricalcolare la DP a ogni passo di ogni rollout è troppo lento;
+  questo compromesso è necessario.
+- `R = 150` rollout (§7 Session 8, sceso da 2000 — vedi addendum sotto). Griglia di 8 valori di `p`,
+  si valuta la differenza fra vincere a `p` e perdere, si interpola l'incrocio.
 - Output: `p*` mediano più percentili 10 e 90.
-- Gira in Web Worker, budget di tempo **< 3 s**. In un'asta reale hai 30–60 s fra un giocatore e
-  l'altro: è tempo abbondante, ma la UI deve mostrare il numero deterministico **entro 100 ms** e
-  poi raffinarlo quando arriva il rollout.
+- Gira in Web Worker, non blocca mai la UI — tempo tipico qualche secondo (§7 Session 8, sotto),
+  non più "< 3s". In un'asta reale hai 30–60 s fra un giocatore e l'altro: è tempo abbondante, ma la
+  UI deve mostrare il numero deterministico **entro 100 ms** e poi raffinarlo quando arriva il
+  rollout.
+
+> **Addendum (post-F14, avversari a base di valore vero — segnalazione dell'utente)**: fino a questa
+> revisione, dentro il rollout, SOLO "io" offrivo secondo un vero ragionamento di valore (duali +
+> `approxMaxBid`) — ogni AVVERSARIO rispondeva con "prezzo di mercato atteso × rumore casuale",
+> senza ragionare sulla propria reale scarsità di slot/budget. Segnalazione testuale dell'utente,
+> corretta: "quando un fantallenatore ha tanti soldi sarà vicino al prezzo reale... se c'è scarsità
+> offrirà tanto, se è l'unico con lo slot libero offrirà pochissimo" — dinamiche che il rumore non
+> calcolava affatto. **Corretto**: estratta la logica di offerta "razionale" già validata su dati
+> reali in `sim/auction-sim.ts` (stesso ricalcolo periodico dei duali, stesso rialzo di urgenza
+> calibrato — vedi §9.3) in un modulo condiviso (`core/rational-bidder.ts`), e usata ORA per
+> qualunque manager nel rollout, non solo per "me" — con l'assunzione esplicita, onesta, che un
+> avversario valuti i giocatori con IL TUO punteggio percepito (nessun modo di conoscere le sue
+> preferenze reali) ma pesi di ruolo neutri (mai i tuoi personalizzati).
+>
+> **Un secondo cambio, reso possibile dal primo**: l'orizzonte simulato passa da un taglio fisso a
+> poche decine di estrazioni (che costringeva il filler-padding a coprire la maggior parte della
+> rosa — l'"euristica invece di una vera simulazione" della segnalazione originale) a, per default,
+> tutta la lunghezza vera del pool residuo (con un limite di sicurezza a 250 estrazioni per
+> l'inizio-asta, quando il pool residuo è al suo massimo — irrilevante per il resto dell'asta, dato
+> che il pool si accorcia naturalmente).
+>
+> **Un bug reale trovato e corretto nello stesso cambio**: la granularità del budget scalato per i
+> duali (§6.6) era ereditata dalla vecchia versione di questo file (20, tarata per un solo manager
+> con un pool già ridotto a 20 candidati) — con un budget di lega intero e una rosa da 25 slot,
+> questo riduceva il budget scalato a sole 25 unità, troppo poche per differenziare i prezzi di
+> candidati che costavano quasi tutti 1-3 unità scalate: la DP saturava, l'inviluppo restava piatto,
+> λ collassava a 0 per OGNI manager, e ogni offerta finiva fissata al minimo di lega qualunque fosse
+> il giocatore (misurato: il valore atteso della rosa finale crollava da 2646 a 331 punti passando
+> da granularità 1 a 20, sullo stesso identico scenario). Corretto usando la STESSA granularità (5)
+> già in uso con successo in `sim/auction-sim.ts` per lo stesso identico problema — non un numero
+> nuovo, un allineamento a un valore già provato.
+>
+> **Costo, misurato onestamente**: con OGNI manager reso "razionale" (non solo "me") e un orizzonte
+> molto più profondo, il costo per iterazione è cresciuto di circa un ordine di grandezza — `R` è
+> sceso da 2000 a 150 nello stesso cambio (resta ben sopra il minimo di affidabilità statistica
+> richiesto esplicitamente, "almeno 100"). Tempo tipico misurato, config di produzione, scenario
+> realistico: 3-9s a seconda di quanto è profondo il pool residuo — mai bloccante (Web Worker), ma
+> onestamente più lento di prima. Verificato dal vivo in un browser reale (Playwright): la banda si
+> risolve, mostra una variabilità sensata (non più degenere/a valore fisso), nessun errore console.
 
 ---
 
