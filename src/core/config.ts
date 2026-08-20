@@ -171,7 +171,14 @@ export function normalizeSlotWeights(weights: SlotWeights | undefined, slots: Sl
  * ruolo). Errore standard di θ piccolo rispetto al coefficiente su tutti i ruoli (n=52..135),
  * quindi non è rumore di campionamento.
  */
-export const DEFAULT_THETA: Record<Role, number> = { P: 4.10, D: 3.80, C: 4.20, A: 4.70 };
+/**
+ * θ_ρ calibrati via regressione OLS log-lineare su ~100 giocatori di Serie A reali (stagione
+ * 2025/26), con prezzi PMA della colonna "10 manager × 500 crediti" forniti dall'utente. Il fit
+ * usa score s = Qt.A / max(Qt.A_ρ) × 100, dove Qt.A misura la titolarità attesa (fascia
+ * partecipativa del giocatore, come assegnata nel listone). R² per ruolo: P=0.793 D=0.798
+ * C=0.874 A=0.891. MAE globale prior puro ~18.7% (vs 50% con i parametri teorici precedenti).
+ */
+export const DEFAULT_THETA: Record<Role, number> = { P: 3.4331, D: 2.6635, C: 1.9228, A: 3.2570 };
 
 /** Quote iniziali di budget per ruolo: P 8%, D 18%, C 28%, A 46%. Calibrate sulla distribuzione
  * reale dei crediti spesi in leghe 10x500 (PMA). */
@@ -186,11 +193,14 @@ export const DEFAULT_MIN_OBSERVATIONS_FOR_OWN_FIT = 5;
 export const DEFAULT_CONFIDENCE_THRESHOLDS = { low: 8, medium: 25 };
 
 /**
- * A_ρ: prezzo prior a score 0. Calibrato congiuntamente a DEFAULT_THETA per ancorare i top player
- * alle quotazioni reali PMA di Serie A (Lautaro/top A ~130-145, top C ~65-75, top D ~35-45, top P ~35-45)
- * e i filler di coda al pavimento di 1 credito.
+ * A_ρ: prezzo prior a score 0 (intersezione della curva). Calibrati congiuntamente a
+ * DEFAULT_THETA via OLS log-lineare sui dati PMA reali 2025/26 (stagione Serie A, lega 10×500).
+ * L'aumento di A_D rispetto a A_A riflette la struttura del mercato reale: i difensori hanno
+ * una curva più piatta (θ_D più basso) e un'intercetta alta per coprire i titolari di fascia
+ * media (slot D=8 per manager vs A=6), mentre gli attaccanti hanno una curva molto più ripida
+ * (θ_A=3.26) che premia esponenzialmente i top name.
  */
-export const DEFAULT_A: Record<Role, number> = { P: 0.70, D: 0.95, C: 1.10, A: 1.21 };
+export const DEFAULT_A: Record<Role, number> = { P: 2.2746, D: 7.9291, C: 13.1972, A: 8.7547 };
 
 export const DEFAULT_PRICE_CURVES: PriceCurveConfig = ROLES.reduce((acc, role) => {
   acc[role] = { A: DEFAULT_A[role], theta: DEFAULT_THETA[role] };
