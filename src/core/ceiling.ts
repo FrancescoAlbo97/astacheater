@@ -42,9 +42,20 @@ export function ceilingForRole(
   };
 }
 
-/** Offerta operativa massima (§6.4): non serve mai offrire più di C¹+1, né più del proprio c_0. */
-export function operationalMaxBid(pStar: number, ceiling: CeilingInfo): number {
-  return Math.min(pStar, ceiling.c1 + 1, ceiling.myMax);
+/**
+ * Offerta operativa massima (§6.4): non serve mai offrire più di C¹+1, né più del proprio c_0.
+ *
+ * `minPrice` (§11 Setup) entra come pavimento del termine `C¹+1`, non di `pStar`: se `pStar = 0`
+ * (il candidato non serve, `min(0, …) = 0` comunque, non forziamo un'offerta per chi non vogliamo)
+ * il risultato resta correttamente 0; se invece C¹=0 (nessun avversario eleggibile, "garantito") il
+ * prezzo vero non può comunque scendere sotto il minimo di lega — bug reale trovato da un test di
+ * robustità al cambio Setup (§7 Session 8): con `minPrice` diverso dal default 1, il banner "Tuo
+ * garantito a {minPrice} credito" e il numero "OFFRI FINO A" mostrato accanto potevano disaccordare
+ * (quest'ultimo restava fisso a 1). Con `minPrice = 1` (l'unico valore usato in ogni test/config
+ * precedente a questo fix) `max(1, C¹+1) = C¹+1` sempre: nessuna differenza di comportamento.
+ */
+export function operationalMaxBid(pStar: number, ceiling: CeilingInfo, minPrice: number): number {
+  return Math.min(pStar, Math.max(minPrice, ceiling.c1 + 1), ceiling.myMax);
 }
 
 /** Prezzo atteso in prima approssimazione (§6.4): fissato dal secondo offerente, non dal primo. */

@@ -70,7 +70,17 @@ describe('§6.4 ceilingForRole — casi limite', () => {
     const me = makeManager('me', 500, slots(3, 8, 8, 6), true);
     const info = ceilingForRole([me], 'me', 'A'); // nessun avversario in lega
     expect(info.c1).toBe(0);
-    expect(operationalMaxBid(999, info)).toBe(1); // min(pStar, C¹+1=1, c_0)
+    expect(operationalMaxBid(999, info, 1)).toBe(1); // min(pStar, C¹+1=1, c_0)
+  });
+
+  it('C¹=0 con un prezzo minimo di lega diverso da 1 ⇒ garantito al MINIMO CONFIGURATO, non a 1 — bug reale trovato da un test di robustità al cambio Setup (§7 Session 8)', () => {
+    const me = makeManager('me', 500, slots(3, 8, 8, 6), true);
+    const info = ceilingForRole([me], 'me', 'A');
+    expect(info.c1).toBe(0);
+    expect(operationalMaxBid(999, info, 3)).toBe(3);
+    // un candidato che non serve (pStar=0) non deve MAI diventare un'offerta forzata al minimo:
+    // il pavimento si applica solo se c'è già interesse (pStar>0).
+    expect(operationalMaxBid(0, info, 3)).toBe(0);
   });
 
   it('pareggi fra c_m: C¹ e C² coincidono, entrambi assegnati', () => {
@@ -102,7 +112,7 @@ describe('§13.5 errori di uno sui tetti', () => {
     const opp = makeManager('opp', 100, slots(1, 8, 8, 6));
     const info = ceilingForRole([me, opp], 'me', 'P');
     const c1 = info.c1;
-    expect(operationalMaxBid(9999, info)).toBe(c1 + 1);
+    expect(operationalMaxBid(9999, info, 1)).toBe(c1 + 1);
   });
 
   it('prezzo atteso dipende dal secondo tetto C², non dal primo', () => {

@@ -6,7 +6,7 @@ piano di lavoro per fasi, test e criteri di accettazione numerici.
 
 **Lingua del codice:** identificatori e commenti in inglese, testi della UI in italiano.
 
-**Stato del progetto:** tutte le 13 fasi di §12 sono state completate e collaudate (260 test
+**Stato del progetto:** tutte le 13 fasi di §12 sono state completate e collaudate (294 test
 automatici). Il file eseguibile finale è `dist/fantasta.html`. Le sezioni sottostanti restano la
 specifica tecnica di riferimento per chi estende o rivede il codice; questa guida in cima serve a
 chi deve solo installarlo e usarlo.
@@ -600,6 +600,23 @@ Esporre sempre: `n_ρ` (osservazioni per ruolo), errore standard di `θ_ρ`, e u
 conseguenza. Nei primi 15–20 giocatori estratti il modello gira sui prior: la UI **deve** dirlo
 esplicitamente.
 
+> **Addendum (post-F14, prior specifica per lega via self-play — ispirato a `neural_network/`)**: il
+> prior teorico di §6.3.1 è calibrato su un campione di ALTRE leghe reali — indifferente al TUO
+> budget, al numero di manager, agli slot che hai scelto in Setup. Segnalato dall'utente come una
+> causa concreta di "l'algoritmo non funziona sui primi giocatori": con `n_ρ = 0`, `p̂` non sa nulla
+> di QUESTA lega specifica. Idea presa in prestito da un vecchio prototipo a rete neurale del
+> progetto (self-play: una sola macchina di valutazione fatta girare contro copie di sé stessa) —
+> qui SENZA addestrare nulla: `league-prior.ts` fa girare 10 aste sintetiche con la configurazione
+> ESATTA della tua lega (stessa macchina di "Prova a secco", `sim/auction-sim.ts`) e fitta una curva
+> `A_ρ/θ_ρ` sui prezzi di vendita risultanti — una prior su misura al posto di quella generica, SOLO
+> quando `n_ρ` reale è ancora troppo basso per fidarsene (il ridge shrinkage di §6.3.3 fa comunque
+> prevalere i dati reali di questa lega non appena arrivano, esattamente come prima). Vincolo duro
+> rispettato: il calcolo (qualche centinaio di ms per un pool di ~500 giocatori) non gira MAI dentro
+> il percorso di una singola decisione (§13.9) — una cache di modulo lo tiene pronto, scaldata in
+> background da un effetto React fuori dal render, invalidata solo quando cambiano config o
+> punteggi. Se la cache non è ancora pronta (primissimo utilizzo), si ricade sul prior generico —
+> mai un rallentamento percepibile sulla singola decisione.
+
 ---
 
 ### 6.4 Tetto avversari (esatto)
@@ -614,16 +631,49 @@ c_0  = b_0 − (k_0 − 1)                          il mio massimo su un singolo
 
 Conseguenze da esporre nella UI:
 
-- **Offerta operativa massima** = `min( p*_j , C¹_j + 1 , c_0 )`.
-  Non serve mai offrire più di `C¹_j + 1`: nessuno può rilanciare oltre `C¹_j`.
-- Se `C¹_j = 0` → **il giocatore è tuo a 1 credito, garantito**. Evidenziarlo in modo vistoso: sono
-  le occasioni più redditizie dell'asta.
+- **Offerta operativa massima** = `min( p*_j , max(minPrice, C¹_j + 1) , c_0 )`.
+  Non serve mai offrire più di `C¹_j + 1`: nessuno può rilanciare oltre `C¹_j`. Il pavimento
+  `minPrice` (§11 Setup) conta solo perché nessuna vendita può registrarsi sotto il prezzo minimo di
+  lega — con `minPrice = 1` (il default) è come scriverlo senza quel termine.
+- Se `C¹_j = 0` → **il giocatore è tuo al prezzo minimo di lega, garantito**. Evidenziarlo in modo
+  vistoso: sono le occasioni più redditizie dell'asta.
 - Prezzo atteso ≈ `min( p̂_j , C²_j + 1 )`.
 - Mostrare *chi* è il detentore di `C¹` (nome, crediti, slot residui nel ruolo): serve a decidere a
   voce, in tempo reale.
 
 Casi limite da testare: un solo avversario eleggibile; nessuno eleggibile; avversario con
 `k_m = 1` (`c_m = b_m`, può spendere tutto); pareggi fra `c_m`.
+
+> **Addendum (post-F14, "interesse stimato" — ispirato a `neural_network/`)**: `C¹`/`C²` sopra sono
+> un tetto FISICO (aritmetica esatta su quanto un avversario PUÒ pagare al massimo) — non dicono se
+> quel giocatore gli interessa davvero. Analizzando un vecchio prototipo a rete neurale del progetto
+> (mai completato, mai allenato con successo — trovato in `neural_network/`), l'idea di fondo utile
+> non era la rete in sé ma il *self-play*: far girare la STESSA logica di valutazione dal punto di
+> vista di ciascun avversario per stimare chi offre di più. Qui riprodotta SENZA addestrare nulla:
+> `estimateOpponentWillingness` (`engine.ts`) fa girare `computeDuals`/`approxMaxBid` (§6.6, già
+> scritti, già testati) sul roster/budget REALE di ciascun avversario con uno slot libero nel ruolo,
+> usando il TUO punteggio/titolarità come proxy della sua valutazione (ipotesi esplicita, onesta: non
+> conosciamo le preferenze personali di un avversario) e i pesi di ruolo NEUTRI di default (mai i
+> tuoi personalizzati). Il risultato — "quanto pensiamo converrebbe offrire a chi sembra più
+> interessato" — si mostra ACCANTO al tetto fisico nella UI, mai al posto suo: qui si può sbagliare
+> (è una stima su un'ipotesi), il tetto fisico no. Un avversario già pieno nel ruolo non entra mai
+> nel calcolo (`slotsRemaining[ruolo] > 0` è un filtro duro, non un dettaglio dell'ipotesi).
+
+> **Addendum (post-F14, bug reale corretto — trovato da un test di robustità al cambio Setup)**:
+> `minPrice` (§11 Setup) era usato correttamente nel rollout Monte Carlo (§6.7) ma MAI nel percorso
+> esatto dal vivo (`max-bid.ts`, questa sezione): la bisezione partiva sempre da `lo = 1` e
+> `operationalMaxBid` calcolava `min(p*, C¹+1, c_0)` senza alcun riferimento a `minPrice`. Invisibile
+> con il default (`minPrice = 1`, l'unico valore mai usato in ogni config/test precedente: `1` e
+> `minPrice` coincidevano sempre) — un nuovo test di robustità al cambio Setup, parametrizzato su
+> `minPrice` ≠ 1, lo ha reso visibile: con `minPrice = 3` e `C¹ = 0`, il banner "Tuo garantito a 3
+> crediti" e il numero "OFFRI FINO A" accanto (fermo a 1) disaccordavano. **Corretto**:
+> `MaxBidInput` guadagna un campo `minPrice` (bisezione e i due controlli early-return usano
+> `minPrice` invece di `1` fisso); `operationalMaxBid` guadagna un terzo parametro e diventa
+> `min(p*, max(minPrice, C¹+1), c_0)` — il `max` con `minPrice` si applica al pavimento
+> "avversari", mai a `p*` direttamente, quindi un candidato che non serve (`p* = 0`) resta
+> correttamente a 0, non forzato al minimo. Con `minPrice = 1` il comportamento è identico a prima
+> in ogni caso: nessuna regressione sulle centinaia di test esistenti, che infatti non hanno
+> richiesto modifiche oltre ad aggiungere `minPrice: 1` esplicito dove il tipo lo richiede ora.
 
 ---
 
@@ -797,6 +847,18 @@ numero", e come politica base rapida dentro i rollout (§6.7).
 > torna identico per tutti i 496 giocatori di un listone reale, e la "stima rapida" torna monotona
 > nel valore vero dei candidati. 2 test aggiunti (diretto + a proprietà casuali) in `engine.test.ts`.
 > Dettagli in MANUALE.md §7.
+
+> **Addendum 4 (post-F14, λ smussato su una finestra — ispirato a `neural_network/`)**: risolto
+> l'Addendum 3 sopra (λ non dipende più da QUALE candidato si prezza), resta un residuo di
+> fragilità: `marginalValue` legge SOLO il gradino più recente dell'inviluppo scendendo dal budget —
+> un singolo scatto idiosincratico (un candidato che casca esattamente su quel credito) bastava a
+> fissare λ per l'intera istantanea. Un vecchio prototipo a rete neurale del progetto (mai
+> completato, trovato in `neural_network/`) impara un valore "morbido" generalizzando su molte
+> osservazioni invece di leggere un solo punto — stessa idea qui, senza allenare nulla: si media fino
+> a 5 gradini consecutivi trovati scendendo, invece di fermarsi al primo. Con un solo gradino
+> disponibile (il caso più comune) il risultato è identico a prima — nessuna regressione sui test
+> esistenti (`test/plan-dp.test.ts`, `test/base-policy.test.ts`, entrambi verificano proprietà, mai
+> un valore numerico esatto di λ).
 
 ---
 

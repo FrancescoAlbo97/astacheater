@@ -204,8 +204,13 @@ export function combineRoles(gByRole: Record<Role, Float64Array>, budget: number
   return h;
 }
 
+/** Quanti scatti recenti mediare in `marginalValue` (sotto): più di uno smussa la sensibilità a un
+ * singolo gradino idiosincratico dell'inviluppo, meno di `MARGINAL_VALUE_SMOOTHING_WINDOW` se
+ * l'inviluppo non ne offre abbastanza prima di appiattirsi del tutto. */
+const MARGINAL_VALUE_SMOOTHING_WINDOW = 5;
+
 /**
- * λ = ∂Φ/∂b, differenza discreta all'ultimo credito disponibile.
+ * λ = ∂Φ/∂b, media degli ultimi scatti discreti di valore trovati scendendo dal budget disponibile.
  *
  * Non basta guardare l'ultimo singolo credito (bug reale trovato e corretto durante lo sviluppo,
  * causa primaria del sotto-speso osservato in simulazione — vedi test/plan-dp.test.ts e
@@ -219,25 +224,39 @@ export function combineRoles(gByRole: Record<Role, Float64Array>, budget: number
  * evitando lo zero artificiale che altrimenti azzererebbe ogni offerta successiva
  * (`approxMaxBid`) indipendentemente da quanto un candidato valga più del suo sostituto.
  *
+ * Smussamento (§7 Session 8, ispirato al prototipo `neural_network/`): un valore appreso da una
+ * rete generalizza su molte osservazioni, non legge un singolo punto storico — la stessa idea qui,
+ * senza bisogno di allenare nulla. Prima si usava LETTERALMENTE solo il primo gradino trovato: un
+ * singolo scatto idiosincratico (un candidato che casca esattamente su quel credito) bastava a
+ * fissare λ per l'intera istantanea. Ora si mediano fino a `MARGINAL_VALUE_SMOOTHING_WINDOW`
+ * scatti consecutivi trovati scendendo — un singolo gradino anomalo pesa meno, il segnale che ne
+ * esce è più stabile fra chiamate ravvicinate (stesso principio, non lo stesso meccanismo, del fix
+ * di stabilità di `computeDuals` in `engine.ts`: quello eliminava una sensibilità a QUALE candidato
+ * è nel pool, questo riduce la sensibilità a QUALE gradino specifico dell'inviluppo si incontra per
+ * primo). Con un solo gradino disponibile (il caso comune nei test esistenti) il risultato è
+ * identico a prima — nessuna regressione sui casi già coperti.
+ *
  * Inquadramento teorico (non necessario per usare la funzione, utile per chi la tocca): λ è quello
  * che la programmazione lineare chiama "shadow price" (prezzo ombra) o variabile duale del vincolo
  * di budget — quanto migliorerebbe l'obiettivo allentando quel vincolo di un'unità. Per problemi
  * CONTINUI questa nozione è pulita e sempre ben definita. Per uno zaino DISCRETO come questo (un
  * giocatore lo compri intero, non a frazioni), la dualità ha "buchi" noti in letteratura: il duale
  * non è sempre unico né continuo nel budget. Il plateau dell'inviluppo gestito sopra è
- * precisamente uno di questi buchi, non una stranezza di questa implementazione — la ricerca
+ * precisamente uno di questi buchi, non una stranezza di questa implementazione — la media mobile
  * all'indietro è un modo pragmatico di scegliere UN valore ragionevole dentro l'intervallo di
  * ambiguità, non "il" valore esatto che una teoria pulita garantirebbe.
  */
 export function marginalValue(h: Float64Array, budget: number): number {
-  for (let b = budget; b > 0; b--) {
+  const steps: number[] = [];
+  for (let b = budget; b > 0 && steps.length < MARGINAL_VALUE_SMOOTHING_WINDOW; b--) {
     const a = h[b]!;
     const prev = h[b - 1]!;
     if (a === NEG_INF || prev === NEG_INF) continue;
     const diff = a - prev;
-    if (diff > 1e-9) return diff;
+    if (diff > 1e-9) steps.push(diff);
   }
-  return 0;
+  if (steps.length === 0) return 0;
+  return steps.reduce((s, v) => s + v, 0) / steps.length;
 }
 
 export interface FullPlanInput {

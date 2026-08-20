@@ -90,6 +90,7 @@ describe('§6.6 / F6 max-bid', () => {
       targetRole,
       targetValue,
       maxAffordable,
+      minPrice: 1,
     };
     const result = computeMaxBid(input);
     expect(result.reason).toBe('ok');
@@ -123,6 +124,7 @@ describe('§6.6 / F6 max-bid', () => {
       targetRole,
       targetValue: 0,
       maxAffordable: 500,
+      minPrice: 1,
     };
     const result = computeMaxBid(input);
     expect(result.pStar).toBe(0);
@@ -159,6 +161,7 @@ describe('§6.6 / F6 max-bid', () => {
       targetRole,
       targetValue: 500, // molto più alto di TUTTI i difensori già posseduti
       maxAffordable: 400,
+      minPrice: 1,
     };
     const result = computeMaxBid(input);
     expect(result.reason).toBe('not-useful');
@@ -175,6 +178,7 @@ describe('§6.6 / F6 max-bid', () => {
       targetRole,
       targetValue,
       maxAffordable: 0,
+      minPrice: 1,
     };
     const result = computeMaxBid(input);
     expect(result.pStar).toBe(0);
@@ -191,6 +195,7 @@ describe('§6.6 / F6 max-bid', () => {
       targetRole,
       targetValue,
       maxAffordable: 5, // molto vincolante
+      minPrice: 1,
     };
     const result = computeMaxBid(input);
     expect(result.pStar).toBeLessThanOrEqual(5);
@@ -206,6 +211,7 @@ describe('§6.6 / F6 max-bid', () => {
       targetRole,
       targetValue,
       maxAffordable: 300,
+      minPrice: 1,
     };
     const start = performance.now();
     computeMaxBid(input);

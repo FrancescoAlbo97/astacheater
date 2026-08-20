@@ -1,6 +1,7 @@
 // §11 — Shell dell'app: navigazione fra le quattro schermate, export/import sempre disponibili.
 import { useEffect, useRef, useState } from 'react';
 import { AuctionProvider, useAuctionStore } from './state/store.js';
+import { warmLeaguePriorCache } from '../core/league-prior.js';
 import { SetupLeague } from './screens/SetupLeague.js';
 import { PlayerList } from './screens/PlayerList.js';
 import { AuctionDesk } from './screens/Auction.js';
@@ -73,6 +74,18 @@ function AppShell() {
     // UN SOLO intervallo che vive quanto l'asta, non uno che si ricrea ad ogni vendita registrata —
     // legge sempre l'ultimo `log`/`exportJSON` tramite `backupRef`, aggiornato ad ogni render.
   }, [Boolean(state.config)]);
+
+  // §7 Session 8, ispirazione 2 (self-play): scalda in background la prior di prezzo calibrata su
+  // QUESTA lega (qualche centinaio di ms, mai dentro il calcolo di una singola decisione, §13.9).
+  // Deps intenzionalmente approssimate (config + QUANTI giocatori hanno un punteggio, non il log
+  // intero): non deve ripartire a ogni vendita registrata, solo quando la configurazione o l'insieme
+  // dei punteggi inseriti cambia davvero — `warmLeaguePriorCache` fa comunque un controllo interno
+  // e non rifà il lavoro se la firma non è cambiata, questa dependency list serve solo a non
+  // richiamarla inutilmente a ogni singolo evento dell'asta.
+  useEffect(() => {
+    if (!state.config) return;
+    warmLeaguePriorCache(state);
+  }, [state.config, Object.keys(state.scores).length]);
 
   function handleExport() {
     downloadJSON(exportJSON(), `fantasta-stato-${new Date().toISOString().slice(0, 10)}.json`);

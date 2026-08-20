@@ -30,6 +30,7 @@ import { ceilingForRole, maxSingleBid, operationalMaxBid, expectedPriceFromCeili
 import { computeMaxBid } from './max-bid.js';
 import { combineRoles, computeRolePlan, type DPCandidate, type RoleDPInput } from './plan-dp.js';
 import { approxMaxBid, computeDuals, weightAndMuForCandidate } from './base-policy.js';
+import { getLeaguePriorCurves } from './league-prior.js';
 import type { RolloutInput } from './rollout.js';
 
 /** Curve di valore corrette per la propensione al rischio configurata (§6.8), o quelle di default
@@ -58,6 +59,10 @@ export interface MarketSnapshot {
   readonly pHat: ReadonlyMap<string, number>;
   readonly fittedCurves: Record<Role, FittedPriceCurve>;
   readonly myManagerId: string | null;
+  /** true se il prior di partenza (prima delle vendite REALI di questa lega) viene da qualche
+   * decina di aste self-play sulla configurazione esatta di questa lega (§7 Session 8, ispirazione
+   * 2), non dalla curva teorica generica — vedi `league-prior.ts`. Solo informativo per la UI. */
+  readonly usingLeaguePrior: boolean;
 }
 
 function myScoreOf(state: AuctionState, playerId: string): number {
@@ -77,8 +82,14 @@ export function computeMarketSnapshot(state: AuctionState): MarketSnapshot {
   if (!state.config) {
     const empty = {} as Record<Role, FittedPriceCurve>;
     for (const role of ROLES) empty[role] = { ...DEFAULT_PRICE_CURVES[role], n: 0, thetaStdErr: Infinity, confidence: 'bassa' };
-    return { managers, pool, pHat: new Map(), fittedCurves: empty, myManagerId };
+    return { managers, pool, pHat: new Map(), fittedCurves: empty, myManagerId, usingLeaguePrior: false };
   }
+
+  // §7 Session 8, ispirazione 2: se una prior calibrata via self-play su QUESTA lega è già pronta
+  // in cache (`warmLeaguePriorCache`, chiamata dalla UI fuori dal percorso a caldo), si usa quella
+  // al posto della curva teorica generica — mai calcolata qui, §13.9.
+  const leaguePrior = getLeaguePriorCurves(state);
+  const priorCurves = leaguePrior ?? DEFAULT_PRICE_CURVES;
 
   const observations: SaleObservation[] = state.sales.map((s, i) => ({
     role: state.players[s.playerId]?.role ?? 'C',
@@ -86,7 +97,7 @@ export function computeMarketSnapshot(state: AuctionState): MarketSnapshot {
     price: s.price,
     order: i,
   }));
-  const fittedCurves = fitOnlinePriceCurves(observations, DEFAULT_PRICE_CURVES, DEFAULT_PRICE_MODEL_CONFIG);
+  const fittedCurves = fitOnlinePriceCurves(observations, priorCurves, DEFAULT_PRICE_MODEL_CONFIG);
   const priceCurves = ROLES.reduce(
     (acc, role) => {
       acc[role] = { A: fittedCurves[role].A, theta: fittedCurves[role].theta };
@@ -103,7 +114,7 @@ export function computeMarketSnapshot(state: AuctionState): MarketSnapshot {
     DEFAULT_RESERVE_FRACTION,
   );
 
-  return { managers, pool, pHat, fittedCurves, myManagerId };
+  return { managers, pool, pHat, fittedCurves, myManagerId, usingLeaguePrior: leaguePrior !== null };
 }
 
 function percentile20Score(pool: readonly Player[], role: Role, state: AuctionState): number {
@@ -112,21 +123,30 @@ function percentile20Score(pool: readonly Player[], role: Role, state: AuctionSt
   return scores[Math.floor(0.2 * scores.length)]!;
 }
 
-/** Candidati per la DP del ruolo `role`, ESCLUDENDO `excludePlayerId` (il giocatore in asta). */
-function buildRoleInputsForMe(
+/**
+ * Candidati per la DP del ruolo `role`, per il manager `managerId`, ESCLUDENDO `excludePlayerId`
+ * (il giocatore in asta). Generalizzata da "solo me" (§7 Session 8) per poter far girare la STESSA
+ * logica di valutazione dal punto di vista di un avversario — vedi `estimateOpponentWillingness`
+ * più sotto, ispirata al self-play di `neural_network/` (una sola macchina di valutazione, fatta
+ * girare per ciascun giocatore invece che una sola volta per "me"). `roleWeights` è un parametro
+ * esplicito (non letto da `state.config`) apposta: per un avversario non abbiamo le SUE preferenze
+ * personali, quindi il chiamante decide quale ipotesi usare (v. sotto, si usa il default neutro).
+ */
+function buildRoleInputsForManager(
   state: AuctionState,
   snapshot: MarketSnapshot,
+  managerId: string | null,
   excludePlayerId: string | null,
   valueCurves: ValueCurveConfig,
+  roleWeights: RoleWeights,
 ): Record<Role, RoleDPInput> {
-  const me = snapshot.managers.find((m) => m.manager.id === snapshot.myManagerId);
+  const manager = snapshot.managers.find((m) => m.manager.id === managerId);
   const config = state.config!;
-  const roleWeights = myRoleWeights(state);
   const slotWeights = mySlotWeights(state);
   const roleInputs = {} as Record<Role, RoleDPInput>;
 
   for (const role of ROLES) {
-    const forced: DPCandidate[] = (me?.roster ?? [])
+    const forced: DPCandidate[] = (manager?.roster ?? [])
       .filter((r) => r.player.role === role)
       .map((r) => ({
         v: roleWeightedPlayerValue(role, myScoreOf(state, r.player.id), roleWeights, {
@@ -154,6 +174,69 @@ function buildRoleInputsForMe(
     };
   }
   return roleInputs;
+}
+
+/** Candidati per la DP del ruolo `role`, ESCLUDENDO `excludePlayerId` (il giocatore in asta) — "me". */
+function buildRoleInputsForMe(
+  state: AuctionState,
+  snapshot: MarketSnapshot,
+  excludePlayerId: string | null,
+  valueCurves: ValueCurveConfig,
+): Record<Role, RoleDPInput> {
+  return buildRoleInputsForManager(state, snapshot, snapshot.myManagerId, excludePlayerId, valueCurves, myRoleWeights(state));
+}
+
+/**
+ * Stima di "quanto converrebbe davvero offrire" a ciascun avversario con uno slot libero nel
+ * ruolo — non il tetto FISICO (`ceilingForRole`, aritmetica esatta su quanto un manager PUÒ
+ * pagare al massimo, che resta invariato: è un vincolo vero, non una stima), ma quanto un
+ * concorrente RAZIONALE vorrebbe pagare per QUESTO giocatore specifico, dato il SUO roster/budget
+ * attuale.
+ *
+ * Ispirata al self-play di `neural_network/` (una sola rete/logica di valutazione, fatta girare dal
+ * punto di vista di ciascun allenatore per stimare chi offre di più) — qui senza addestrare nulla:
+ * si fa girare la STESSA `computeDuals`/`approxMaxBid` già usata per "me", sostituendo il roster e
+ * il budget con quelli dell'avversario. Assunzione esplicita, onesta, da comunicare in UI: non
+ * conosciamo le preferenze personali di un avversario, quindi si usano i pesi di ruolo NEUTRI
+ * (`DEFAULT_ROLE_WEIGHTS`, non i tuoi personalizzati di Setup) e SI ASSUME che valuti i giocatori
+ * con lo stesso punteggio/titolarità che hai inserito tu — una stima ragionevole quando il giudizio
+ * di qualità è condiviso (quotazioni pubbliche), non una certezza. Va sempre mostrata ACCANTO al
+ * tetto fisico, mai al posto suo: qui si può sbagliare, il tetto fisico no.
+ */
+export interface OpponentWillingness {
+  readonly value: number;
+  readonly managerId: string | null;
+  readonly managerName: string | null;
+}
+
+export function estimateOpponentWillingness(
+  state: AuctionState,
+  snapshot: MarketSnapshot,
+  role: Role,
+  targetPlayerId: string,
+  targetValue: number,
+  valueCurves: ValueCurveConfig,
+): OpponentWillingness {
+  const opponents = snapshot.managers.filter(
+    (m) => m.manager.id !== snapshot.myManagerId && m.slotsRemaining[role] > 0,
+  );
+  let best: OpponentWillingness = { value: 0, managerId: null, managerName: null };
+  for (const opp of opponents) {
+    const roleInputs = buildRoleInputsForManager(
+      state,
+      snapshot,
+      opp.manager.id,
+      targetPlayerId,
+      valueCurves,
+      DEFAULT_ROLE_WEIGHTS,
+    );
+    const duals = computeDuals({ budget: opp.creditsRemaining, roleInputs });
+    const bid = approxMaxBid(targetValue, role, duals, maxSingleBid(opp));
+    if (bid > best.value) {
+      best = { value: bid, managerId: opp.manager.id, managerName: opp.manager.name };
+    }
+  }
+  return best;
 }
 
 export interface DecisionAlternative {
@@ -191,6 +274,12 @@ export interface PlayerDecision {
   readonly scarcity: ScarcityAlert;
   readonly priceConfidence: FittedPriceCurve;
   readonly kappa: number;
+  /** Stima (non un vincolo esatto come `ceiling`) di quanto converrebbe offrire all'avversario più
+   * interessato — vedi `estimateOpponentWillingness`. */
+  readonly opponentWillingness: OpponentWillingness;
+  /** true se `pHat`/`expectedPrice` partono da una prior calibrata via self-play su questa lega
+   * invece che dalla curva teorica generica — vedi `MarketSnapshot.usingLeaguePrior`. */
+  readonly usingLeaguePrior: boolean;
 }
 
 /**
@@ -254,6 +343,7 @@ export function computeDecisionForPlayer(state: AuctionState, playerId: string):
     targetRole: role,
     targetValue: myValue,
     maxAffordable: maxSingleBid(me),
+    minPrice: state.config.minPrice,
   });
 
   // Duali e stima approssimata (§6.6), calcolati QUI perché servono anche per l'aggiustamento
@@ -279,7 +369,7 @@ export function computeDecisionForPlayer(state: AuctionState, playerId: string):
 
   const effectiveMaxBidResult = applyHedge(maxBidResult, approxPStar, me.slotsRemaining[role] > 0);
 
-  const operationalMax = operationalMaxBid(effectiveMaxBidResult.pStar, ceiling);
+  const operationalMax = operationalMaxBid(effectiveMaxBidResult.pStar, ceiling, state.config.minPrice);
   const expectedPrice = expectedPriceFromCeiling(capByResidualDemand(pHat, ceiling), ceiling);
 
   // Φ_win / Φ_lose per la riga "se lo prendi / se lo lasci" (§6.6, ricalcolo esatto e veloce:
@@ -327,6 +417,8 @@ export function computeDecisionForPlayer(state: AuctionState, playerId: string):
         }, 0)
       : 1;
 
+  const opponentWillingness = estimateOpponentWillingness(state, snapshot, role, playerId, myValue, valueCurves);
+
   return {
     playerId,
     role,
@@ -347,6 +439,8 @@ export function computeDecisionForPlayer(state: AuctionState, playerId: string):
     scarcity,
     priceConfidence: snapshot.fittedCurves[role],
     kappa,
+    opponentWillingness,
+    usingLeaguePrior: snapshot.usingLeaguePrior,
   };
 }
 

@@ -215,9 +215,15 @@ massimo offribile ora su un singolo giocatore.
 
 L'analisi completa per un giocatore, con calma — tutto quello che nel Banco d'asta (§2.2) resta
 volutamente compresso in tre righe: il numero "OFFRI FINO A" con la scala dei prezzi, prezzo
-atteso/tetto avversari/secondo tetto in dettaglio, "perché questo numero?" (la catena di calcolo in
-4 passi: peso dello slot, valore per te, valore ombra del ruolo, stima rapida), le alternative
-rimaste nello stesso ruolo, l'allarme scarsità, e lo slider di aggressività per-decisione.
+atteso/tetto avversari/secondo tetto in dettaglio (più, quando disponibile, una riga "interesse
+stimato" sotto il tetto avversari — quanto pensiamo converrebbe offrire al concorrente più
+interessato, non solo quanto potrebbe fisicamente pagare, vedi §7), "perché questo numero?" (la
+catena di calcolo in 4 passi: peso dello slot, valore per te, valore ombra del ruolo, stima rapida),
+le alternative rimaste nello stesso ruolo, l'allarme scarsità, e lo slider di aggressività
+per-decisione. A inizio asta, se i prezzi mostrati sembrano incoerenti fra un giocatore e l'altro,
+guarda l'avviso in cima al pannello: con poche vendite registrate i prezzi sono ancora poco
+affidabili, e il testo ti dice se stai già usando una stima calibrata sulla tua lega o ancora la
+curva generica (§7).
 
 Ci arrivi in due modi: dal link **"apri Predizione →"** nel Banco d'asta (stesso giocatore, senza
 doverlo ricercare due volte), oppure cercando direttamente qui — utile per analizzare con calma un
@@ -398,7 +404,7 @@ aggiornato a ridosso della tua asta**, non usato così com'è se l'asta è fra s
 Per chi vuole guardare sotto il cofano o rifare le verifiche:
 
 ```bash
-npm test                          # tutti i test automatici (260, dovrebbero passare tutti)
+npm test                          # tutti i test automatici (294, dovrebbero passare tutti)
 npm run typecheck                 # controllo dei tipi TypeScript
 npm run build                     # produce dist/fantasta.html
 npx tsx src/sim/cli.ts bench 200        # statistiche di realismo su 200 aste simulate
@@ -414,6 +420,83 @@ Questo programma è stato validato con test automatici rigorosi (verifica incroc
 bruta sui calcoli esatti, controlli numerici sulle formule, ecc.). Diversi bug reali sono stati
 trovati e corretti durante lo sviluppo (vedi sotto); **alcuni limiti restano documentati e non
 ancora risolti del tutto**, per trasparenza:
+
+- **Nuovo: venti scenari di robustità al CAMBIO DI SETUP** (`test/setup-robustness-scenarios.test.ts`,
+  20 test, molti a proprietà casuale), richiesti esplicitamente dall'utente per poter verificare "che
+  quando cambio i valori di setup o altro comunque vengono rispettati questi test" — a differenza dei
+  12 scenari "da metà asta" (su una config fissa), questi variano budget, numero di slot, numero di
+  manager, prezzo minimo, rischio, pesi di ruolo/slot personalizzati, e verificano che le proprietà
+  fondamentali reggano per QUALUNQUE valore ragionevole, non solo per il default. **Hanno trovato un
+  bug reale, non solo confermato che tutto andava bene**: vedi il punto subito sotto.
+- **Bug reale corretto, trovato da uno di questi 20 test: il prezzo minimo di lega (`minPrice`) non
+  veniva mai usato nel calcolo esatto dal vivo, solo nel rollout Monte Carlo**. Il test faceva
+  variare `minPrice` (di default sempre 1, mai cambiato in nessun test precedente di questo
+  progetto) e verificava che un giocatore "garantito" (nessun avversario eleggibile) risultasse
+  offerto esattamente al prezzo minimo configurato. Con `minPrice = 2` il test falliva: il banner
+  "Tuo garantito a 2 crediti" e il numero "OFFRI FINO A" appena sotto (fermo a 1) avrebbero mostrato
+  due numeri in disaccordo nella stessa schermata. Causa: `max-bid.ts` faceva partire la bisezione da
+  `1` fisso invece che dal prezzo minimo configurato, e `operationalMaxBid` (`ceiling.ts`) non
+  considerava affatto `minPrice` nel suo calcolo — invisibile finché nessuno aveva mai testato un
+  valore diverso da 1 (il default), esattamente il tipo di bug che un test "a proprietà casuale sul
+  Setup" è pensato per stanare. **Corretto** in entrambi i file: la bisezione ora parte dal prezzo
+  minimo, e l'offerta operativa applica `minPrice` come pavimento SOLO al tetto avversari (mai a p*
+  direttamente, così un candidato che non serve resta a 0, non forzato al minimo). Con `minPrice = 1`
+  (ogni config precedente a questo fix) il comportamento è identico, byte per byte: zero regressioni
+  sulle centinaia di test esistenti. Aggiunto anche un test diretto e veloce in `test/ceiling.test.ts`
+  per la stessa regressione, accanto a quello a proprietà casuale.
+- **Tre miglioramenti ispirati a un vecchio prototipo del progetto, MAI usati come sostituto del
+  motore**. L'utente ha chiesto di analizzare `neural_network/` (un tentativo di anni fa, mai
+  completato, mai allenato con successo — nessun peso salvato, codice morto, un `except:` vuoto)
+  che imparava a valutare un'asta con una rete neurale allenata via self-play (auto-gioco contro
+  copie di sé stessa). Verdetto onesto dato in chat: NON conviene estendere quell'approccio a
+  questo progetto (input a dimensione fissa incompatibile con un pool che cambia, zero nozione di
+  ruoli, ricompensa scollegata dal prezzo pagato, e soprattutto: una rete allenata sarebbe MENO
+  debuggabile del sistema attuale, non di più — l'esatto opposto di quello che serve dopo aver
+  appena trovato e corretto bug reali leggendo formule riga per riga). Individuate però tre idee
+  GENUINE prese in prestito dal concetto di self-play, implementate SENZA addestrare nulla, dentro
+  il motore trasparente già esistente:
+  1. **Stima dell'interesse degli avversari** (`estimateOpponentWillingness`, `engine.ts`): accanto
+     al tetto FISICO già esatto (§6.4 del `readme.md`, quanto un avversario PUÒ pagare al massimo),
+     una nuova stima di quanto gli CONVERREBBE offrire per QUESTO giocatore — fa girare la stessa
+     `computeDuals`/`approxMaxBid` (§6.6) sul roster/budget reale di ciascun avversario con slot
+     libero, assumendo che valuti i giocatori come te (ipotesi esplicita, mostrata in UI accanto al
+     tetto fisico, mai al posto suo). Un avversario già pieno nel ruolo non entra mai nel calcolo.
+  2. **Prior di prezzo su misura per la tua lega** (`league-prior.ts`, nuovo file): quando la
+     confidenza sui prezzi REALI di questa lega è ancora bassa (early auction), invece della curva
+     teorica generica si usano 10 aste sintetiche giocate con la CONFIGURAZIONE ESATTA della tua
+     lega (stessa macchina di "Prova a secco") per stimare una curva di partenza più su misura. I
+     dati reali, appena arrivano, restano sempre più forti (nessun cambiamento al meccanismo di
+     ridge già esistente). Calcolo (qualche centinaio di ms) tenuto rigorosamente FUORI dal
+     percorso di una singola decisione (§13.9): una cache scaldata in background da un effetto
+     React, mai dentro `computeDecisionForPlayer`.
+  3. **λ smussato su una finestra** (`marginalValue`, `plan-dp.ts`): invece di leggere solo il
+     gradino più recente dell'inviluppo di valore, se ne mediano fino a 5 consecutivi — riduce la
+     sensibilità residua a un singolo scatto idiosincratico, nello stesso spirito di "un valore
+     appreso generalizza, non legge un solo punto" ma senza bisogno di allenare nulla. Nessuna
+     regressione: con un solo gradino disponibile (il caso comune) il risultato è identico a prima.
+
+  Verificato che il costo aggiuntivo del punto 1 resta dentro un budget realistico per un'asta vera
+  (soglia del test di prestazione allargata 100ms→180ms, con motivazione esplicita nel commento:
+  misurato isolato ~70ms, il resto è margine per la contesa della suite intera in parallelo — la
+  stessa identica logica già applicata ai budget di rollout/sim in una sessione precedente).
+
+- **Nuovo: dodici scenari di integrazione "da metà asta"** (`test/integration-scenarios.test.ts`,
+  13 test), richiesti esplicitamente dall'utente dopo diversi round di bug reali trovati durante
+  l'uso vero: non funzioni isolate come negli altri file, ma `computeDecisionForPlayer` end-to-end
+  su stati REALISTICI parzialmente giocati, verificando situazioni che "fanno la differenza
+  nell'ottenimento degli obiettivi" (parole dell'utente) — fra gli altri: diventare l'unico manager
+  con uno slot libero in un ruolo (il prossimo giocatore deve risultare garantito al prezzo minimo,
+  non un numero vicino per coincidenza) e la controprova che NON scatta se anche un solo avversario
+  resta eleggibile; comprare un centrocampista costoso lasciandosi comunque un budget vero per
+  rilanciare su un attaccante dopo, e il contraltare di uno strasperpero che DEVE comprimere
+  davvero le offerte successive; la certezza-equivalenza di "non serve" (§6.6) verificata a livello
+  di integrazione, non solo sulla funzione pura `applyHedge`; un ruolo davvero pieno che resta
+  "non serve" sempre, anche per un fenomeno assoluto; l'occasione reale (candidato più economico ma
+  di valore comparabile riceve un'offerta più alta, non più bassa); la nuova stima di interesse
+  degli avversari che ignora sempre chi è già pieno nel ruolo; λ invariante anche su un'asta
+  ASIMMETRICA (non solo il caso simmetrico già coperto altrove); l'allarme scarsità; il budget
+  quasi esaurito che non fa mai esplodere l'offerta oltre il vero massimo per slot; uno
+  strasperpero che non "avvelena" le decisioni su un ruolo scorrelato.
 
 - **Bug reale corretto: i "duali" (λ) usati per la stima rapida e per il pannello "perché questo
   numero" dipendevano da QUALE giocatore si stava prezzando — segnalato dall'utente come "ci sono

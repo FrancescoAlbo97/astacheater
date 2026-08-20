@@ -152,8 +152,11 @@ export function DecisionPanel({ state, playerId, mode, onOpenFull }: DecisionPan
           ⚠️ Prezzi di mercato ancora poco affidabili
           <span className="banner-sub">
             solo {decision.priceConfidence.n} vendite registrate finora nel ruolo {decision.role}: il "prezzo atteso" e
-            "offri fino a" qui sotto si basano ancora sulla curva teorica, non su come sta andando QUESTA asta —
-            possono sembrare incoerenti fra un giocatore e l'altro finché non se ne vendono un po' di più.
+            "offri fino a" qui sotto{' '}
+            {decision.usingLeaguePrior
+              ? 'partono da una stima calibrata su qualche asta simulata con la TUA configurazione di lega (budget, manager, slot), non su come sta andando QUESTA asta vera'
+              : 'si basano ancora sulla curva teorica generica, non su come sta andando QUESTA asta'}{' '}
+            — possono sembrare incoerenti fra un giocatore e l'altro finché non se ne vendono un po' di più.
           </span>
         </div>
       )}
@@ -247,6 +250,11 @@ export function DecisionPanel({ state, playerId, mode, onOpenFull }: DecisionPan
                 ? `← ${decision.ceiling.holder1.manager.name} (${formatNum(decision.ceiling.holder1.creditsRemaining)} cr, ${decision.ceiling.holder1.slotsRemaining[decision.role]} ${decision.role} liberi)`
                 : '—'}
             </div>
+            {decision.opponentWillingness.value > 0 && (
+              <div className="stat-tile-meta" title="Stima: assume che l'avversario valuti i giocatori come te. Il tetto sopra resta il vincolo VERO, questo è solo un'ipotesi.">
+                interesse stimato: fino a {formatNum(decision.opponentWillingness.value)} ({decision.opponentWillingness.managerName})
+              </div>
+            )}
           </div>
           <div className="stat-tile">
             <div className="stat-tile-label">Secondo tetto</div>
