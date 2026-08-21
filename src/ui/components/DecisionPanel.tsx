@@ -65,12 +65,22 @@ export interface DecisionPanelProps {
  */
 export function DecisionPanel({ state, playerId, mode, onOpenFull }: DecisionPanelProps) {
   const [showWhy, setShowWhy] = useState(false);
-  const [riskOverride, setRiskOverride] = useState<number | null>(null);
+  const [bidStrategy, setBidStrategy] = useState<'conservative' | 'balanced' | 'aggressive' | 'default'>('default');
+
+  // Calcola il moltiplicatore di offerta in base alla strategia selezionata
+  const bidMultiplier = useMemo(() => {
+    switch (bidStrategy) {
+      case 'conservative': return 0.8;
+      case 'balanced': return 1.0;
+      case 'aggressive': return 1.2;
+      default: return 1.0;
+    }
+  }, [bidStrategy]);
 
   const decisionState = useMemo(() => {
-    if (riskOverride === null || !state.config) return state;
-    return { ...state, config: { ...state.config, risk: riskOverride } };
-  }, [state, riskOverride]);
+    // Non usiamo più riskOverride, la strategia di bidding è applicata direttamente
+    return state;
+  }, [state]);
 
   const decision = computeDecisionForPlayer(decisionState, playerId);
   const player = state.players[playerId];
@@ -206,7 +216,7 @@ export function DecisionPanel({ state, playerId, mode, onOpenFull }: DecisionPan
           <button 
             type="button" 
             className="bid-btn bid-conservative"
-            onClick={() => setRiskOverride(-0.5)}
+            onClick={() => setBidStrategy('conservative')}
             title={`Offri circa ${formatNum(decision.expectedPrice * 0.8)}`}
           >
             🛡️ Conservativa
@@ -216,7 +226,7 @@ export function DecisionPanel({ state, playerId, mode, onOpenFull }: DecisionPan
           <button 
             type="button" 
             className="bid-btn bid-balanced"
-            onClick={() => setRiskOverride(0)}
+            onClick={() => setBidStrategy('balanced')}
             title={`Offri circa ${formatNum(decision.expectedPrice)}`}
           >
             ⚖️ Equilibrata
@@ -226,7 +236,7 @@ export function DecisionPanel({ state, playerId, mode, onOpenFull }: DecisionPan
           <button 
             type="button" 
             className="bid-btn bid-aggressive"
-            onClick={() => setRiskOverride(0.5)}
+            onClick={() => setBidStrategy('aggressive')}
             title={`Offri circa ${formatNum(decision.expectedPrice * 1.2)}`}
           >
             ⚡ Aggressiva
@@ -238,19 +248,19 @@ export function DecisionPanel({ state, playerId, mode, onOpenFull }: DecisionPan
         <div className="current-strategy">
           <span className="dim">Strategia attuale: </span>
           <strong>
-            {riskOverride === null 
+            {bidStrategy === 'default' 
               ? 'Default di lega' 
-              : riskOverride < -0.2 
+              : bidStrategy === 'conservative'
                 ? '🛡️ Conservativa' 
-                : riskOverride > 0.2 
+                : bidStrategy === 'aggressive'
                   ? '⚡ Aggressiva' 
                   : '⚖️ Equilibrata'}
           </strong>
-          {riskOverride !== null && (
+          {bidStrategy !== 'default' && (
             <button 
               type="button" 
               className="link-button" 
-              onClick={() => setRiskOverride(null)}
+              onClick={() => setBidStrategy('default')}
               style={{ marginLeft: '1rem' }}
             >
               ripristina default
@@ -285,6 +295,7 @@ export function DecisionPanel({ state, playerId, mode, onOpenFull }: DecisionPan
           </p>
         )}
 
+      <section className="stat-trio-section">
         <div className="stat-trio">
           <div className="stat-tile">
             <div className="stat-tile-label">Prezzo atteso</div>
