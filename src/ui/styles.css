@@ -572,16 +572,140 @@ button {
   padding: 0.85rem 1rem;
 }
 
-.overpaid-amount {
-  color: var(--warn);
+/* NUOVI STILI per price-range-card e quick-bid-buttons */
+.price-range-card {
+  padding: 1rem;
+  background: var(--bg-sunken);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.price-range-display {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.75rem;
+  margin: 1rem 0;
+  padding: 0.75rem;
+  background: var(--bg-input);
+  border-radius: 8px;
+}
+
+.range-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+  background: var(--bg-elevated);
+}
+
+.range-item.range-center {
+  background: var(--accent-soft-bg);
+  border: 1px solid var(--accent-soft-border);
+}
+
+.range-label {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.range-value {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.range-value.highlight {
+  color: var(--accent);
+  font-size: 1.3rem;
+}
+
+.quick-bid-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.bid-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.9rem 0.5rem;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
   font-weight: 600;
 }
 
-.risk-override-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
+.bid-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.bid-btn:active {
+  transform: translateY(0);
+}
+
+.bid-btn.bid-conservative {
+  border-color: var(--role-p);
+  background: linear-gradient(135deg, rgba(102, 211, 245, 0.1) 0%, var(--bg-elevated) 100%);
+}
+
+.bid-btn.bid-conservative:hover {
+  border-color: var(--role-p);
+  background: linear-gradient(135deg, rgba(102, 211, 245, 0.2) 0%, var(--bg-elevated) 100%);
+}
+
+.bid-btn.bid-balanced {
+  border-color: var(--role-d);
+  background: linear-gradient(135deg, rgba(126, 224, 138, 0.1) 0%, var(--bg-elevated) 100%);
+}
+
+.bid-btn.bid-balanced:hover {
+  border-color: var(--role-d);
+  background: linear-gradient(135deg, rgba(126, 224, 138, 0.2) 0%, var(--bg-elevated) 100%);
+}
+
+.bid-btn.bid-aggressive {
+  border-color: var(--role-a);
+  background: linear-gradient(135deg, rgba(245, 166, 35, 0.1) 0%, var(--bg-elevated) 100%);
+}
+
+.bid-btn.bid-aggressive:hover {
+  border-color: var(--role-a);
+  background: linear-gradient(135deg, rgba(245, 166, 35, 0.2) 0%, var(--bg-elevated) 100%);
+}
+
+.bid-amount {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 700;
+  opacity: 0.9;
+}
+
+.current-strategy {
+  text-align: center;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.overpaid-amount {
+  color: var(--warn);
+  font-weight: 600;
 }
 
 .checklist-sidebar {
