@@ -405,6 +405,7 @@ export function DecisionPanel({ state, playerId, mode, onOpenFull }: DecisionPan
           κ = {decision.kappa.toFixed(2)}
         </p>
       </section>
+      </section>
 
       {decision.alternatives.length > 0 && (
         <section className="card">
