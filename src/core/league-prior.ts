@@ -29,7 +29,6 @@ import {
   DEFAULT_PRICE_MODEL_CONFIG,
   DEFAULT_ROLE_WEIGHTS,
   DEFAULT_ROLLOUT_CONFIG,
-  DEFAULT_VALUE_CURVES,
   normalizeSlotWeights,
 } from './config.js';
 
@@ -111,7 +110,7 @@ export function warmLeaguePriorCache(state: AuctionState): void {
       rho: 0, // ignorato: scenarioOverride sotto salta generateScenario, l'unico a leggere rho
       archetypesByManager,
       priceModelConfig: DEFAULT_PRICE_MODEL_CONFIG,
-      valueCurves: DEFAULT_VALUE_CURVES,
+      priceCurves: DEFAULT_PRICE_CURVES,
       roleWeights: config.roleWeights ?? DEFAULT_ROLE_WEIGHTS,
       slotWeights: normalizeSlotWeights(config.slotWeights, config.slots),
       priceNoiseSigma: DEFAULT_ROLLOUT_CONFIG.priceNoiseSigma,

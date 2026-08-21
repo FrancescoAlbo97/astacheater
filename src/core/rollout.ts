@@ -24,8 +24,8 @@
 // il giudizio di qualità è condiviso (quotazioni pubbliche), non una certezza.
 
 import { ROLES } from './types.js';
-import type { ManagerState, Role, RoleWeights, RolloutConfig, RolloutResult, SlotCounts, SlotWeights, ValueCurveConfig } from './types.js';
-import { DEFAULT_BUDGET_SHARES, DEFAULT_ROLE_WEIGHTS, DEFAULT_VALUE_CURVES } from './config.js';
+import type { Formation, ManagerState, PriceCurveConfig, Role, RoleWeights, RolloutConfig, RolloutResult, SlotCounts, SlotWeights, ValueCurveConfig } from './types.js';
+import { DEFAULT_BUDGET_SHARES, DEFAULT_PRICE_CURVES, DEFAULT_ROLE_WEIGHTS, DEFAULT_VALUE_CURVES } from './config.js';
 import { maxSingleBid, totalSlotsRemaining } from './ceiling.js';
 import {
   buildRationalRoleInputs,
@@ -36,7 +36,7 @@ import {
   type RationalCandidateInput,
 } from './rational-bidder.js';
 import { surrogateRosterValue, type SurrogatePlayerInput } from './value-surrogate.js';
-import { fantamedia, roleWeightedPlayerValue } from './value-model.js';
+import { applyCoverageBonus, fantamedia, roleCoverageGapFraction, roleWeightedPlayerValue, titolarita } from './value-model.js';
 import { randNormal, shuffle, type Rng } from './rng.js';
 
 // Bug reale trovato e corretto (§7 Session 8): con granularità 20 (il valore usato dalla VECCHIA
@@ -98,14 +98,29 @@ export interface RolloutInput {
    * meccanismo principale (§7 Session 8): di default si simula fino alla fine vera del pool
    * residuo. Utile soprattutto nei test per tenere i tempi bassi. */
   readonly maxHorizon?: number;
-  /** Curve di valore da usare (§6.1), già corrette per il rischio configurato (§6.8) a monte —
-   * default alle curve base se non fornite. Usate SOLO per te: gli avversari usano sempre le curve
-   * neutre (stesso principio di `myValueCurves` in sim/auction-sim.ts — se il rischio si applicasse
-   * a tutti, l'effetto sulla TUA competitività relativa si annullerebbe). */
+  /** Curve di prezzo da usare per il TUO valore di offerta (§6.3.1/§7 Session 9), già corrette per
+   * il rischio configurato (§6.8) a monte — default alle curve base se non fornite. Usate SOLO per
+   * te: gli avversari usano sempre le curve neutre (stesso principio di `myPriceCurves` in
+   * sim/auction-sim.ts — se il rischio si applicasse a tutti, l'effetto sulla TUA competitività
+   * relativa si annullerebbe). */
+  readonly priceCurves?: PriceCurveConfig;
+  /** Curve di VALORE (fantamedia/titolarità, §6.1), già corrette per il rischio a monte: usate SOLO
+   * per il "potential" (verità di riferimento, `surrogateRosterValue`) con cui si valuta la rosa
+   * finale simulata a fine rollout — indipendenti da `priceCurves` sopra, che serve invece al
+   * bidding. Stesso principio già seguito per `evaluateFinalRoster` (§7 Session 9): non è
+   * nell'ambito del cambio "valore = prezzo" chiesto dall'utente, resta come prima. */
   readonly valueCurves?: ValueCurveConfig;
   /** Peso personale per ruolo (§11 Setup) — SOLO per te, stesso principio di cui sopra. */
   readonly roleWeights?: RoleWeights;
+  /** Formazione principale di lega (§11 Setup): usata per la copertura-titolari per ruolo (§7
+   * Session 9, vedi `roleCoverageGapFraction`) — condivisa fra me e avversari per mancanza di
+   * un'informazione migliore sulle LORO preferenze reali (stesso principio dei pesi di ruolo
+   * neutri per gli avversari, sopra). Default '4-3-3' se non fornita, come gli altri campi
+   * opzionali di questa interfaccia. */
+  readonly primaryFormation?: Formation;
 }
+
+const DEFAULT_ROLLOUT_FORMATION: Formation = '4-3-3';
 
 interface SimManagerState {
   credits: number;
@@ -138,8 +153,9 @@ function initManagerStates(input: RolloutInput): Map<string, SimManagerState> {
   return map;
 }
 
-/** Valore di `score` in un ruolo per il manager `managerId`: pesi/curve personalizzati SOLO per
- * "me" (§7 Session 8) — un avversario è valutato con la TUA percezione di qualità ma pesi neutri. */
+/** Valore BASE (senza bonus di copertura, §7 Session 9) di `score` in un ruolo per il manager
+ * `managerId`: pesi/curve personalizzati SOLO per "me" (§7 Session 8) — un avversario è valutato
+ * con la TUA percezione di qualità ma pesi neutri. */
 function valueForManager(
   managerId: string,
   role: Role,
@@ -148,8 +164,8 @@ function valueForManager(
 ): number {
   const isMe = managerId === input.myManagerId;
   const roleWeights = isMe ? (input.roleWeights ?? DEFAULT_ROLE_WEIGHTS) : DEFAULT_ROLE_WEIGHTS;
-  const valueCurves = isMe ? (input.valueCurves ?? DEFAULT_VALUE_CURVES) : DEFAULT_VALUE_CURVES;
-  return roleWeightedPlayerValue(role, score, roleWeights, { curves: valueCurves });
+  const priceCurves = isMe ? (input.priceCurves ?? DEFAULT_PRICE_CURVES) : DEFAULT_PRICE_CURVES;
+  return roleWeightedPlayerValue(role, score, roleWeights, { priceCurves });
 }
 
 function buildRoleInputsForSimManager(
@@ -166,6 +182,7 @@ function buildRoleInputsForSimManager(
     poolByRole,
     input.leagueSlots,
     input.slotWeights,
+    input.primaryFormation ?? DEFAULT_ROLLOUT_FORMATION,
     (role, score) => valueForManager(managerId, role, score, input),
     MAX_OPTIONAL_CANDIDATES_FOR_DUALS,
     DUALS_BUDGET_GRANULARITY,
@@ -197,7 +214,8 @@ function computeManagerBid(
   if (cap < input.minPrice) return 0;
   const isMe = managerId === input.myManagerId;
   const recalcEvery = input.rolloutConfig.dualsRecalcEveryDraws * (isMe ? 1 : OPPONENT_RECALC_MULTIPLIER);
-  const value = valueForManager(managerId, role, score, input);
+  const gapFraction = roleCoverageGapFraction(role, state.ownedScores[role]!.map((s) => titolarita(role, s)), input.primaryFormation ?? DEFAULT_ROLLOUT_FORMATION);
+  const value = applyCoverageBonus(valueForManager(managerId, role, score, input), titolarita(role, score), gapFraction);
   const base = computeRationalBase({
     cache,
     creditsRemaining: state.credits,
@@ -281,17 +299,20 @@ function simulateContinuation(
 
   const me = managers.get(input.myManagerId)!;
   const roleWeights = input.roleWeights ?? DEFAULT_ROLE_WEIGHTS;
+  const priceCurves = input.priceCurves ?? DEFAULT_PRICE_CURVES;
   const valueCurves = input.valueCurves ?? DEFAULT_VALUE_CURVES;
 
   // L'orizzonte può comunque essere troncato (limite di sicurezza, `maxHorizon`): se lo è, gli slot
   // ancora scoperti a fine finestra vengono completati con un valore-filler invece di trattarli come
   // valore zero — vedi il commento esteso sotto (§7 Session 8, bug reale già corretto in una
   // sessione precedente, invariato qui: la logica non cambia, cambia solo quanto spesso serve).
+  // `rankValue` (usato solo per l'ordine dentro il ruolo, §6.2) e `potential` (verità di
+  // riferimento) usano deliberatamente due curve diverse — vedi il commento su `RolloutInput`.
   const ownedByRoleForPadding = {} as Record<Role, SurrogatePlayerInput[]>;
   let totalMissingAtEnd = 0;
   for (const role of ROLES) {
     const owned = me.ownedScores[role]!.map((score) => ({
-      rankValue: roleWeightedPlayerValue(role, score, roleWeights, { curves: valueCurves }),
+      rankValue: roleWeightedPlayerValue(role, score, roleWeights, { priceCurves }),
       potential: 38 * fantamedia(role, score, valueCurves),
     }));
     ownedByRoleForPadding[role] = owned;
@@ -307,7 +328,7 @@ function simulateContinuation(
     const owned = ownedByRoleForPadding[role]!;
     const scores = sortedScoresByRole[role]!;
     const fillerScore = scores.length > 0 ? scores[Math.min(scores.length - 1, Math.floor(effectivePercentile * scores.length))]! : 20;
-    const fillerV = roleWeightedPlayerValue(role, fillerScore, roleWeights, { curves: valueCurves });
+    const fillerV = roleWeightedPlayerValue(role, fillerScore, roleWeights, { priceCurves });
     const fillerPotential = 38 * fantamedia(role, fillerScore, valueCurves);
     const missing = Math.max(0, input.leagueSlots[role] - owned.length);
     const padding = Array.from({ length: missing }, () => ({ rankValue: fillerV, potential: fillerPotential }));

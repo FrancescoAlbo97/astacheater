@@ -270,3 +270,34 @@ export function totalCreditsInLeague(budget: number, numManagers: number): numbe
 export function totalSlotWeightSum(weights: SlotWeights): number {
   return ROLES.reduce((sum, role) => sum + weights[role].reduce((a, b) => a + b, 0), 0);
 }
+
+// ---------------------------------------------------------------------------
+// §11 Session 9 — Copertura titolari per ruolo (usata da value-model.ts/rational-bidder.ts)
+// ---------------------------------------------------------------------------
+
+/** Titolari attesi da `formation` per `role` (§3.5/§11 "La mia rosa"): P sempre 1, non incluso in
+ * FORMATION_SHAPES. Spostata qui (era in roster-organize.ts) perché serve anche al motore di
+ * valore (value-model.ts), che non può dipendere da roster-organize.ts (dipende da state.ts, uno
+ * strato più alto) senza creare un ciclo di import. */
+export function startersCountFor(role: Role, formation: Formation): number {
+  if (role === 'P') return 1;
+  return FORMATION_SHAPES[formation][role];
+}
+
+/** Copertura-titolari richiesta per ruolo, richiesta dall'utente in modo esplicito (§11 Session 9):
+ * titolari da formazione + 1 di scorta. Finché la titolarità attesa già posseduta in un ruolo non
+ * raggiunge questa soglia, il modello premia i candidati con titolarità alta per quel ruolo; una
+ * volta raggiunta, il bonus si annulla e conta solo il valore (vedi `coverageBonusFactor` in
+ * value-model.ts). */
+export function requiredRoleCoverage(role: Role, formation: Formation): number {
+  return startersCountFor(role, formation) + 1;
+}
+
+/**
+ * Frazione di bonus applicata al valore di un candidato quando la copertura del suo ruolo non è
+ * ancora raggiunta (§11 Session 9): a copertura zero (gap=1) e titolarità massima, il bonus vale
+ * fino a questa frazione del valore base; a copertura piena (gap=0) il bonus è sempre zero, per
+ * qualunque titolarità. Non calibrato empiricamente su aste reali (a differenza di A_ρ/θ_ρ) — un
+ * default ragionevole, documentato come tale, regolabile senza toccare il resto del motore.
+ */
+export const DEFAULT_COVERAGE_BONUS_FRACTION = 0.35;

@@ -1,8 +1,9 @@
 // §11 / §12 F12 — Prova a secco: gira molte aste simulate sulla LISTA REALE dell'utente (non un
 // pool sintetico) per mostrare che rosa aspettarsi e tarare gli score prima dell'asta vera.
 import { ROLES } from '../core/types.js';
-import type { AuctionEvent, AuctionState, LeagueConfig, ManagerState, Player, Role, ValueCurveConfig } from '../core/types.js';
+import type { AuctionEvent, AuctionState, LeagueConfig, ManagerState, PriceCurveConfig, Player, Role, ValueCurveConfig } from '../core/types.js';
 import {
+  DEFAULT_PRICE_CURVES,
   DEFAULT_PRICE_MODEL_CONFIG,
   DEFAULT_ROLE_WEIGHTS,
   DEFAULT_ROLLOUT_CONFIG,
@@ -11,7 +12,7 @@ import {
 } from '../core/config.js';
 import { mulberry32 } from '../core/rng.js';
 import { getMyManagerId, reduce } from '../core/state.js';
-import { applyRiskToValueCurves } from '../core/value-model.js';
+import { applyRiskToPriceCurves, applyRiskToValueCurves } from '../core/value-model.js';
 import { runAuctionSim, type AuctionSimResult } from './auction-sim.js';
 import { buildRealScenario, DEFAULT_OPPONENT_SCORE_JITTER, type Scenario, type ScenarioPlayer } from './generator.js';
 import { evaluateFinalRoster } from './metrics.js';
@@ -29,7 +30,7 @@ function runOneSimulatedAuction(
   config: LeagueConfig,
   players: readonly ScenarioPlayer[],
   myScores: ReadonlyMap<string, number>,
-  myValueCurves: ValueCurveConfig,
+  myPriceCurves: PriceCurveConfig,
   seed: number,
 ): { scenario: Scenario; result: AuctionSimResult } {
   const scenarioRng = mulberry32(seed);
@@ -43,8 +44,8 @@ function runOneSimulatedAuction(
     rho: 0, // ignorato: scenarioOverride sotto salta generateScenario (che è l'unico a leggere rho)
     archetypesByManager,
     priceModelConfig: DEFAULT_PRICE_MODEL_CONFIG,
-    valueCurves: DEFAULT_VALUE_CURVES,
-    myValueCurves,
+    priceCurves: DEFAULT_PRICE_CURVES,
+    myPriceCurves,
     roleWeights: config.roleWeights ?? DEFAULT_ROLE_WEIGHTS,
     slotWeights: normalizeSlotWeights(config.slotWeights, config.slots),
     priceNoiseSigma: DEFAULT_ROLLOUT_CONFIG.priceNoiseSigma,
@@ -190,7 +191,10 @@ export async function runDryRun(
   // Le curve di rischio si applicano SOLO a me (manager 0): se si applicassero a tutti i manager
   // simulati, l'intero mercato diventerebbe più aggressivo insieme a me e l'effetto sulla MIA
   // competitività relativa si annullerebbe quasi del tutto (vedi commento su
-  // AuctionSimConfig.myValueCurves in auction-sim.ts).
+  // AuctionSimConfig.myPriceCurves in auction-sim.ts). Due curve distinte (§7 Session 9): la prima
+  // per il bidding (`myPriceCurves`, dentro `runOneSimulatedAuction`), la seconda per la verità di
+  // riferimento (`myValueCurves`, dentro `evaluateFinalRoster` più sotto).
+  const myPriceCurves = applyRiskToPriceCurves(DEFAULT_PRICE_CURVES, config.risk);
   const myValueCurves = applyRiskToValueCurves(DEFAULT_VALUE_CURVES, config.risk);
 
   // Soglia di "fascia alta" e media di riferimento CALCOLATE PER RUOLO dalla lista dell'utente,
@@ -233,7 +237,7 @@ export async function runDryRun(
   const CHUNK = 10;
   for (let i = 0; i < iterations; i++) {
     const seed = 5000 + i;
-    const { scenario, result } = runOneSimulatedAuction(config, players, myScores, myValueCurves, seed);
+    const { scenario, result } = runOneSimulatedAuction(config, players, myScores, myPriceCurves, seed);
 
     const me: ManagerState = result.finalManagers[0]!;
     const myRealScores = scenario.scoresByManager[0]!;
@@ -406,9 +410,10 @@ export function runSingleSimulatedAuction(state: AuctionState, seed: number): Si
   }));
   const playerById = state.players;
   const myScores = new Map(Object.entries(state.scores).map(([id, s]) => [id, s.score]));
+  const myPriceCurves = applyRiskToPriceCurves(DEFAULT_PRICE_CURVES, config.risk);
   const myValueCurves = applyRiskToValueCurves(DEFAULT_VALUE_CURVES, config.risk);
 
-  const { scenario, result } = runOneSimulatedAuction(config, players, myScores, myValueCurves, seed);
+  const { scenario, result } = runOneSimulatedAuction(config, players, myScores, myPriceCurves, seed);
 
   const myManagerId = config.managers[0]!.id; // manager 0 è sempre "me" (§9.3, buildRealScenario)
   const managerNameById = new Map(result.finalManagers.map((m) => [m.manager.id, m.manager.name]));

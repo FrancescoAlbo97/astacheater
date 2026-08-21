@@ -1,72 +1,86 @@
-// §6.1 — Modello di valore. DoD F3 (§12): valori di riferimento entro ±1 punto,
-// v monotona crescente in s per ogni ruolo (property-based).
+// §6.1 — Modello di valore. §7 Session 10: `playerValue` è un'identità sul punteggio — il
+// punteggio stesso È il prezzo equo in crediti, senza curva (correzione della Session 9, che
+// faceva passare il punteggio per la curva di mercato §6.3.1: sbagliato per un punteggio importato
+// come stima diretta in crediti, che la curva amplificava esponenzialmente ben oltre il senso). Vedi
+// il commento di testa a value-model.ts per la cronologia completa. Questo file copre: l'identità
+// di playerValue, l'assenza di un tetto superiore (richiesta esplicita: "devono poter superare il
+// 100"), il disaccoppiamento della titolarità dal valore (invariato dalla Session 9), e la
+// copertura-titolari per ruolo (`roleCoverageGapFraction`/`coverageBonusFactor`/`applyCoverageBonus`).
 import { describe, expect, it } from 'vitest';
 import fc from 'fast-check';
 import {
+  applyCoverageBonus,
+  applyRiskToPriceCurves,
   applyRiskToValueCurves,
+  coverageBonusFactor,
   playerValue,
   riskAdjustedPlayerValue,
+  roleCoverageGapFraction,
   roleWeightedPlayerValue,
   seasonSdProxy,
+  titolarita,
 } from '../src/core/value-model.js';
-import { DEFAULT_VALUE_CURVES } from '../src/core/config.js';
+import { DEFAULT_PRICE_CURVES, DEFAULT_VALUE_CURVES } from '../src/core/config.js';
 import { ROLES } from '../src/core/types.js';
 import type { Role, RoleWeights } from '../src/core/types.js';
 
 const NEUTRAL_WEIGHTS: RoleWeights = { P: 1, D: 1, C: 1, A: 1 };
 
-// Tabella di riferimento esatta dal readme.md §6.1.
-const REFERENCE: Record<Role, Record<number, number>> = {
-  P: { 20: 43, 40: 81, 60: 125, 75: 165, 85: 195, 95: 228 },
-  D: { 20: 36, 40: 70, 60: 115, 75: 159, 85: 193, 95: 231 },
-  C: { 20: 36, 40: 70, 60: 120, 75: 170, 85: 211, 95: 260 },
-  A: { 20: 33, 40: 65, 60: 116, 75: 173, 85: 223, 95: 285 },
-};
-
-describe('§6.1 valori di riferimento', () => {
-  for (const role of ROLES) {
-    for (const [scoreStr, expected] of Object.entries(REFERENCE[role])) {
-      const score = Number(scoreStr);
-      it(`v_${role}(${score}) ≈ ${expected} (±1)`, () => {
-        expect(playerValue(role, score)).toBeCloseTo(expected, 0);
-      });
-    }
-  }
-});
-
-describe('§13.1 test di regressione: titolarità non opzionale', () => {
-  it('v_A(95) / v_A(20) ≥ 5', () => {
-    const ratio = playerValue('A', 95) / playerValue('A', 20);
-    expect(ratio).toBeGreaterThanOrEqual(5);
+describe('§7 Session 10 — playerValue è un\'identità sul punteggio (nessuna curva)', () => {
+  it('playerValue(role, score) === score, per qualunque ruolo e punteggio non negativo (property-based)', () => {
+    fc.assert(
+      fc.property(fc.constantFrom(...ROLES), fc.double({ min: 0, max: 1000, noNaN: true }), (role, score) =>
+        playerValue(role, score) === score,
+      ),
+    );
   });
-});
 
-describe('v è monotona crescente in s per ogni ruolo (property-based)', () => {
-  for (const role of ROLES) {
-    it(`ruolo ${role}`, () => {
+  it('il ruolo non ha alcuna influenza: stesso punteggio, stesso valore in ogni ruolo', () => {
+    for (const score of [0, 20, 55, 100, 129, 300]) {
+      const values = ROLES.map((role) => playerValue(role, score));
+      expect(new Set(values).size).toBe(1);
+    }
+  });
+
+  it('nessun tetto superiore: un punteggio importato come prezzo reale (es. 129, oltre il vecchio limite 100) resta 129, non viene amplificato', () => {
+    expect(playerValue('A', 129)).toBe(129);
+    expect(playerValue('A', 300)).toBe(300);
+  });
+
+  it('un punteggio negativo (dato corrotto) viene comunque riportato a 0, non propagato come valore negativo', () => {
+    expect(playerValue('A', -50)).toBe(0);
+  });
+
+  it('è monotona crescente (non decrescente) in s per ogni ruolo (property-based) — banale per un\'identità, ma è l\'invariante che il resto del motore (DP, bisezione) assume', () => {
+    for (const role of ROLES) {
       fc.assert(
         fc.property(
-          fc.double({ min: 0, max: 100, noNaN: true }),
-          fc.double({ min: 0, max: 100, noNaN: true }),
+          fc.double({ min: 0, max: 300, noNaN: true }),
+          fc.double({ min: 0, max: 300, noNaN: true }),
           (a, b) => {
             const [lo, hi] = a <= b ? [a, b] : [b, a];
             return playerValue(role, lo) <= playerValue(role, hi) + 1e-9;
           },
         ),
       );
-    });
-  }
-});
-
-describe('ptOverride', () => {
-  it('sostituisce la titolarità dedotta dallo score', () => {
-    const withoutOverride = playerValue('A', 50);
-    const withOverride = playerValue('A', 50, { ptOverride: 0.95 });
-    expect(withOverride).toBeGreaterThan(withoutOverride);
+    }
   });
 });
 
-describe('§6.8 applyRiskToValueCurves', () => {
+describe('§7 Session 9 — la titolarità non influisce più direttamente su playerValue', () => {
+  it('playerValue non accetta più ptOverride: stesso valore indipendentemente dalla titolarità dedotta o forzata', () => {
+    // `titolarita` resta la stessa funzione di prima — qui si verifica solo che PIÙ NON entri in
+    // playerValue, che ora ignora completamente pt (a differenza del vecchio v = 38·pt·fm).
+    const scoreHighPt = titolarita('A', 90); // alto score ⇒ titolarità dedotta alta
+    const scoreLowPt = titolarita('A', 5); // basso score ⇒ titolarità dedotta bassa
+    expect(scoreHighPt).toBeGreaterThan(scoreLowPt); // titolarita stessa è comunque sensibile allo score
+    // ma playerValue(role, score) non prende più in input una titolarità separata da correggere:
+    // due chiamate con lo stesso score restituiscono sempre lo stesso valore.
+    expect(playerValue('A', 60)).toBe(playerValue('A', 60));
+  });
+});
+
+describe('§6.8 applyRiskToValueCurves (verità di riferimento, invariata dalla Session 9)', () => {
   it('risk=0 restituisce le curve invariate (stesso riferimento)', () => {
     expect(applyRiskToValueCurves(DEFAULT_VALUE_CURVES, 0)).toBe(DEFAULT_VALUE_CURVES);
   });
@@ -92,7 +106,36 @@ describe('§6.8 applyRiskToValueCurves', () => {
   });
 });
 
-describe('§6.8 seasonSdProxy — proxy di SD stagionale a forma chiusa', () => {
+describe('§6.8 Session 9 — applyRiskToPriceCurves (rischio sul VALORE, bidding)', () => {
+  it('risk=0 restituisce le curve invariate (stesso riferimento)', () => {
+    expect(applyRiskToPriceCurves(DEFAULT_PRICE_CURVES, 0)).toBe(DEFAULT_PRICE_CURVES);
+  });
+
+  it('un rischio positivo aumenta θ per ogni ruolo, uno negativo lo riduce', () => {
+    const up = applyRiskToPriceCurves(DEFAULT_PRICE_CURVES, 1);
+    const down = applyRiskToPriceCurves(DEFAULT_PRICE_CURVES, -1);
+    for (const role of ROLES) {
+      expect(up[role].theta).toBeGreaterThan(DEFAULT_PRICE_CURVES[role].theta);
+      expect(down[role].theta).toBeLessThan(DEFAULT_PRICE_CURVES[role].theta);
+    }
+  });
+
+  it('non tocca A (solo θ cambia)', () => {
+    const adjusted = applyRiskToPriceCurves(DEFAULT_PRICE_CURVES, 1);
+    for (const role of ROLES) {
+      expect(adjusted[role].A).toBe(DEFAULT_PRICE_CURVES[role].A);
+    }
+  });
+
+  it('§7 Session 10: la curva risk-adjusted non ha più alcun effetto su playerValue — vestigiale, playerValue ignora opts.priceCurves', () => {
+    const steep = applyRiskToPriceCurves(DEFAULT_PRICE_CURVES, 1);
+    for (const score of [0, 50, 95, 129]) {
+      expect(playerValue('A', score, { priceCurves: steep })).toBe(playerValue('A', score));
+    }
+  });
+});
+
+describe('§6.8 seasonSdProxy — proxy di SD stagionale a forma chiusa (verità di riferimento, invariata)', () => {
   it('è esattamente zero ai bordi di Bernoulli (pt=0 o pt=1: nessuna incertezza)', () => {
     expect(seasonSdProxy('A', 60, { ptOverride: 0 })).toBe(0);
     expect(seasonSdProxy('A', 60, { ptOverride: 1 })).toBe(0);
@@ -125,7 +168,7 @@ describe('§6.8 seasonSdProxy — proxy di SD stagionale a forma chiusa', () => 
   });
 });
 
-describe('§6.8 riskAdjustedPlayerValue — alternativa additiva a applyRiskToValueCurves', () => {
+describe('§6.8 riskAdjustedPlayerValue — alternativa additiva, mai wired live (invariata nella formula, avviso di unità nei commenti)', () => {
   it('risk=0 è un no-op esatto rispetto a playerValue: guardia di regressione principale', () => {
     fc.assert(
       fc.property(
@@ -137,7 +180,7 @@ describe('§6.8 riskAdjustedPlayerValue — alternativa additiva a applyRiskToVa
   });
 
   it('rischio positivo aumenta il valore, negativo lo riduce, per un candidato "tutto o niente"', () => {
-    const base = playerValue('A', 60, { ptOverride: 0.5 });
+    const base = playerValue('A', 60);
     const positive = riskAdjustedPlayerValue('A', 60, 1, { ptOverride: 0.5 });
     const negative = riskAdjustedPlayerValue('A', 60, -1, { ptOverride: 0.5 });
     expect(positive).toBeGreaterThan(base);
@@ -146,7 +189,7 @@ describe('§6.8 riskAdjustedPlayerValue — alternativa additiva a applyRiskToVa
 
   it('il bonus/malus è maggiore per un candidato "tutto o niente" (pt=0.5) che per un titolare quasi certo (pt=0.9)', () => {
     const bonusAt = (risk: number, pt: number) =>
-      riskAdjustedPlayerValue('A', 60, risk, { ptOverride: pt }) - playerValue('A', 60, { ptOverride: pt });
+      riskAdjustedPlayerValue('A', 60, risk, { ptOverride: pt }) - playerValue('A', 60);
     expect(bonusAt(1, 0.5)).toBeGreaterThan(bonusAt(1, 0.9));
     expect(Math.abs(bonusAt(-1, 0.5))).toBeGreaterThan(Math.abs(bonusAt(-1, 0.9)));
   });
@@ -193,10 +236,148 @@ describe('§11 Setup — roleWeightedPlayerValue', () => {
     expect(roleWeightedPlayerValue('D', 55, { ...NEUTRAL_WEIGHTS, D: 1.5 })).toBeGreaterThan(base);
   });
 
-  it('compone correttamente con curve già corrette per il rischio (opts.curves passato invariato)', () => {
-    const riskCurves = applyRiskToValueCurves(DEFAULT_VALUE_CURVES, 1);
-    const withoutWeight = playerValue('A', 80, { curves: riskCurves });
-    const withWeight = roleWeightedPlayerValue('A', 80, { ...NEUTRAL_WEIGHTS, A: 1.3 }, { curves: riskCurves });
+  it('compone correttamente con curve già corrette per il rischio (opts.priceCurves passato invariato)', () => {
+    const riskCurves = applyRiskToPriceCurves(DEFAULT_PRICE_CURVES, 1);
+    const withoutWeight = playerValue('A', 80, { priceCurves: riskCurves });
+    const withWeight = roleWeightedPlayerValue('A', 80, { ...NEUTRAL_WEIGHTS, A: 1.3 }, { priceCurves: riskCurves });
     expect(withWeight).toBeCloseTo(withoutWeight * 1.3, 9);
+  });
+});
+
+describe('§11 Session 9 — roleCoverageGapFraction (copertura titolari per ruolo)', () => {
+  it('nessun titolare posseduto ⇒ gap massimo (1)', () => {
+    for (const role of ROLES) {
+      expect(roleCoverageGapFraction(role, [], '4-3-3')).toBe(1);
+    }
+  });
+
+  it("l'esempio dell'utente: attacco in 4-3-3 richiede 3 titolari + 1 di scorta = 4", () => {
+    // "se ho già 4 titolari in attacco, gli altri due posso permettermi che abbiano meno
+    // titolarità" — 4 giocatori certi titolari (pt=1) coprono esattamente la soglia (somma=4).
+    const certain4 = [1, 1, 1, 1];
+    expect(roleCoverageGapFraction('A', certain4, '4-3-3')).toBe(0);
+    // con solo 3 (uno di meno), la copertura non è ancora piena.
+    expect(roleCoverageGapFraction('A', certain4.slice(0, 3), '4-3-3')).toBeGreaterThan(0);
+  });
+
+  it('P richiede sempre 1 titolare + 1 di scorta = 2, qualunque sia la formazione', () => {
+    for (const formation of ['4-3-3', '3-5-2', '5-4-1'] as const) {
+      expect(roleCoverageGapFraction('P', [1, 1], formation)).toBeCloseTo(0, 6);
+      expect(roleCoverageGapFraction('P', [1], formation)).toBeGreaterThan(0);
+    }
+  });
+
+  it('la copertura è la SOMMA delle titolarità possedute, non un conteggio secco: più mezze-certezze possono coprire come un titolare quasi certo', () => {
+    // stessa somma (2.0) ottenuta in due modi diversi: stesso gap.
+    const viaCertainties = [1, 1];
+    const viaHalves = [0.5, 0.5, 0.5, 0.5];
+    expect(roleCoverageGapFraction('D', viaCertainties, '4-4-2')).toBeCloseTo(
+      roleCoverageGapFraction('D', viaHalves, '4-4-2'),
+      9,
+    );
+  });
+
+  it('non scende mai sotto zero né supera 1, anche con titolarità/copertura fuori scala (property-based)', () => {
+    fc.assert(
+      fc.property(
+        fc.constantFrom(...ROLES),
+        fc.array(fc.double({ min: 0, max: 1, noNaN: true }), { maxLength: 10 }),
+        (role, pts) => {
+          const gap = roleCoverageGapFraction(role, pts, '4-3-3');
+          return gap >= 0 && gap <= 1;
+        },
+      ),
+    );
+  });
+
+  it('è monotona non crescente nella copertura posseduta: aggiungere un titolare non aumenta mai il gap', () => {
+    fc.assert(
+      fc.property(
+        fc.constantFrom(...ROLES),
+        fc.array(fc.double({ min: 0, max: 1, noNaN: true }), { maxLength: 8 }),
+        fc.double({ min: 0, max: 1, noNaN: true }),
+        (role, pts, extra) => {
+          const before = roleCoverageGapFraction(role, pts, '4-3-3');
+          const after = roleCoverageGapFraction(role, [...pts, extra], '4-3-3');
+          return after <= before + 1e-9;
+        },
+      ),
+    );
+  });
+});
+
+describe('§11 Session 9 — coverageBonusFactor / applyCoverageBonus', () => {
+  it('gapFraction=0 (copertura piena) ⇒ bonus zero, qualunque sia la titolarità del candidato', () => {
+    fc.assert(
+      fc.property(fc.double({ min: 0, max: 1, noNaN: true }), (pt) => coverageBonusFactor(pt, 0) === 0),
+    );
+  });
+
+  it('pt=0 ⇒ bonus zero, qualunque sia il gap', () => {
+    fc.assert(
+      fc.property(fc.double({ min: 0, max: 1, noNaN: true }), (gap) => coverageBonusFactor(0, gap) === 0),
+    );
+  });
+
+  it('cresce sia con pt sia con il gap (property-based)', () => {
+    fc.assert(
+      fc.property(
+        fc.double({ min: 0, max: 1, noNaN: true }),
+        fc.double({ min: 0, max: 1, noNaN: true }),
+        fc.double({ min: 0, max: 1, noNaN: true }),
+        fc.double({ min: 0, max: 1, noNaN: true }),
+        (pt1, pt2, gap1, gap2) => {
+          const [ptLo, ptHi] = pt1 <= pt2 ? [pt1, pt2] : [pt2, pt1];
+          const [gapLo, gapHi] = gap1 <= gap2 ? [gap1, gap2] : [gap2, gap1];
+          return (
+            coverageBonusFactor(ptLo, gapLo) <= coverageBonusFactor(ptHi, gapLo) + 1e-9 &&
+            coverageBonusFactor(ptLo, gapLo) <= coverageBonusFactor(ptLo, gapHi) + 1e-9
+          );
+        },
+      ),
+    );
+  });
+
+  it('non supera mai la bonusFraction configurata (raggiunta solo a pt=1, gap=1)', () => {
+    expect(coverageBonusFactor(1, 1, 0.35)).toBeCloseTo(0.35, 9);
+    fc.assert(
+      fc.property(
+        fc.double({ min: 0, max: 1, noNaN: true }),
+        fc.double({ min: 0, max: 1, noNaN: true }),
+        (pt, gap) => coverageBonusFactor(pt, gap, 0.35) <= 0.35 + 1e-9,
+      ),
+    );
+  });
+
+  it('applyCoverageBonus con gap=0 restituisce esattamente baseValue: guardia di regressione principale', () => {
+    fc.assert(
+      fc.property(
+        fc.double({ min: 1, max: 300, noNaN: true }),
+        fc.double({ min: 0, max: 1, noNaN: true }),
+        (baseValue, pt) => applyCoverageBonus(baseValue, pt, 0) === baseValue,
+      ),
+    );
+  });
+
+  it("l'esempio dell'utente end-to-end: a copertura raggiunta il bonus non distingue più titolari da riserve", () => {
+    const target4 = ['4-3-3']; // 3 titolari + 1 scorta = 4, come nell'esempio dell'utente
+    for (const formation of target4) {
+      const gapFraction = roleCoverageGapFraction('A', [1, 1, 1, 1], formation as '4-3-3');
+      const base = playerValue('A', 55);
+      const highPt = applyCoverageBonus(base, 0.9, gapFraction);
+      const lowPt = applyCoverageBonus(base, 0.1, gapFraction);
+      expect(highPt).toBe(base);
+      expect(lowPt).toBe(base);
+      expect(highPt).toBe(lowPt); // "posso concentrarmi sul valore": stesso valore, titolarità ignorata
+    }
+  });
+
+  it("prima di raggiungere la copertura, un candidato titolare riceve più bonus di uno panchinaro allo stesso prezzo base", () => {
+    const gapFraction = roleCoverageGapFraction('A', [], '4-3-3'); // nessuna copertura ⇒ gap massimo
+    const base = playerValue('A', 55);
+    const likelyStarter = applyCoverageBonus(base, 0.9, gapFraction);
+    const likelyBench = applyCoverageBonus(base, 0.1, gapFraction);
+    expect(likelyStarter).toBeGreaterThan(base);
+    expect(likelyStarter).toBeGreaterThan(likelyBench);
   });
 });

@@ -55,7 +55,10 @@ function parseCsv(text: string): CsvRow[] {
     const row: { -readonly [K in keyof CsvRow]: CsvRow[K] } = { name, role: role as Role, team };
     if (scoreRaw) {
       const score = Number(scoreRaw);
-      if (Number.isFinite(score)) row.score = Math.max(0, Math.min(100, score));
+      // §7 Session 9: punteggio = valore in crediti (§6.3.1), non più una qualità 0-100 — nessun
+      // tetto superiore, un top player può valere ben più di 100 crediti. Solo un pavimento a 0
+      // contro dati corrotti/negativi.
+      if (Number.isFinite(score)) row.score = Math.max(0, score);
     }
     if (ptRaw) {
       const pt = Number(ptRaw);
@@ -151,7 +154,8 @@ export function PlayerList() {
   }, [players, state.scores]);
 
   function setScore(playerId: string, score: number) {
-    const clamped = Math.max(0, Math.min(100, score));
+    // §7 Session 9: nessun tetto a 100, vedi commento in parseCsv.
+    const clamped = Math.max(0, score);
     dispatch({ t: 'player.score', playerId, score: clamped, ptOverride: state.scores[playerId]?.ptOverride ?? undefined });
   }
 
@@ -377,7 +381,8 @@ export function PlayerList() {
         <h3>Importa CSV</h3>
         <p className="hint">
           Formato: <span className="mono">nome,ruolo,squadra,punteggio,titolarita</span> — le ultime due colonne sono
-          opzionali, se le compili carichi già punteggio (0–100) ed eventuale override di titolarità (0–1) senza doverli
+          opzionali, se le compili carichi già il punteggio (il valore in crediti che pagheresti a inizio asta,
+          tipicamente 1–250 ma senza un tetto fisso) ed eventuale override di titolarità (0–1) senza doverli
           inserire a mano riga per riga.
         </p>
         <div className="price-record-row">
@@ -441,7 +446,7 @@ export function PlayerList() {
               <th>Ruolo</th>
               <th>Nome</th>
               <th>Squadra</th>
-              <th>{tab === 'da-estrarre' ? 'Punteggio 0–100' : 'Score'}</th>
+              <th>{tab === 'da-estrarre' ? 'Punteggio' : 'Score'}</th>
               {tab === 'da-estrarre' && <th>Titolarità</th>}
               {tab === 'da-estrarre' && (
                 <>
@@ -487,12 +492,11 @@ export function PlayerList() {
                     {tab === 'da-estrarre' ? (
                       <div className="score-cell">
                         <div className="score-bar-track">
-                          <div className="score-bar-fill" style={{ width: `${score ?? 0}%` }} />
+                          <div className="score-bar-fill" style={{ width: `${Math.min(100, score ?? 0)}%` }} />
                         </div>
                         <input
                           type="number"
                           min={0}
-                          max={100}
                           value={score ?? ''}
                           onChange={(e) => setScore(p.id, Number(e.target.value))}
                           className="score-input"

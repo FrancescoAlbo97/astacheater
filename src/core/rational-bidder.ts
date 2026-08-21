@@ -20,9 +20,10 @@
 // un vero manager a fine asta con crediti in eccesso.
 
 import { ROLES } from './types.js';
-import type { Role } from './types.js';
+import type { Formation, Role } from './types.js';
 import { computeDuals, approxMaxBid, shouldRecalcDuals, type DualState } from './base-policy.js';
 import type { DPCandidate, RoleDPInput } from './plan-dp.js';
+import { applyCoverageBonus, roleCoverageGapFraction, titolarita } from './value-model.js';
 
 export interface RationalBidderCache {
   duals: DualState | null;
@@ -50,27 +51,38 @@ export interface RationalCandidateInput {
  * `budgetGranularity` scala i prezzi ATTESI qui dentro (non solo il budget in `computeRationalBase`
  * sotto): la DP confronta prezzi e budget nella STESSA unità, quindi le due scale non possono
  * essere impostate in punti diversi senza disallinearsi — un bug facile da introdurre altrimenti.
+ *
+ * §11 Session 9 — copertura titolari per ruolo: applicata QUI, non dentro `scoreToValue`, perché
+ * dipende dal roster GIÀ POSSEDUTO (`ownedScoresByRole`) che questa funzione ha già sotto mano.
+ * Solo i candidati OPZIONALI (non ancora posseduti) ricevono il bonus — i FORZATI (già posseduti)
+ * restano al loro valore base: la copertura serve a orientare la PROSSIMA scelta, non a
+ * rivalutare chi è già in rosa (non lo si può più "scambiare"), e comunque i forzati compaiono
+ * identici in Φ_win e Φ_lose, quindi un bonus anche lì non cambierebbe alcuna decisione — solo la
+ * loro classifica per peso-slot, che non è il bersaglio di questa leva.
  */
 export function buildRationalRoleInputs(
   ownedScoresByRole: Record<Role, readonly number[]>,
   poolByRole: Record<Role, readonly RationalCandidateInput[]>,
   leagueSlots: Record<Role, number>,
   slotWeights: Record<Role, readonly number[]>,
+  formation: Formation,
   scoreToValue: (role: Role, score: number) => number,
   maxOptionalCandidates: number,
   budgetGranularity: number,
 ): Record<Role, RoleDPInput> {
   const roleInputs = {} as Record<Role, RoleDPInput>;
   for (const role of ROLES) {
-    const forced: DPCandidate[] = ownedScoresByRole[role]!.map((score) => ({
+    const ownedScores = ownedScoresByRole[role]!;
+    const forced: DPCandidate[] = ownedScores.map((score) => ({
       v: scoreToValue(role, score),
       price: 0,
       forced: true,
     }));
+    const gapFraction = roleCoverageGapFraction(role, ownedScores.map((score) => titolarita(role, score)), formation);
     const rolePool = poolByRole[role]!;
     const optional: DPCandidate[] = rolePool
       .map((c) => ({
-        v: scoreToValue(role, c.score),
+        v: applyCoverageBonus(scoreToValue(role, c.score), titolarita(role, c.score), gapFraction),
         price: Math.max(1, Math.ceil(c.pHat / budgetGranularity)),
         forced: false,
       }))

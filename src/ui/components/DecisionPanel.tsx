@@ -294,7 +294,7 @@ export function DecisionPanel({ state, playerId, mode, onOpenFull }: DecisionPan
               <div className="why-step">
                 <div className="step-label">2 · VALORE PER TE</div>
                 <div className="step-value">{formatNum(decision.myValue)}</div>
-                <div className="step-desc">score × titolarità</div>
+                <div className="step-desc">prezzo equo per il tuo score, corretto per copertura titolari</div>
               </div>
               <div className="why-step">
                 <div className="step-label">3 · VALORE OMBRA RUOLO</div>

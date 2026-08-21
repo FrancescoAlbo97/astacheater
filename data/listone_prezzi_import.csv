@@ -1,0 +1,356 @@
+nome,ruolo,squadra,punteggio
+Martinez Lautaro,A,Inter,129
+Malen Donyell,A,Roma,114
+Hojlund Rasmus,A,Napoli,83
+Thuram Marcus,A,Inter,116
+Ramos Goncalo Matias,A,Milan,102
+Kolo Muani Randal,A,Juventus,109
+Paz Nico,A,Como,88
+Kean Moise,A,Fiorentina,84
+Mctominay Scott,C,Napoli,69
+Pulisic Christian,A,Milan,62
+Calhanoglu Hakan,C,Inter,69
+Douvikas Tasos,A,Como,53
+Yildiz Kenan,A,Juventus,52
+Orsolini Riccardo,A,Bologna,62
+Scamacca Gianluca,A,Atalanta,73
+Davis Keinan,A,Udinese,48
+Baturina Martin,C,Como,41
+Berardi Domenico,A,Sassuolo,29
+Dimarco Federico,C,Inter,64
+Krstovic Nikola,A,Atalanta,43
+Leao Rafael,A,Milan,35
+Rabiot Adrien,C,Milan,34
+De Bruyne Kevin,C,Napoli,48
+De Ketelaere Charles,A,Atalanta,32
+Dybala Paulo,A,Roma,40
+Simeone Giovanni,A,Torino,31
+Zaniolo Nicolò,A,Udinese,32
+Castro Santiago,A,Roma,31
+Lauriente Armand,A,Sassuolo,31
+Pinamonti Andrea,A,Sassuolo,23
+Zaccagni Mattia,A,Lazio,34
+Barella Nicolò,C,Inter,35
+Da Cunha Lucas,C,Como,38
+Esposito Fp Francesco Pio,A,Inter,34
+Vlasic Nikola,C,Torino,28
+Dovbyk Artem,A,Bologna,34
+Gudmundsson Albert,A,Fiorentina,32
+Mckennie Weston,C,Juventus,30
+Atta Arthur,C,Fiorentina,30
+Mastantuono Franco,C,Fiorentina,44
+Nkunku Christopher,A,Milan,56
+Raspadori Giacomo,A,Atalanta,44
+Soule Matias,A,Roma,28
+Esposito S Sebastiano,A,Cagliari,24
+Svilar Mile,P,Roma,40
+Akanji Manuel,D,Inter,24
+Bastoni Alessandro,D,Inter,31
+Bremer Gleison,D,Juventus,28
+Conceicao Fernandes Francisco,C,Juventus,21
+Diao Assane,A,Como,24
+Ederson,C,Atalanta,27
+Modric Luka,C,Milan,28
+Molina Nahuel,C,Roma,29
+Rodriguez Jesús,A,Como,24
+Rowe Jonathan,A,Bologna,38
+Wesley França Lima,C,Roma,31
+Alajbegovic Kerim-Sam,A,Juventus,59
+Carnesecchi Marco,P,Atalanta,39
+Colombo Lorenzo,A,Genoa,24
+Kone Manu,C,Roma,25
+Maignan Mike,P,Milan,27
+Mancini Gianluca,D,Roma,31
+Martinez Josep,P,Inter,25
+Pavlovic Strahinja,D,Milan,25
+Politano Matteo,A,Napoli,23
+Taylor Kenneth,C,Lazio,18
+Butez Jean,P,Como,27
+Di Lorenzo Giovanni,D,Napoli,25
+Rrahmani Amir,D,Napoli,19
+Samardzic Lazar,C,Atalanta,25
+Vicario Guglielmo,P,Juventus,37
+David Jonathan,A,Juventus,95
+Kalulu Pierre,D,Juventus,21
+Ndicka Evan,D,Roma,24
+Solet Oumar,D,Udinese,22
+Spence Djed,C,Inter,31
+Thuram Khéphren,C,Juventus,17
+Zielinski Piotr,C,Inter,21
+Baldanzi Tommaso,C,Genoa,17
+Bisseck Yann Aurel,D,Inter,21
+Casadei Cesare,C,Torino,18
+Perrone Maximo,C,Como,22
+Saelemaekers Alexis,C,Milan,18
+Stones John,D,Inter,19
+Thorstvedt Kristian,C,Sassuolo,19
+Adams Che,A,Torino,30
+Bowie Kieron,A,Sassuolo,16
+De Gea David,P,Fiorentina,26
+Pasalic Mario,C,Atalanta,18
+Piccoli Roberto,A,Bologna,20
+Scalvini Giorgio,D,Atalanta,16
+Sucic Petar,C,Inter,25
+Vitinha,A,Genoa,16
+Zapata Duvan,A,Torino,20
+Banda Lameck,A,Lecce,26
+Bonny Ange-Yoan,A,Inter,17
+Cambiaso Andrea,C,Juventus,16
+Cutrone Patrick,A,Monza,15
+Ekkelenkamp Jurgen,C,Udinese,20
+Fagioli Nicolo,C,Fiorentina,19
+Gila Mario,D,Milan,17
+Isaksen Gustav,A,Lazio,16
+Kevin Carlos Omoruyi Benjamin,A,Cagliari,15
+Mandragora Rolando,C,Fiorentina,27
+Meret Alex,P,Napoli,37
+Odgaard Jens,A,Bologna,24
+Ostigard Leo,D,Genoa,23
+Pellegrino Mateo,A,Fiorentina,29
+Ramon Jacobo,D,Como,19
+Ratkov Petar,A,Lazio,40
+Stulic Nikola,A,Lecce,22
+Yeboah John,A,Venezia,16
+Adams Akor Jerome,A,Venezia,14
+Bernabe Adrian,C,Parma,16
+Bernardeschi Federico,A,Bologna,14
+Cambiaghi Nicolo,A,Bologna,30
+Cancellieri Matteo,A,Lazio,28
+Cristante Bryan,C,Roma,22
+Ferguson Lewis,C,Bologna,22
+Ghedjemis Fares,A,Frosinone,15
+Kone Ismaël,C,Sassuolo,29
+Locatelli Manuel,C,Juventus,14
+Santos Alisson,A,Napoli,27
+Skorupski Lukasz,P,Bologna,28
+Boga Jeremie,A,Juventus,13
+Caqueret Maxence,C,Como,22
+Chalobah Trevoh,D,Como,15
+Dia Boulaye,A,Lazio,39
+Gaetano Gianluca,C,Atalanta,17
+Hermoso Mario,D,Roma,13
+Hien Isak,D,Atalanta,14
+Ndour Cher,C,Fiorentina,19
+Raimondo Antonio,A,Frosinone,14
+Romero José David,A,Parma,15
+Unai Gomez Etxebarria,C,Udinese,13
+Vasquez Johan,D,Genoa,14
+Zappacosta Davide,C,Atalanta,16
+Bartesaghi Davide,D,Milan,14
+Buongiorno Alessandro,D,Napoli,13
+Calo Giacomo,C,Frosinone,13
+Caprile Elia,P,Cagliari,14
+Di Gregorio Michele,P,Juventus,15
+Dragusin Radu,D,Fiorentina,15
+Falcone Wladimiro,P,Lecce,12
+Frendrup Morten,C,Genoa,24
+Jimenez Alex,D,Fiorentina,13
+Kempf Marc,D,Como,13
+Miranda Juan,D,Bologna,13
+Mkhitaryan Henrikh,C,Inter,28
+Noslin Tijjani,A,Lazio,20
+Okoye Maduka,P,Udinese,15
+Oristanio Gaetano Pio,A,Torino,18
+Pierotti Santiago,A,Lecce,22
+Spinazzola Leonardo,C,Napoli,14
+Sulemana Kamaldeen,A,Atalanta,21
+Valeri Emanuele,D,Parma,12
+Vergara Antonio,C,Napoli,12
+Volpato Cristian,C,Sassuolo,7
+Zalewski Nicola,C,Atalanta,22
+Busio Gianluca,C,Venezia,15
+Chukwueze Samuel,C,Milan,14
+Doekhi Danilho,D,Lazio,13
+Fazzini Jacopo,C,Cagliari,6
+Frattesi Davide,C,Lazio,14
+Gimenez Santiago,A,Milan,40
+Karlstrom Jesper,C,Udinese,20
+Lucumi Jhon,D,Juventus,12
+Mina Yerry,D,Cagliari,14
+Pobega Tommaso,C,Bologna,22
+Valle Álex,D,Como,11
+Addai Jayden,A,Como,16
+Adopo Ndary,C,Cagliari,8
+Basic Toma,C,Venezia,14
+Carlos Augusto,C,Inter,15
+Coco Saul,D,Torino,20
+Couto Yan Bueno,D,Como,14
+De Roon Marten,C,Atalanta,25
+Del Prato Enrico,D,Parma,11
+Ellertsson Mikael,C,Genoa,8
+Fofana Youssouf,C,Milan,23
+Gandelman Omri,C,Lecce,19
+Giovane Santana do Nascimento,A,Napoli,18
+Keita Mandela,C,Parma,21
+Koopmeiners Teun,C,Juventus,27
+Koulierakis Konstantinos,D,Roma,12
+Liberali Mattia,C,Como,10
+Maldini Daniel,A,Cagliari,11
+Mandas Christos,P,Lazio,10
+Matic Nemanja,C,Sassuolo,19
+Nicolussi Caviglia Hans,C,Parma,20
+Norton-Cuffy Brooke,C,Genoa,10
+Pisilli Niccolo,C,Roma,11
+Romagnoli Alessio,D,Lazio,19
+Rovella Nicolo,C,Lazio,19
+Tiago Gabriel Coelho Oliveira,D,Lecce,10
+Tomori Fikayo,D,Milan,19
+Valdepenas Víctor Talavera,D,Fiorentina,11
+Ahanor Honest,C,Atalanta,4
+Bellanova Raoul,C,Atalanta,17
+Bernasconi Lorenzo,C,Atalanta,7
+Beukema Sam,D,Napoli,20
+Borrelli Gennaro,A,Cagliari,8
+Comuzzo Pietro,D,Torino,6
+Coulibaly Lassana,C,Lecce,20
+Dany Mota,A,Monza,9
+Dele-Bashiru Fisayo,C,Lazio,14
+Diouf Andy,C,Inter,21
+Gallo Antonino,D,Lecce,8
+Gineitis Gvidas,C,Torino,15
+Heggem Torbjørn,D,Bologna,5
+Holm Emil,D,Bologna,17
+Idzes Jay,D,Sassuolo,7
+Ismajli Ardian,D,Torino,16
+Loftus-Cheek Ruben,C,Milan,16
+Lucca Lorenzo,A,Napoli,19
+Luis Henrique de Lima,C,Inter,22
+Martin Aaron,C,Genoa,19
+Morata Alvaro,A,Como,32
+Moro Nikola,C,Bologna,14
+Muric Arijanet,P,Sassuolo,5
+Nzola M&#039;Bala,A,Fiorentina,22
+Pavard Benjamin,D,Inter,14
+Piotrowski Jakub,C,Udinese,8
+Rensch Devyne,D,Roma,7
+Stankovic Filip,P,Venezia,7
+Vojvoda Mergim,D,Udinese,8
+Zortea Nadir,C,Bologna,8
+Akinsanmiro Ebenezer,C,Monza,1
+Bella-Kotchap Armel,D,Venezia,3
+Berisha Medon,C,Lecce,13
+Camarda Francesco,A,Milan,6
+Cataldi Danilo,C,Lazio,21
+Cheddira Walid,A,Napoli,31
+Dominguez Benjamín,A,Sassuolo,6
+Fabbian Giovanni,C,Fiorentina,21
+Ilkhan Emirhan,C,Torino,11
+Kabasele Christian,D,Udinese,20
+Kelly Lloyd,D,Juventus,6
+Kulenovic Sandro,A,Torino,18
+Njie Alieu,A,Torino,4
+Obert Adam,D,Cagliari,6
+Olivera Mathías,C,Napoli,16
+Pedersen Marcus,C,Torino,6
+Sohm Simon,C,Venezia,21
+Viery Viery,D,Fiorentina,5
+Walukiewicz Sebastian,D,Sassuolo,7
+Zerbin Alessio,C,Frosinone,6
+Adzic Vasilije,C,Sassuolo,10
+Amorim Alex,C,Genoa,2
+Bakola Darryl,C,Sassuolo,1
+Bondo Warren,C,Milan,16
+Brescianini Marco,C,Fiorentina,23
+Cacciamani Alessio,C,Torino,6
+Douglas Luiz,C,Juventus,4
+Ekhator Jeff,A,Juventus,22
+El Aynaoui Neil,C,Roma,18
+Fadera Alieu,C,Como,7
+Folorunsho Michael,C,Napoli,17
+Ghilardi Daniele,D,Roma,13
+Gilmour Billy,C,Napoli,5
+Kaiki Bruno Da Silva,D,Como,6
+Kamara Hassane,C,Udinese,7
+Kossounou Odilon,D,Atalanta,7
+Kuhn Nicolas,A,Como,21
+Milinkovic Vanja,P,Napoli,6
+Miretti Fabio,C,Juventus,18
+Monterisi Ilario,D,Frosinone,6
+Parisi Fabiano,C,Fiorentina,15
+Pongracic Marin,D,Fiorentina,16
+Prati Matteo,C,Cagliari,15
+Ranieri Luca,D,Fiorentina,18
+Ricci Samuele,C,Milan,26
+Sorensen Oliver,C,Parma,8
+Sottil Riccardo,A,Fiorentina,18
+Sulemana Ibrahim,C,Atalanta,4
+Valenti Lautaro,D,Parma,5
+Veiga Danilo de Melo,D,Lecce,4
+Vitik Martin,D,Bologna,15
+Zappa Gabriele,C,Cagliari,17
+Ze Pedro da Silva Figueiredo Freitas,D,Cagliari,2
+Asllani Kristjan,C,Inter,1
+Bertola Nicolo,D,Udinese,12
+Birindelli Samuele,C,Monza,5
+Britschgi Sascha,D,Parma,7
+De Winter Koni,D,Milan,19
+Elphege Nesta,A,Parma,1
+Gatti Federico,D,Juventus,20
+Joao Mario Neto Lopes,C,Fiorentina,16
+Kolasinac Sead,D,Atalanta,15
+Lovric Sandi,C,Udinese,15
+Mazzitelli Luca,C,Como,7
+Messias Junior,C,Genoa,25
+Miller Lennon,C,Udinese,6
+N’dri Konan,A,Lecce,12
+Provstgaard Oliver,D,Lazio,2
+Siebert Jamil,D,Lecce,6
+Terracciano Filippo,C,Milan,15
+Venturino Lorenzo,C,Genoa,1
+Aboukhlal Zakaria,A,Torino,1
+Boloca Daniel,C,Sassuolo,1
+Buksa Adam,A,Udinese,17
+Cande Fali,D,Sassuolo,1
+Dossena Alberto,D,Como,2
+Estupinan Pervis,D,Milan,16
+Fortini Niccolo,C,Fiorentina,2
+Lazzari Manuel,D,Lazio,6
+Lipani Luca,C,Sassuolo,6
+Masini Patrizio,C,Frosinone,14
+Motta Edoardo,P,Lazio,3
+Pellegrini Luca,D,Lazio,6
+Rodriguez Juan,D,Cagliari,1
+Toure El Bilal,A,Parma,7
+Troilo Mariano,D,Parma,10
+Vaz Robinio,A,Roma,18
+Zanoli Alessandro,C,Udinese,5
+Anjorin Tino,C,Torino,5
+Biraghi Cristiano,C,Torino,5
+Cabal Juan,C,Juventus,2
+Casale Nicolò,D,Bologna,5
+Floriani Mussolini Romano,C,Lazio,1
+Idrissi Riyad,C,Cagliari,5
+Ilic Ivan,C,Torino,19
+Marianucci Luca,D,Napoli,4
+Mendy Paul,A,Cagliari,1
+Patric,D,Lazio,6
+Perin Mattia,P,Juventus,4
+Van Der Brempt Ignace,D,Como,6
+Bayo Vakoun,A,Udinese,7
+Cremaschi Benjamín,C,Parma,1
+Gigot Samuel,D,Lazio,7
+Goldaniga Edoardo,D,Como,1
+Otoa Sebastian,D,Genoa,1
+Provedel Ivan,P,Inter,4
+Fofana Sadik,C,Lecce,3
+Mlacic Branimir,D,Udinese,1
+Montipo&#039; Lorenzo,P,Venezia,15
+Rugani Daniele,D,Juventus,3
+Audero Emil,P,Como,23
+Christensen Oliver,P,Fiorentina,1
+Contini Nikita,P,Napoli,1
+Di Gennaro Raffaele,P,Inter,1
+Furlanetto Alessio,P,Lazio,1
+Israel Franco,P,Torino,9
+Lezzerini Luca,P,Fiorentina,1
+Pessina Massimo,P,Bologna,1
+Pinsoglio Carlo,P,Juventus,1
+Przyborek Adrian,C,Lazio,4
+Rossi Francesco,P,Atalanta,1
+Tornqvist Noel,P,Como,1
+Torriani Lorenzo,P,Milan,1
+Trepy Yael,A,Cagliari,1
+Turati Stefano,P,Sassuolo,11
+Vasquez Devis,P,Roma,1
+Vigorito Mauro,P,Como,1
+Ziolkowski Jan,D,Roma,6

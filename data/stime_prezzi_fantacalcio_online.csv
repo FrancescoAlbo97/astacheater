@@ -1,0 +1,665 @@
+Ruolo,Squadra,Cognome,Nome,Kap,Prezzo_8sq_350cr,Prezzo_10sq_350cr,Prezzo_8sq_500cr,Prezzo_10sq_500cr,MV,Presenze
+A,Inter,MARTINEZ,Lautaro,55,109.35,,,129.36,"6,41",30
+A,Roma,MALEN,Donyell,53,91.61,,,113.90,"6,72",18
+A,Napoli,HOJLUND,Rasmus,47,79.06,,,83.25,"6,21",33
+A,Inter,THURAM,Marcus,47,104.07,,,116.02,"6,43",29
+A,Milan,RAMOS,Goncalo Matias,46,101.01,,,102.37,,
+A,Juventus,KOLO MUANI,Randal,44,82.89,,,109.48,,
+A,Como,PAZ,Nico,43,72.41,,,87.75,"6,37",35
+A,Fiorentina,KEAN,Moise,41,80.85,,,84.44,"5,88",26
+C,Napoli,MCTOMINAY,Scott,38,57.31,,,68.94,"6,39",33
+A,Milan,PULISIC,Christian,38,48.44,,,62.45,"6,14",27
+C,Inter,CALHANOGLU,Hakan,36,35.04,,,68.81,"6,52",22
+A,Como,DOUVIKAS,Tasos,36,43.06,,,53.30,"6,18",36
+A,Juventus,YILDIZ,Kenan,36,62.90,,,52.47,"6,38",35
+A,Bologna,ORSOLINI,Riccardo,34,28.91,,,61.74,"6,05",34
+A,Atalanta,SCAMACCA,Gianluca,34,48.13,,,73.22,"6,18",22
+A,Udinese,DAVIS,Keinan,33,44.33,,,47.74,"6,31",30
+C,Como,BATURINA,Martin,31,31.24,,,40.67,"6,30",25
+A,Sassuolo,BERARDI,Domenico,31,24.16,,,28.62,"6,30",26
+C,Inter,DIMARCO,Federico,30,32.08,,,63.64,"6,60",35
+A,Atalanta,KRSTOVIC,Nikola,30,40.53,,,43.10,"6,15",32
+A,Milan,LEAO,Rafael,30,37.36,,,34.62,"5,87",28
+C,Milan,RABIOT,Adrien,30,24.80,,,33.92,"6,32",29
+C,Napoli,DE BRUYNE,Kevin,28,35.78,,,47.52,"6,26",17
+A,Atalanta,DE KETELAERE,Charles,28,35.04,,,32.27,"6,20",31
+A,Roma,DYBALA,Paulo,28,33.14,,,40.10,"6,26",21
+A,Torino,SIMEONE,Giovanni,28,34.61,,,31.35,"6,07",32
+A,Udinese,ZANIOLO,Nicolò,28,29.97,,,32.10,"6,25",31
+A,Roma,CASTRO,Santiago,27,31.24,,,31.27,"5,92",35
+A,Sassuolo,LAURIENTE,Armand,27,27.23,,,30.87,"6,22",37
+A,Sassuolo,PINAMONTI,Andrea,27,34.20,,,23.08,"5,88",34
+A,Lazio,ZACCAGNI,Mattia,27,29.76,,,33.65,"5,88",26
+C,Inter,BARELLA,Nicolò,26,23.00,,,34.62,"6,27",34
+C,Como,DA CUNHA,Lucas,26,37.99,,,37.67,"6,34",35
+A,Inter,ESPOSITO FP,Francesco Pio,26,28.28,,,33.87,"6,25",31
+C,Torino,VLASIC,Nikola,25,35.04,,,27.86,"6,02",37
+A,Bologna,DOVBYK,Artem,24,40.74,,,34.27,"6,00",13
+A,Fiorentina,GUDMUNDSSON,Albert,24,22.79,,,31.53,"5,87",32
+C,Juventus,MCKENNIE,Weston,24,21.21,,,29.98,"6,13",34
+C,Fiorentina,ATTA,Arthur,23,29.55,,,30.47,"6,35",32
+C,Fiorentina,MASTANTUONO,Franco,23,20.12,,,43.63,,
+A,Roma,MORA CARVALHO,Rodrigo,23,,,,,,
+A,Milan,NKUNKU,Christopher,23,36.46,43.03,40.42,55.85,"5,94",26
+A,Atalanta,RASPADORI,Giacomo,23,21.95,,,43.90,"6,11",13
+A,Roma,SOULE,Matias,23,25.75,,,28.09,"6,12",32
+A,Cagliari,ESPOSITO S,Sebastiano,22,,,,24.38,"6,26",36
+P,Roma,SVILAR,Mile,22,26.70,,,39.70,"6,26",38
+D,Inter,AKANJI,Manuel,21,19.73,,,24.24,"6,28",32
+D,Inter,BASTONI,Alessandro,21,22.80,,,31.13,"6,19",28
+D,Juventus,BREMER,Gleison,21,21.74,,,27.91,"6,32",26
+C,Juventus,CONCEICAO,Fernandes Francisco,21,17.94,,,21.24,"6,28",30
+A,Como,DIAO,Assane,21,22.58,,,24.24,"6,00",16
+C,Atalanta,EDERSON,-,21,19.94,,,26.89,"6,25",30
+C,Milan,MODRIC,Luka,21,21.10,,,27.64,"6,45",33
+C,Roma,MOLINA,Nahuel,21,23.64,,,29.01,,
+A,Como,RODRIGUEZ,Jesús,21,18.82,20.14,20.58,24.43,"6,25",28
+A,Bologna,ROWE,Jonathan,21,28.28,,,37.86,"6,19",28
+C,Roma,WESLEY,França Lima,21,18.68,,,30.87,"6,11",30
+A,Juventus,ALAJBEGOVIC,Kerim-Sam,20,17.44,,,59.05,,
+P,Atalanta,CARNESECCHI,Marco,20,21.42,,,38.63,"6,36",37
+A,Genoa,COLOMBO,Lorenzo,20,20.68,,,24.38,"5,91",37
+C,Roma,KONE,Manu,20,25.75,,,25.44,"6,25",29
+P,Milan,MAIGNAN,Mike,20,18.68,,,27.42,"6,25",37
+D,Roma,MANCINI,Gianluca,20,22.79,,,30.87,"6,25",36
+P,Inter,MARTINEZ,Josep,20,27.54,,,24.55,"6,00",5
+D,Milan,PAVLOVIC,Strahinja,20,24.48,,,24.99,"6,23",34
+C,Roma,PELLEGRINI,Lorenzo,20,23.21,,,,"6,04",24
+A,Napoli,POLITANO,Matteo,20,20.05,,,22.96,"6,09",33
+C,Lazio,TAYLOR,Kenneth,20,23.21,,,17.78,"6,06",16
+C,Napoli,ANGUISSA,André Zambo,19,26.49,,,,"6,16",18
+P,Como,BUTEZ,Jean,19,20.26,,,27.25,"6,06",38
+C,Milan,DA SILVA MOREIRA,Diego Manuel Jadon,19,,,,,,
+D,Napoli,DI LORENZO,Giovanni,19,24.06,,,25.39,"6,07",26
+A,Estero,LUKAKU,Romelu,19,31.48,41.08,30.17,44.67,"7,00",1
+D,Napoli,RRAHMANI,Amir,19,24.06,,,19.30,"6,23",21
+C,Atalanta,SAMARDZIC,Lazar,19,14.77,,,24.60,"5,92",21
+P,Juventus,VICARIO,Guglielmo,19,,,,37.39,,
+A,Juventus,DAVID,Jonathan,18,73.50,88.69,65.67,94.73,"5,76",30
+D,Juventus,KALULU,Pierre,18,22.80,,,21.20,"6,13",37
+D,Roma,NDICKA,Evan,18,22.80,,,24.38,"6,08",31
+D,Udinese,SOLET,Oumar,18,16.67,,,21.90,"6,17",34
+C,Inter,SPENCE,Djed,18,,,,30.87,,
+C,Juventus,THURAM,Khéphren,18,20.90,,,17.31,"6,10",34
+C,Inter,ZIELINSKI,Piotr,18,26.60,,,21.46,"6,25",30
+C,Genoa,BALDANZI,Tommaso,17,25.75,,,17.26,"6,14",17
+D,Inter,BISSECK,Yann Aurel,17,21.53,,,21.46,"6,21",23
+C,Torino,CASADEI,Cesare,17,,,,18.15,"5,96",32
+C,Como,PERRONE,Maximo,17,19.73,,,21.55,"6,22",36
+C,Milan,SAELEMAEKERS,Alexis,17,21.53,,,17.90,"6,14",35
+D,Inter,STONES,John,17,19.20,,,18.85,,
+C,Sassuolo,THORSTVEDT,Kristian,17,19.73,,,18.59,"6,14",31
+A,Torino,ADAMS,Che,16,23.90,34.22,22.61,30.35,"5,98",32
+A,Sassuolo,BOWIE,Kieron,16,,,,16.01,"5,96",14
+P,Fiorentina,DE GEA,David,16,18.15,,,26.19,"6,24",37
+C,Atalanta,PASALIC,Mario,16,18.01,,,18.37,"5,93",31
+A,Bologna,PICCOLI,Roberto,16,18.57,,,20.40,"5,77",27
+D,Atalanta,SCALVINI,Giorgio,16,18.15,,,15.76,"6,06",24
+C,Inter,SUCIC,Petar,16,18.01,,,24.82,"6,07",28
+A,Genoa,VITINHA,-,16,20.26,,,16.31,"5,95",31
+A,Torino,ZAPATA,Duvan,16,,,,20.14,"5,82",23
+A,Lecce,BANDA,Lameck,15,,22.68,18.29,26.17,"6,07",32
+A,Inter,BONNY,Ange-Yoan,15,19.84,,,16.78,"6,14",27
+C,Juventus,CAMBIASO,Andrea,15,17.31,,,16.07,"5,80",36
+A,Monza,CUTRONE,Patrick,15,16.36,,,15.01,"5,71",14
+C,Udinese,EKKELENKAMP,Jurgen,15,16.14,,,19.61,"6,04",31
+C,Fiorentina,FAGIOLI,Nicolo,15,,,,19.13,"6,03",33
+D,Milan,GILA,Mario,15,19.00,,,17.31,"6,03",31
+A,Lazio,ISAKSEN,Gustav,15,19.00,,,16.25,"6,03",27
+A,Cagliari,KEVIN CARLOS,Omoruyi Benjamin,15,,,,15.01,,
+C,Fiorentina,MANDRAGORA,Rolando,15,29.93,32.12,20.52,27.24,"6,04",34
+P,Napoli,MERET,Alex,15,17.20,,,37.36,"6,22",11
+A,Bologna,ODGAARD,Jens,15,18.13,22.11,20.14,23.56,"5,90",22
+D,Genoa,OSTIGARD,Leo,15,19.00,,,22.65,"6,13",30
+A,Fiorentina,PELLEGRINO,Mateo,15,24.06,,,29.28,"5,98",37
+D,Como,RAMON,Jacobo,15,17.41,,,19.47,"6,15",32
+A,Lazio,RATKOV,Petar,15,21.07,26.60,17.17,39.96,"5,66",6
+A,Lecce,STULIC,Nikola,15,,26.02,19.17,22.10,"5,73",30
+A,Venezia,YEBOAH,John,15,19.00,,,16.29,,
+A,Venezia,ADAMS,Akor Jerome,14,18.15,,,14.22,,
+C,Parma,BERNABE,Adrian,14,,,,16.25,"6,17",32
+A,Bologna,BERNARDESCHI,Federico,14,16.04,,,14.01,"6,04",24
+A,Bologna,CAMBIAGHI,Nicolo,14,23.51,29.17,22.36,29.82,"5,97",24
+A,Lazio,CANCELLIERI,Matteo,14,17.99,23.44,26.71,28.21,"5,92",28
+C,Roma,CRISTANTE,Bryan,14,17.73,,,22.26,"6,10",37
+C,Bologna,FERGUSON,Lewis,14,18.03,18.16,18.32,21.80,"5,80",23
+A,Frosinone,GHEDJEMIS,Fares,14,15.76,,,14.72,,
+C,Sassuolo,KONE,Ismaël,14,26.22,27.37,22.05,29.26,"6,18",35
+C,Napoli,LOBOTKA,Stanislav,14,21.53,,,,"6,04",31
+C,Juventus,LOCATELLI,Manuel,14,17.73,,,14.36,"6,26",36
+A,Napoli,NERES,David Campos,14,16.46,,,,"6,18",16
+A,Napoli,SANTOS,Alisson,14,19.10,,,26.89,"6,34",13
+C,Frosinone,SCHMID,Romano,14,,,,,,
+P,Bologna,SKORUPSKI,Lukasz,14,16.25,,,27.60,"6,19",18
+C,Genoa,SOW,Djibril,14,,,,,,
+A,Juventus,BOGA,Jeremie,13,,,,13.01,"6,19",13
+C,Como,CAQUERET,Maxence,13,20.08,21.21,21.72,22.23,"6,10",28
+D,Como,CHALOBAH,Trevoh,13,13.78,,,14.53,,
+C,Monza,COLPANI,Andrea,13,15.08,,,,,
+A,Estero,DALLINGA,Thijs,13,14.58,17.22,13.47,18.13,"5,81",19
+A,Lazio,DIA,Boulaye,13,24.74,30.11,38.43,39.05,"5,68",25
+C,Fiorentina,DODO,-,13,16.46,,,,"5,98",36
+C,Atalanta,GAETANO,Gianluca,13,15.08,,,16.96,"6,06",32
+A,Lecce,GEUBBELS,Willem,13,14.63,,,,,
+D,Roma,HERMOSO,Mario,13,16.46,,,13.01,"6,16",27
+D,Atalanta,HIEN,Isak,13,,,,13.78,"5,91",28
+C,Fiorentina,NDOUR,Cher,13,,16.73,16.32,19.42,"5,80",30
+A,Frosinone,RAIMONDO,Antonio,13,,,,14.42,,
+A,Parma,ROMERO,José David,13,,,,14.75,,
+C,Udinese,UNAI GOMEZ,Etxebarria,13,16.46,,,12.54,,
+D,Genoa,VASQUEZ,Johan,13,15.08,,,13.73,"6,08",36
+C,Atalanta,ZAPPACOSTA,Davide,13,15.19,,,16.34,"6,05",35
+D,Milan,BARTESAGHI,Davide,12,13.93,,,14.04,"5,96",31
+D,Napoli,BUONGIORNO,Alessandro,12,13.93,,,12.72,"5,89",32
+C,Frosinone,CALO,Giacomo,12,,,,13.25,,
+P,Cagliari,CAPRILE,Elia,12,13.93,,,14.31,"6,28",38
+P,Juventus,DI GREGORIO,Michele,12,,,,15.37,"6,08",30
+D,Fiorentina,DRAGUSIN,Radu,12,13.29,,,14.57,,
+P,Lecce,FALCONE,Wladimiro,12,,,,12.01,"6,40",38
+C,Genoa,FRENDRUP,Morten,12,22.84,28.37,17.97,24.07,"5,95",36
+D,Milan,GABBIA,Matteo,12,15.20,,,,"5,91",29
+D,Fiorentina,JIMENEZ,Alex,12,13.93,,,13.25,"5,50",1
+D,Como,KEMPF,Marc,12,,,,12.89,"6,12",29
+D,Bologna,MIRANDA,Juan,12,,,,13.07,"6,00",31
+C,Inter,MKHITARYAN,Henrikh,12,27.08,33.19,23.20,28.12,"6,21",28
+A,Lazio,NOSLIN,Tijjani,12,,18.00,,19.96,"6,02",23
+P,Udinese,OKOYE,Maduka,12,13.93,,,14.75,"6,06",30
+A,Torino,ORISTANIO,Gaetano Pio,12,16.27,31.75,14.36,17.60,"5,77",18
+C,Monza,PESSINA,Matteo,12,,,,,,
+A,Lecce,PIEROTTI,Santiago,12,,20.93,17.65,22.10,"5,79",37
+C,Napoli,SPINAZZOLA,Leonardo,12,13.72,,,14.31,"6,16",30
+A,Atalanta,SULEMANA,Kamaldeen,12,16.87,23.01,17.11,20.77,"6,00",21
+D,Parma,VALERI,Emanuele,12,13.51,,,12.01,"6,05",34
+C,Napoli,VERGARA,Antonio,12,15.20,,,12.01,"6,25",8
+C,Sassuolo,VOLPATO,Cristian,12,,17.20,,7.26,"6,14",21
+C,Atalanta,ZALEWSKI,Nicola,12,20.30,22.16,18.05,22.36,"6,09",31
+P,Genoa,BIJLOW,Justin,11,13.93,,,,"6,06",16
+C,Venezia,BUSIO,Gianluca,11,,,,15.37,,
+C,Milan,CHUKWUEZE,Samuel,11,12.76,,,14.48,"5,50",1
+D,Lazio,DOEKHI,Danilho,11,12.76,,,12.76,,
+C,Cagliari,FAZZINI,Jacopo,11,11.49,12.77,,5.83,"5,87",12
+C,Lazio,FRATTESI,Davide,11,12.38,,,13.78,"5,89",14
+A,Milan,GIMENEZ,Santiago,11,36.15,42.73,27.01,39.80,"5,50",15
+C,Udinese,KARLSTROM,Jesper,11,18.46,20.10,15.11,20.24,"5,95",36
+D,Juventus,LUCUMI,Jhon,11,13.93,,,11.66,"5,87",28
+D,Cagliari,MINA,Yerry,11,,,,14.19,"6,00",26
+C,Bologna,POBEGA,Tommaso,11,15.26,18.58,12.07,22.47,"5,82",23
+A,Venezia,RRAHMANI,Albion,11,,,,,,
+P,Estero,SUZUKI,Zion,11,,,,15.81,"6,02",20
+D,Como,VALLE,Álex,11,,,,11.17,"6,05",26
+C,Juventus,ZHEGROVA,Edon,11,12.38,,,,"5,95",12
+A,Como,ADDAI,Jayden,10,11.95,13.07,14.65,15.83,"5,95",12
+C,Cagliari,ADOPO,Ndary,10,16.29,17.58,,7.95,"5,82",38
+A,Venezia,ADORANTE,Andrea,10,,,,,,
+C,Venezia,BASIC,Toma,10,13.97,15.74,10.24,13.99,"6,08",23
+C,Inter,CARLOS AUGUSTO,-,10,,,,15.19,"6,12",28
+D,Juventus,CELIK,Zeki,10,11.60,,,,"6,17",32
+D,Torino,COCO,Saul,10,17.47,18.97,16.25,20.40,"5,84",35
+D,Como,COUTO,Yan Bueno,10,11.25,,,14.22,,
+C,Atalanta,DE ROON,Marten,10,21.57,21.87,19.98,24.57,"5,97",34
+D,Parma,DEL PRATO,Enrico,10,12.66,,,10.86,"5,91",35
+C,Genoa,ELLERTSSON,Mikael,10,,16.06,,7.97,"5,84",35
+C,Milan,FOFANA,Youssouf,10,19.89,21.69,15.41,23.37,"5,84",33
+C,Lecce,GANDELMAN,Omri,10,,17.79,14.88,19.11,"5,96",16
+A,Napoli,GIOVANE,Santana do Nascimento,10,13.74,13.92,16.79,18.44,"6,00",31
+C,Parma,KEITA,Mandela,10,18.23,20.22,16.47,20.78,"6,01",36
+C,Juventus,KOOPMEINERS,Teun,10,22.31,25.80,21.29,26.78,"5,63",29
+D,Roma,KOULIERAKIS,Konstantinos,10,12.66,,,11.77,,
+C,Como,LIBERALI,Mattia,10,11.25,,,10.42,,
+A,Cagliari,MALDINI,Daniel,10,12.66,,,10.95,"5,94",18
+P,Lazio,MANDAS,Christos,10,11.60,,,10.01,,
+D,Lazio,MARUSIC,Adam,10,11.25,,,,"5,86",33
+C,Sassuolo,MATIC,Nemanja,10,22.84,24.78,16.24,18.97,"5,95",34
+C,Parma,NICOLUSSI CAVIGLIA,Hans,10,16.58,18.78,16.01,19.99,"5,89",23
+C,Genoa,NORTON-CUFFY,Brooke,10,12.66,,,10.01,"5,92",27
+C,Fiorentina,OULAI,Christ Ravynel Inao,10,12.66,,,,,
+C,Venezia,PEREZ,Kike,10,,,,,,
+C,Roma,PISILLI,Niccolo,10,11.25,,,10.64,"6,09",22
+D,Lazio,ROMAGNOLI,Alessio,10,16.89,18.89,14.45,19.03,"6,03",32
+C,Lazio,ROVELLA,Nicolo,10,12.82,15.94,16.78,18.71,"5,72",11
+D,Lecce,TIAGO GABRIEL,Coelho Oliveira,10,11.15,,,10.01,"6,00",36
+D,Milan,TOMORI,Fikayo,10,15.11,16.28,15.56,19.04,"5,96",32
+C,Genoa,TRAORE,Hamed Junior,10,,,,,,
+D,Fiorentina,VALDEPENAS,Víctor Talavera,10,11.25,,,11.13,,
+C,Cagliari,WINKS,Harry,10,,,,,,
+C,Atalanta,AHANOR,Honest,9,1.54,2.37,4.84,3.50,"5,78",21
+C,Atalanta,BELLANOVA,Raoul,9,,,,17.18,"5,81",22
+C,Atalanta,BERNASCONI,Lorenzo,9,2.74,,,6.84,"6,09",22
+D,Napoli,BEUKEMA,Sam,9,19.15,19.28,15.59,19.74,"5,93",22
+A,Cagliari,BORRELLI,Gennaro,9,16.51,20.32,,7.55,"5,92",26
+D,Torino,COMUZZO,Pietro,9,,,,5.52,"5,75",24
+C,Lecce,COULIBALY,Lassana,9,19.13,21.19,16.00,20.43,"6,04",33
+A,Monza,DANY MOTA,-,9,,,,9.36,,
+C,Lazio,DELE-BASHIRU,Fisayo,9,,13.23,,14.31,"5,69",21
+C,Inter,DIOUF,Andy,9,5.27,,,20.89,"6,15",10
+D,Estero,DJIMSITI,Berat,9,17.55,18.58,15.33,19.35,"5,86",33
+C,Cagliari,FELICI,Mattia,9,,,,,"6,04",11
+D,Lecce,GALLO,Antonino,9,1.15,,,7.77,"5,94",37
+C,Torino,GINEITIS,Gvidas,9,,,,14.84,"5,87",27
+C,Estero,GUTIERREZ,Miguel,9,17.13,20.04,16.73,19.75,"5,97",21
+A,Genoa,HAVEL,Elias,9,,,,,,
+D,Bologna,HEGGEM,Torbjørn,9,,,,5.47,"5,84",25
+D,Bologna,HOLM,Emil,9,15.32,18.92,13.41,16.58,"6,09",16
+D,Sassuolo,IDZES,Jay,9,,,,6.65,"5,94",35
+D,Torino,ISMAJLI,Ardian,9,16.25,20.10,13.38,16.47,"5,91",24
+C,Milan,JASHARI,Ardon,9,2.00,,,,"5,70",12
+C,Atalanta,KRISTENSEN,Thomas,9,3.37,,,,"5,98",28
+A,Frosinone,KVERNADZE,Giorgi,9,1.68,,,,,
+C,Milan,LOFTUS-CHEEK,Ruben,9,,,,15.84,"6,09",21
+A,Napoli,LUCCA,Lorenzo,9,,,,19.03,"5,72",9
+C,Inter,LUIS HENRIQUE,de Lima,9,17.87,19.64,18.68,22.34,"5,88",27
+D,Genoa,MARCANDALLI,Alessandro,9,1.15,,,,"5,87",31
+C,Genoa,MARTIN,Aaron,9,16.69,18.59,14.46,18.91,"5,96",29
+C,Como,MILLA,Luis Manzanares,9,,,,,,
+A,Como,MORATA,Alvaro,9,19.11,27.10,22.45,31.93,"5,50",17
+C,Bologna,MORO,Nikola,9,,,,14.31,"5,92",28
+P,Sassuolo,MURIC,Arijanet,9,1.12,,,5.24,"6,07",32
+D,Lazio,NUNO TAVARES,-,9,1.96,,,,"5,90",22
+A,Fiorentina,NZOLA,M&#039;Bala,9,18.15,21.10,17.23,22.38,"5,96",27
+D,Sassuolo,OBRADOR,Rafa,9,,15.20,13.07,,"6,06",16
+A,Estero,ONDREJKA,Jacob,9,16.21,26.95,,11.98,"5,70",15
+D,Inter,PAVARD,Benjamin,9,,,,13.78,"6,50",1
+D,Lazio,PEDRAZA,Alfonso Sag,9,2.52,,,,,
+C,Udinese,PIOTROWSKI,Jakub,9,,16.77,,7.95,"5,88",30
+D,Roma,RENSCH,Devyne,9,15.33,16.46,,6.99,"6,15",19
+A,Monza,ROBINSON,Jay,9,,,,,,
+P,Venezia,STANKOVIC,Filip,9,,,,7.42,,
+D,Udinese,VOJVODA,Mergim,9,5.06,,,8.03,"6,01",27
+C,Bologna,ZORTEA,Nadir,9,,,,7.83,"5,85",28
+C,Monza,AKINSANMIRO,Ebenezer,8,,4.43,,0.53,"5,80",23
+D,Venezia,BELLA-KOTCHAP,Armel,8,,1.21,5.30,3.43,"5,83",18
+C,Lecce,BERISHA,Medon,8,13.77,13.92,11.58,13.45,"6,16",12
+A,Milan,CAMARDA,Francesco,8,,,,6.24,"5,66",18
+C,Lazio,CATALDI,Danilo,8,18.12,20.61,16.25,20.72,"6,07",27
+A,Napoli,CHEDDIRA,Walid,8,,19.42,17.14,31.13,"5,81",24
+D,Estero,CIRCATI,Alessandro,8,13.85,14.03,12.89,15.49,"5,91",31
+A,Sassuolo,DOMINGUEZ,Benjamín,8,,15.20,,6.07,"5,83",12
+C,Fiorentina,FABBIAN,Giovanni,8,19.52,24.17,17.15,21.45,"5,79",22
+C,Napoli,FAVASULI,Costantino,8,,,,,,
+A,Parma,FRIGAN,Matija,8,,,,,,
+C,Frosinone,GRILLITSCH,Florian,8,,,,,,
+C,Torino,ILKHAN,Emirhan,8,,,,10.60,"5,82",17
+D,Udinese,KABASELE,Christian,8,19.29,23.89,16.01,19.69,"5,98",28
+D,Juventus,KELLY,Lloyd,8,1.96,,,6.24,"6,01",35
+C,Frosinone,KOUTSOUPIAS,Ilias,8,,,,,,
+A,Torino,KULENOVIC,Sandro,8,,13.93,16.25,17.50,"5,71",7
+C,Genoa,MEICHTRY,Franz-Ethan,8,,,,,,
+A,Torino,NJIE,Alieu,8,,1.17,,3.71,"5,80",10
+D,Cagliari,OBERT,Adam,8,13.44,13.88,,6.00,"5,88",34
+C,Napoli,OLIVERA,Mathías,8,14.04,17.51,12.89,16.14,"5,75",22
+C,Estero,PAYERO,Martin,8,,12.66,,5.30,"5,90",25
+C,Torino,PEDERSEN,Marcus,8,,12.90,,6.36,"5,83",28
+C,Venezia,SOHM,Simon,8,14.61,16.97,16.34,21.41,"5,64",24
+D,Fiorentina,VIERY,Viery,8,,,,4.77,,
+D,Sassuolo,WALUKIEWICZ,Sebastian,8,17.15,21.18,,6.91,"5,80",34
+C,Frosinone,ZERBIN,Alessio,8,13.11,15.39,,6.25,"5,75",29
+C,Sassuolo,ADZIC,Vasilije,7,4.53,,,10.42,"6,12",4
+A,Parma,ALMQVIST,Pontus,7,,1.11,,,"5,94",9
+C,Bologna,AMONDARAIN,Mikel Jesus,7,,,,,,
+C,Genoa,AMORIM,Alex,7,,,,2.42,"5,72",9
+C,Sassuolo,BAKOLA,Darryl,7,,,,1.06,"6,16",3
+C,Milan,BONDO,Warren,7,,12.66,,15.90,"5,85",27
+D,Frosinone,BRACAGLIA,Gabriele,7,,,,,,
+C,Fiorentina,BRESCIANINI,Marco,7,15.03,19.86,20.05,23.46,"5,97",18
+C,Torino,CACCIAMANI,Alessio,7,,,,5.78,,
+C,Frosinone,CICHELLA,Matteo,7,,,,,,
+D,Venezia,CORREIA,Thierry Rendall,7,,,,,,
+D,Sassuolo,DOIG,Josh,7,1.96,,,,"5,85",27
+C,Juventus,DOUGLAS LUIZ,-,7,4.11,,,4.41,,
+A,Juventus,EKHATOR,Jeff,7,,17.73,27.97,21.73,"5,96",25
+C,Roma,EL AYNAOUI,Neil,7,15.78,19.67,14.34,18.08,"5,97",21
+C,Como,FADERA,Alieu,7,,18.43,,6.98,"5,91",24
+C,Torino,FITZ-JIM,Kian,7,,,,,,
+C,Napoli,FOLORUNSHO,Michael,7,15.50,15.61,13.41,17.11,"6,03",26
+D,Lecce,GASPAR,Kialonda,7,1.12,,,,"5,83",21
+D,Roma,GHILARDI,Daniele,7,11.96,12.54,10.30,13.20,"5,97",21
+C,Napoli,GILMOUR,Billy,7,,10.83,,5.30,"6,07",13
+A,Juventus,GONZALEZ,Nicolas,7,,,,,,
+A,Udinese,GUEYE,Idrissa,7,,,,,"5,75",12
+D,Como,KAIKI,Bruno Da Silva,7,6.33,,,6.00,,
+C,Udinese,KAMARA,Hassane,7,,15.28,,6.80,"5,88",26
+D,Atalanta,KOSSOUNOU,Odilon,7,13.81,15.31,,7.19,"5,93",16
+A,Como,KUHN,Nicolas,7,18.91,18.97,,20.58,"5,96",14
+A,Napoli,LANG,Noa,7,,30.40,,,"6,03",14
+C,Monza,MANGAS,Ricardo Luís Chaby,7,,,,,,
+P,Napoli,MILINKOVIC,Vanja,7,5.69,,,6.36,"6,20",27
+C,Juventus,MIRETTI,Fabio,7,13.05,16.04,16.73,17.86,"5,96",15
+D,Frosinone,MONTERISI,Ilario,7,1.12,,,5.59,,
+A,Cagliari,MUTANDWA,Kingstone,7,,,,,,
+C,Lecce,NGOM,Oumar,7,,,,,"5,69",13
+A,Napoli,NGONGE,Cyril,7,,,,,"5,82",17
+C,Fiorentina,PARISI,Fabiano,7,13.89,14.44,13.07,14.55,"6,02",23
+D,Fiorentina,PONGRACIC,Marin,7,14.25,14.82,12.09,15.65,"5,84",35
+C,Cagliari,PRATI,Matteo,7,,14.80,,14.84,"5,87",32
+D,Fiorentina,RANIERI,Luca,7,16.95,17.81,14.38,18.45,"5,85",31
+C,Milan,RICCI,Samuele,7,22.82,28.45,21.00,25.73,"6,00",28
+D,Como,SMOLCIC,Ivan,7,2.24,,,,"5,96",25
+C,Parma,SORENSEN,Oliver,7,,18.09,,7.95,"5,85",30
+A,Fiorentina,SOTTIL,Riccardo,7,13.67,16.88,14.08,17.97,"6,02",21
+C,Atalanta,SULEMANA,Ibrahim,7,,1.17,4.82,3.97,"5,69",18
+P,Monza,THIAM,Demba,7,,,,,,
+D,Parma,VALENTI,Lautaro,7,,10.95,,4.89,"5,96",27
+D,Lecce,VEIGA,Danilo de Melo,7,,2.89,4.14,4.06,"5,81",36
+D,Bologna,VITIK,Martin,7,11.95,14.31,10.15,14.57,"5,94",18
+C,Cagliari,ZAPPA,Gabriele,7,15.79,16.88,12.90,16.62,"5,90",25
+D,Cagliari,ZE PEDRO,da Silva Figueiredo Freitas,7,,1.26,,1.59,"5,77",22
+A,Estero,ALVAREZ,Agustin,6,,,,,,
+C,Inter,ASLLANI,Kristjan,6,,,,1.06,"5,57",14
+A,Monza,BALDE,Keita,6,,,,,,
+D,Udinese,BERTOLA,Nicolo,6,11.13,11.51,10.15,12.48,"5,86",25
+C,Monza,BIRINDELLI,Samuele,6,1.26,,,4.94,,
+D,Parma,BRITSCHGI,Sascha,6,,1.98,1.02,7.31,"5,75",28
+D,Monza,CARBONI,Andrea,6,,,,,,
+C,Monza,CIURRIA,Patrick,6,,,,,,
+C,Monza,COLOMBO,Leonardo,6,,,,,,
+D,Torino,COMERT,Eray Ervin,6,,,,,,
+D,Milan,DE WINTER,Koni,6,16.49,17.87,15.43,18.72,"5,75",24
+D,Monza,DELLI CARRI,Filippo,6,,,,,,
+A,Parma,ELPHEGE,Nesta,6,,,,1.06,"6,00",8
+D,Juventus,GATTI,Federico,6,18.66,22.65,15.41,19.78,"5,93",16
+C,Frosinone,GELLI,Francesco,6,,,,,,
+D,Venezia,HALHAL,Redouane,6,,,,,,
+C,Venezia,HAPS,Ridgeciano,6,,,,,,
+C,Fiorentina,JOAO MARIO,Neto Lopes,6,14.61,15.79,12.48,16.13,"5,78",14
+D,Cagliari,KOFLER,Raphael,6,,,,,,
+D,Atalanta,KOLASINAC,Sead,6,13.73,14.52,12.06,15.29,"6,02",17
+C,Udinese,LOVRIC,Sandi,6,11.36,13.83,12.49,14.77,"5,75",10
+C,Como,MAZZITELLI,Luca,6,15.25,15.86,,6.87,"6,07",14
+C,Genoa,MESSIAS,Junior,6,,23.75,21.96,25.03,"6,18",19
+C,Udinese,MILLER,Lennon,6,,13.93,,5.83,"5,92",19
+D,Venezia,MORENO,Matías,6,,,,,,
+A,Lecce,N’DRI,Konan,6,,,,11.66,"5,82",17
+P,Frosinone,PALMISANI,Lorenzo,6,,,,,,
+A,Monza,PEREIRA DE SOUSA,Gustavo Miguel,6,,,,,,
+A,Monza,PETAGNA,Andrea,6,,,,,,
+D,Lazio,PROVSTGAARD,Oliver,6,,1.16,,2.40,"5,91",23
+C,Cagliari,ROMANO,Alessandro,6,,,,,,
+D,Lecce,SIEBERT,Jamil,6,,13.41,,6.36,"5,68",19
+C,Inter,STANKOVIC,Aleksandar,6,,,,,,
+C,Milan,TERRACCIANO,Filippo,6,13.20,14.17,11.47,14.60,"5,85",35
+C,Genoa,VENTURINO,Lorenzo,6,,8.77,,0.53,"5,85",7
+A,Torino,ABOUKHLAL,Zakaria,5,,1.26,,0.50,"5,77",11
+C,Udinese,ARIZALA,Juan,5,,,,,"5,80",5
+D,Estero,ATHEKAME,Zachary,5,15.76,19.67,,6.57,"5,94",17
+C,Estero,BENNACER,Ismael,5,,,,,,
+C,Sassuolo,BOLOCA,Daniel,5,,2.53,,0.53,"5,75",2
+A,Udinese,BUKSA,Adam,5,,,,16.96,"5,88",21
+D,Frosinone,CALVANI,Gabriele,5,,,,,,
+D,Sassuolo,CANDE,Fali,5,,2.23,,0.53,"5,68",8
+C,Cagliari,DEIOLA,Alessandro,5,,,,,"5,97",20
+D,Como,DOSSENA,Alberto,5,4.31,5.13,,2.38,"5,81",11
+C,Venezia,DUNCAN,Alfred,5,,,,,,
+D,Milan,ESTUPINAN,Pervis,5,13.62,16.98,12.74,16.23,"5,64",14
+A,Frosinone,FINI,Seydou,5,,,,,,
+C,Fiorentina,FORTINI,Niccolo,5,,,,1.59,"5,95",12
+D,Venezia,HAINAUT,Antoine,5,,,,,,
+C,Frosinone,HASA,Luis,5,,,,,,
+C,Venezia,HELGASON,Thorir,5,,,,,"5,62",4
+A,Bologna,KARLSSON,Jesper,5,,,,,,
+D,Lazio,LAZZARI,Manuel,5,2.32,3.56,5.88,6.36,"5,81",16
+C,Sassuolo,LIPANI,Luca,5,,11.94,,5.83,"5,92",21
+D,Monza,LUCCHESI,Lorenzo,5,,,,,,
+C,Lecce,MALEH,Youssef,5,,,,,"5,69",21
+C,Frosinone,MASINI,Patrizio,5,,10.28,,14.13,"5,97",21
+D,Genoa,MITAJ,Mario,5,,,,,,
+P,Lazio,MOTTA,Edoardo,5,4.07,3.77,1.64,2.77,"6,00",9
+C,Milan,MUSAH,Yunus,5,11.56,,,,"5,93",16
+C,Parma,ORDONEZ,Christian,5,,,,,"5,78",21
+P,Torino,PALEARI,Alberto,5,1.12,,,,"6,08",29
+D,Lazio,PELLEGRINI,Luca,5,6.93,5.98,6.64,6.11,"5,85",24
+D,Estero,POSCH,Stefan,5,,,,,"6,06",8
+D,Cagliari,RODRIGUEZ,Juan,5,,,,1.06,"5,62",16
+C,Roma,SALAH-EDDINE,Anass,5,,,,,,
+D,Venezia,SCHINGTIENNE,Joël,5,,,,,,
+A,Parma,TOURE,El Bilal,5,,,,6.75,,
+D,Parma,TROILO,Mariano,5,,,,9.78,"5,78",21
+A,Roma,VAZ,Robinio,5,13.90,16.99,11.98,18.48,"5,92",7
+C,Udinese,ZANOLI,Alessandro,5,,13.93,,5.49,"6,05",19
+C,Estero,ZEMURA,Jordan,5,1.61,1.80,,2.12,"5,86",15
+D,Bologna,ALHASSANE,Abdel Rahim Bonkano,4,,,,,,
+C,Estero,ANGELINO,Jose,4,13.22,14.66,18.34,22.47,"5,83",6
+C,Torino,ANJORIN,Tino,4,,0.90,,5.30,"5,77",9
+C,Cagliari,AURELIO,Giuseppe,4,,,,,,
+D,Parma,BALOGH,Botond,4,,,,,,
+C,Torino,BIRAGHI,Cristiano,4,3.93,6.69,6.24,5.00,"5,59",11
+C,Juventus,CABAL,Juan,4,4.80,4.32,,1.58,"5,94",9
+D,Bologna,CASALE,Nicolò,4,2.17,3.80,,4.77,"5,65",10
+C,Udinese,CHAKVETADZE,Giorgi,4,,,,,,
+D,Frosinone,CITTADINI,Giorgio,4,,,,,,
+P,Parma,DAFFARA,Giovanni,4,,,,,,
+A,Parma,DIALLO THIAO,Ousmane,4,,,,,,
+D,Udinese,EBOSSE,Enzo,4,,0.90,,,"5,75",16
+C,Bologna,EL AZZOUZI,Oussama,4,,,,,,
+C,Lazio,FLORIANI MUSSOLINI,Romano,4,1.41,1.55,,0.70,"5,71",23
+C,Monza,FORSON,Omari,4,,,,,,
+D,Udinese,GOGLICHIDZE,Saba,4,,,,,"5,75",6
+D,Bologna,HELLAND,Eivind,4,,,,,"5,50",6
+C,Cagliari,IDRISSI,Riyad,4,,11.75,,5.30,"5,82",17
+C,Torino,ILIC,Ivan,4,,1.62,,19.08,"6,00",8
+A,Parma,LONTANI,Simone,4,,,,,,
+D,Napoli,MARIANUCCI,Luca,4,4.42,3.81,2.93,4.18,"5,72",11
+D,Napoli,MARIN,Rafa,4,,,,,,
+C,Inter,MASSOLIN,Yanis,4,,,,,,
+A,Cagliari,MENDY,Paul,4,,,,1.06,"6,00",5
+A,Juventus,MILIK,Arek,4,,1.13,,,"6,00",2
+D,Lazio,PATRIC,-,4,,4.52,,6.36,"5,85",10
+P,Juventus,PERIN,Mattia,4,1.15,,,4.47,"6,11",9
+D,Genoa,PUCZKA,David,4,,,,,,
+C,Genoa,SABELLI,Stefano,4,,,,,"5,80",13
+C,Venezia,SAGRADO,Richie,4,,,,,,
+D,Venezia,SVERKO,Marin,4,,,,,,
+D,Frosinone,TERZIC,Aleksa,4,,,,,,
+D,Estero,VALENTINI,Nicolas,4,,1.17,,0.53,"5,78",19
+D,Como,VAN DER BREMPT,Ignace,4,,1.78,,5.62,"5,96",14
+D,Frosinone,AKPOGUMA,Kevin,3,,,,,,
+D,Serie Minori,ALTARE,Giorgio,3,,,,,,
+A,Udinese,BAYO,Vakoun,3,,,,7.42,"5,75",12
+C,Lazio,BELAHYANE,Reda,3,,1.17,,,"5,77",11
+A,Estero,BENEDYCZAK,Adrian,3,,,,,"5,95",10
+C,Venezia,BOHINEN,Emil,3,,,,,,
+D,Estero,BRORSSON,Arvid,3,,,,,,
+C,Parma,CREMASCHI,Benjamín,3,,,,1.06,"6,00",1
+D,Estero,CUENCA CEJUDO,Andrés,3,,,,,,
+P,Frosinone,DESPLANCHES,Sebastiano,3,,,,,,
+D,Milan,DIAWARA,Sankhoun,3,,,,,,
+D,Venezia,FRANJIć,Bartol,3,,,,,,
+D,Frosinone,GELLI,Jacopo,3,,,,,,
+C,Sassuolo,GHION,Andrea,3,,,,,,
+D,Lazio,GIGOT,Samuel,3,,,,6.52,,
+D,Como,GOLDANIGA,Edoardo,3,,,,1.06,,
+D,Lecce,JEAN,Gaby,3,,,,,"5,80",5
+C,Frosinone,KONE,Ben Lhassine,3,,,,,,
+D,Monza,KOUADIO,Eddy,3,,,,,"6,00",2
+C,Napoli,MAZZOCCHI,Pasquale,3,,,,,"5,94",9
+A,Sassuolo,MORO,Luca,3,,,,,"5,58",6
+A,Serie Minori,MULATTIERI,Samuele,3,,,,,,
+D,Parma,NDIAYE,Abdoulaye,3,,1.08,,,"5,59",11
+D,Sassuolo,ODENTHAL,Cas,3,,,,,,
+D,Genoa,OTOA,Sebastian,3,,1.26,,0.53,"5,60",10
+D,Frosinone,OYONO,Anthony,3,,,,,,
+D,Udinese,PALMA,Matteo,3,,,,,"5,50",4
+P,Inter,PROVEDEL,Ivan,3,2.74,,,3.66,"6,25",27
+C,Udinese,ZARRAGA,Oier,3,,,,,"5,75",10
+A,Cagliari,ALBARRACIN,Agustin,2,,,,,"6,00",2
+D,Parma,AMORAN,Peter,2,,,,,,
+D,Monza,ANTOV,Valentin,2,,,,,,
+A,Como,AZON,Ivan,2,,,,,,
+C,Atalanta,BAKKER,Mitchel,2,,,,,,
+C,Monza,BAKOUNE,Adam,2,,,,,,
+D,Estero,BONFANTI,Giovanni,2,,,,,"5,61",9
+C,Como,BRAUNODER,Matthias,2,,,,,,
+A,Serie Minori,BURNETE,Rares,2,,,,,,
+D,Parma,CARBONI,Franco Ezequiel,2,,,,,"6,00",2
+A,Venezia,CASAS,Antonio,2,,,,,,
+A,Milan,CISSE,Alphadjo,2,,,,,,
+P,Parma,CORVI,Edoardo,2,1.12,,,,"6,17",17
+A,Serie Minori,D&#039;ANDREA,Luca,2,,,,,,
+D,Bologna,DE SILVESTRI,Lorenzo,2,,,,,"6,05",10
+C,Torino,DEMBELE,Ali,2,,,,,"5,00",1
+C,Monza,FOE ONDOA,Manga,2,,,,,,
+C,Lecce,FOFANA,Sadik,2,,,,3.18,"5,50",2
+A,Frosinone,GROSSO,Filippo,2,,,,,,
+C,Sassuolo,IANNONI,Edoardo,2,,,,,"6,00",5
+D,Serie Minori,ILIC,Mihajlo,2,,,,3.18,,
+A,Estero,JOVIC,Miloš,2,,,,,,
+C,Lecce,KABA,Mohamed,2,,,,,"5,77",11
+D,Lecce,KOUASSI,Owen,2,,,,,"5,50",4
+A,Venezia,LISMAN,Kornel,2,,,,,,
+C,Torino,LUONGO,Andrea,2,,,,,,
+D,Sassuolo,MISSORI,Filippo,2,,,,,,
+D,Udinese,MLACIC,Branimir,2,,,,1.06,"5,83",3
+P,Venezia,MONTIPO&#039;,Lorenzo,2,13.46,14.71,12.19,15.19,"6,20",35
+A,Venezia,OKORO,Alvin Obinna,2,,,,,,
+D,Sassuolo,PIERAGNOLO,Edoardo,2,,,,,,
+A,Sassuolo,PIERINI,Nicholas,2,,,,,"6,00",4
+C,Serie Minori,ROUHI,Jonas,2,,,,,,
+D,Juventus,RUGANI,Daniele,2,1.15,1.84,3.22,3.44,"5,68",8
+C,Udinese,RUI MODESTO,Muati,2,,,,,"5,75",2
+A,Sassuolo,SKJELLERUP,Laurs,2,,,,,,
+P,Milan,TERRACCIANO,Pietro,2,1.12,,,,"6,00",2
+D,Serie Minori,VEROLI,Davide,2,,,,,,
+D,Serie Minori,VOGLIACCO,Alessandro,2,,,,,,
+D,Estero,WIETESKA,Mateusz,2,,,,,,
+D,Udinese,ABANKWAH,James,1,,,,,,
+D,Lecce,ADDO,Vernon,1,,,,,,
+C,Cagliari,AKARAKIRI,Demi,1,,,,,,
+A,Serie Minori,AMBROSINO,Giuseppe,1,,,,,"5,75",2
+D,Frosinone,AMEY,Wisdom,1,,,,,,
+P,Como,AUDERO,Emil,1,15.83,16.43,13.09,23.29,"6,20",34
+C,Serie Minori,BJARKASON,Bjarki,1,,,,,,
+P,Lecce,BLEVE,Marco,1,,,,,,
+P,Lecce,BORBEI,Alexandru,1,,,,,,
+A,Estero,BRASCHI,Riccardo,1,,,,,,
+C,Udinese,CAMARA,Abdoulaye,1,,,,,,
+C,Cagliari,CAVUOTI,Nicolo,1,,,,,,
+A,Roma,CHERUBINI,Luigi,1,,,,,,
+P,Fiorentina,CHRISTENSEN,Oliver,1,1.08,1.36,1.33,1.41,"7,50",1
+P,Serie Minori,CIOCCI,Giuseppe,1,,,,,,
+A,Frosinone,COLLEY,Muhammed,1,,,,,,
+P,Napoli,CONTINI,Nikita,1,1.37,1.63,1.01,1.18,,
+C,Frosinone,CORRADO,Niccolo,1,,,,,,
+C,Venezia,DAGASSO,Matteo,1,,,,,,
+P,Roma,DE MARZI GIORGIO,Giorgio,1,,,,,,
+P,Inter,DI GENNARO,Raffaele,1,1.37,1.61,1.00,1.15,"6,00",1
+C,Frosinone,EL AZZOUZI,Anouar,1,,,,,,
+C,Lazio,FARCOMENI,Valerio,1,,,,,,
+P,Estero,FRUCHTL,Christian,1,,,,,,
+P,Lazio,FURLANETTO,Alessio,1,4.26,3.79,1.06,1.29,"6,50",2
+A,Como,GABRIELLONI,Alessandro,1,,,,,,
+C,Lazio,GALASSI,Bruno,1,,,,,,
+C,Monza,GALAZZI,Nicolas,1,,,,,,
+P,Roma,GOLLINI,Pierluigi,1,1.15,,,,,
+D,Venezia,GOMES,Alejandro Furtado,1,,,,,,
+C,Lecce,GORTER,Olaf,1,,,,,"5,50",1
+P,Venezia,GRANDI,Matteo,1,,,,,,
+P,Bologna,HAPPONEN,Ukko,1,,,,,,
+P,Torino,ISRAEL,Franco,1,1.74,13.90,4.99,8.52,"5,88",9
+D,Fiorentina,KOSPO,Eman,1,,,,,,
+C,Parma,KOUDA,Rachid,1,,,,,,
+C,Lecce,KOVAC,Niko,1,,,,,,
+A,Lecce,LAERKE,Hjalte,1,,,,,,
+C,Como,LAHDO,Adrian,1,,,,,,
+A,Venezia,LAUBERBACH,Lion,1,,,,,,
+C,Venezia,LELLA,Nunzio,1,,,,,,
+P,Fiorentina,LEZZERINI,Luca,1,1.45,1.64,0.98,1.24,,
+D,Venezia,LIGUE,Calixte Paul,1,,,,,,
+C,Cagliari,LITETA,Joseph,1,,,,,"5,75",4
+P,Frosinone,LOLIC,Eldin,1,,,,,,
+P,Genoa,LYSIONOK,Ernestas,1,,,,,,
+D,Sassuolo,MACCHIONI,Tommaso,1,,,,,,
+C,Serie Minori,MARIANI,Edoardo,1,,,,,,
+P,Torino,MASCARDI,Diego,1,,,,,,
+D,Genoa,MATTURRO,Alan,1,,,,,,
+D,Lecce,NDABA,Corrie,1,,,,,"5,50",9
+D,Milan,ODOGU,David,1,,1.39,,,,
+D,Frosinone,OYONO,Jeremy,1,,,,,,
+P,Udinese,PADELLI,Daniele,1,,,,,"6,25",2
+D,Sassuolo,PAZ,Yeferson,1,,,,,,
+P,Lecce,PENEV,Plamen,1,,,,,,
+D,Lecce,PEREZ,Matías,1,,,,,"5,00",1
+P,Bologna,PESSINA,Massimo,1,,,,1.35,"6,12",4
+P,Udinese,PIANA,Edoardo,1,,,,,,
+P,Juventus,PINSOGLIO,Carlo,1,1.94,2.04,0.88,1.16,,
+P,Frosinone,PISSERI,Matteo,1,,,,,,
+P,Monza,PIZZIGNACCO,Semuel,1,,,,,,
+P,Venezia,POZZI,Alessio,1,,,,,,
+C,Lazio,PRZYBOREK,Adrian,1,,,,3.71,,
+P,Cagliari,RADUNOVIC,Boris,1,,,,,,
+D,Estero,RATERINK,Othniël,1,,,,,,
+P,Estero,RAVAGLIA,Federico,1,3.11,2.96,2.35,2.58,"6,20",17
+P,Lazio,RENZETTI,Davide,1,,,,,,
+P,Atalanta,ROSSI,Francesco,1,1.46,1.69,1.01,1.21,,
+P,Sassuolo,RUSSO,Alessandro,1,,,,,,
+P,Estero,SAMOOJA,Jasper,1,,,,,,
+P,Sassuolo,SATALINO,Giacomo,1,,,,,,
+P,Cagliari,SHERRI,Alen,1,,,,,,
+D,Estero,SIDIBE,Franck Ahmed,1,,,,,,
+P,Torino,SIVIERO,Lapo,1,,,,,,
+P,Genoa,SOMMARIVA,Daniele,1,,,,,"5,75",2
+P,Atalanta,SPORTIELLO,Marco,1,1.15,,,,"5,50",1
+P,Genoa,STOLZ,Franz,1,,,,,,
+P,Monza,STRAJNAR,Aljaž,1,,,,,,
+P,Como,TORNQVIST,Noel,1,,,,1.06,,
+P,Milan,TORRIANI,Lorenzo,1,2.52,2.43,1.02,1.36,,
+A,Cagliari,TREPY,Yael,1,,1.08,,0.53,"6,12",4
+P,Sassuolo,TURATI,Stefano,1,1.00,5.83,12.19,10.60,"6,16",6
+P,Roma,VASQUEZ,Devis,1,1.23,1.51,1.27,1.37,,
+P,Como,VIGORITO,Mauro,1,4.48,3.91,,0.52,,
+A,Udinese,VINCIATI,Giulio,1,,,,,,
+P,Atalanta,VISMARA,Paolo,1,,,,,,
+C,Genoa,WIAFE,Samuel,1,,,,,,
+P,Serie Minori,ZACCHI,Gioele,1,,,,,,
+P,Serie Minori,ZELEZNY,Radoslaw,1,,1.07,0.97,1.20,,
+D,Roma,ZIOLKOWSKI,Jan,1,,1.66,,5.85,"5,94",9
+C,Como,ANDREALLI,Francesco,0,,,,,,
+P,Parma,ASTALDI,Gianluca,0,,,,,,
+C,Sassuolo,BAFFOH NANA,Jeffrey,0,,,,,,
+C,Bologna,BARBARO,Elia,0,,,,,,
+D,Genoa,BARBINI,Matteo,0,,,,,,
+C,Fiorentina,BONANNO,Piergiorgio,0,,,,,,
+D,Bologna,BOZHIDAROV PAPAZOV,Dimitar,0,,,,,,
+C,Sassuolo,BRUNO,Kevin,0,,,,,,
+C,Como,CASSANO,Riccardo,0,,,,,,
+C,Parma,CIARDI,Alessandro,0,,,,,,
+D,Sassuolo,CINQUEGRANO,Simone,0,,,,,,
+D,Parma,D&#039;INTINO,Roberto,0,,,,,,
+C,Venezia,DABO,Lamine,0,,,,,,
+C,Roma,DELLA ROCCA,Mattia,0,,,,,,
+D,Torino,DESOLE,Fabio,0,,,,,,
+D,Sassuolo,DI BITONTO,Alessandro,0,,,,,,
+C,Lazio,DI TOMMASO,Leonardo,0,,,,,,
+D,Genoa,DOUCOURé,Mamedi,0,,,,,,
+D,Parma,DROBNIC,Dominik,0,,,,,,
+D,Lecce,ESPOSITO,Sebastian,0,,,,,,
+C,Venezia,FARJI,Marko,0,,,,,,
+A,Bologna,FERRARI,Flavio,0,,,,,,
+D,Inter,FONTANAROSA,Alessandro,0,,,,,,
+A,Torino,GABELLINI,Tommaso,0,,,,,,
+C,Lecce,GONZALEZ,Joan,0,,,,,,
+C,Cagliari,GRANDU,Nicola,0,,,,,,
+P,Cagliari,ILIEV,Velizar-Iliya,0,,,,,,
+A,Parma,JOUJOU,Antoine,0,,,,,,
+C,Parma,KONATE,Abdou-Salam,0,,,,,,
+A,Parma,KOWALSKI,Mateusz,0,,,,,,
+C,Serie Minori,LEONE,Kevin,0,,,,,,
+P,Frosinone,MINICANGELI,Francesco,0,,,,,,
+A,Sassuolo,MINTA,Amoako,0,,,,,,
+A,Monza,MOUT,Mathis,0,,,,,,
+C,Lazio,MUNOZ,Cristo,0,,,,,,
+P,Sassuolo,NYARKO,Lorenzo,0,,,,,,
+A,Udinese,PEJICIC,David,0,,,,,,
+A,Genoa,PESSOLANI,Gabriele,0,,,,,,
+A,Como,PISATI,Samuele,0,,,,,,
+C,Parma,PLICCO,Elia,0,,,,,,
+C,Genoa,ROMANO,Marco,0,,,,,,
+C,Genoa,SCAGLIONE,Roberto,0,,,,,,
+D,Roma,SECK,Mohamed,0,,,,,,
+C,Genoa,SPICUGLIA,Elia,0,,,,,,
+P,Napoli,SPINELLI,David,0,,,,,,
+A,Fiorentina,TARANTINO,Jacopo,0,,,,,,
+D,Parma,TRABUCCHI,Nicolas,0,,,,,,
+D,Lecce,UBANI,Marlon,0,,,,,,
+D,Genoa,VAZ,Marcelo,0,,,,,,
+D,Venezia,VENTURI,Michael,0,,,,,,
+D,Sassuolo,VEZZOSI,Giorgio,0,,,,,,
+C,Lecce,YILMAZ,Enes,0,,,,,,

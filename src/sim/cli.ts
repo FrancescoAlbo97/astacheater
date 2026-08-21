@@ -8,10 +8,10 @@ import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import {
+  DEFAULT_PRICE_CURVES,
   DEFAULT_PRICE_MODEL_CONFIG,
   DEFAULT_ROLLOUT_CONFIG,
   DEFAULT_SLOT_WEIGHTS,
-  DEFAULT_VALUE_CURVES,
   makeDefaultLeagueConfig,
 } from '../core/config.js';
 import { ROLES } from '../core/types.js';
@@ -42,7 +42,7 @@ function baseConfig(seed: number, rho: number): AuctionSimConfig {
     rho,
     archetypesByManager: REALISTIC_MIX,
     priceModelConfig: DEFAULT_PRICE_MODEL_CONFIG,
-    valueCurves: DEFAULT_VALUE_CURVES,
+    priceCurves: DEFAULT_PRICE_CURVES,
     slotWeights: DEFAULT_SLOT_WEIGHTS,
     priceNoiseSigma: DEFAULT_ROLLOUT_CONFIG.priceNoiseSigma,
     dualsRecalcEveryDraws: DEFAULT_ROLLOUT_CONFIG.dualsRecalcEveryDraws,

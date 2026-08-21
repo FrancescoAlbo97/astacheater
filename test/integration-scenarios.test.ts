@@ -9,7 +9,7 @@
 import { describe, expect, it } from 'vitest';
 import { reduce } from '../src/core/state.js';
 import { computeDecisionForPlayer, estimateOpponentWillingness, computeMarketSnapshot } from '../src/core/engine.js';
-import { makeDefaultLeagueConfig, DEFAULT_SLOTS, DEFAULT_VALUE_CURVES } from '../src/core/config.js';
+import { makeDefaultLeagueConfig, DEFAULT_PRICE_CURVES, DEFAULT_SLOTS } from '../src/core/config.js';
 import { getMyManagerId } from '../src/core/state.js';
 import { ROLES } from '../src/core/types.js';
 import type { AuctionEvent, Player, Role } from '../src/core/types.js';
@@ -195,45 +195,44 @@ describe('§7 Session 8 — scenari di integrazione "da metà asta"', () => {
     expect(decision.pStar).toBe(0);
   });
 
-  it('6) occasione reale: un candidato più economico ma di valore quasi pari riceve un\'offerta massima più alta di un\'alternativa cara — arbitraggio corretto, non un bug (§7 Session 8)', () => {
-    // Stessa dinamica scoperta su dati reali questa sessione (Cande vs Kalulu): un candidato con
-    // prezzo di mercato atteso basso ma valore comparabile a un'alternativa cara deve ricevere un
-    // p* PIÙ ALTO, non più basso — perdere l'occasione oggi costerebbe di più domani.
+  it('6) occasione reale — copertura titolari (§11 Session 9): lo stesso candidato riceve un\'offerta massima più alta quando mi manca ancora un titolare nel ruolo, più bassa una volta che l\'ho già assicurato', () => {
+    // §7 Session 9: da quando playerValue è direttamente la curva di prezzo (non più punti ×
+    // titolarità), un puro divario di SCORE non crea più "prezzo basso, valore pari" — le due
+    // grandezze derivano dalla stessa curva monotona, quindi si muovono insieme (vedi il nuovo test
+    // dedicato in value-model.test.ts). L'occasione realistica sotto il nuovo modello nasce invece
+    // dalla copertura-titolari per ruolo: lo STESSO identico candidato (score e prezzo di mercato
+    // fissi) deve valere di più per me quando mi manca ancora un titolare assicurato in quel ruolo,
+    // e tornare al suo valore "nudo" (prezzo di mercato) una volta che la copertura è già piena —
+    // "gli altri due mi posso permettere che abbiano meno titolarità e concentrarmi sul valore".
     const { events: poolD } = genericPool('D', 60, 40, 90);
-    const bargain = mkPlayer('D-bargain', 'D');
-    const pricey = mkPlayer('D-pricey', 'D');
-    // alcune vendite reali per dare al modello di prezzo qualcosa da cui inferire che score bassi
-    // costano poco e score alti costano molto (altrimenti pHat resta piatto e l'occasione non si
-    // manifesta): venduti a prezzi coerenti con un mercato normale.
-    const priceHistory: AuctionEvent[] = [];
-    for (let i = 0; i < 30; i++) {
-      const id = `D-hist-${i}`;
-      const score = 30 + i * 2;
-      priceHistory.push(loadEvent([mkPlayer(id, 'D')]));
-      priceHistory.push(scoreEvent(id, score));
-      priceHistory.push(saleEvent(id, OPPONENT_IDS[i % OPPONENT_IDS.length]!, Math.max(1, Math.round(Math.exp(score / 25)))));
+    const candidate = mkPlayer('D-candidate', 'D');
+    const loadCandidate: AuctionEvent[] = [loadEvent([candidate]), scoreEvent(candidate.id, 70, 0.85)];
+
+    // Stato A: nessun difensore posseduto ⇒ copertura scoperta (gapFraction=1 in D).
+    const stateUncovered = reduce([{ t: 'league.setup', config: league }, ...poolD, ...loadCandidate]);
+
+    // Stato B: possiedo già 4 difensori titolari certi (score/ptOverride alti) ⇒ copertura piena
+    // (startersCountFor('D','4-3-3')=4, +1 di scorta=5 — qui ne bastano 4 quasi-certi per restare
+    // vicino alla soglia senza superarla di molto, il punto è che il gap sia MOLTO più piccolo).
+    const ownedStarters: AuctionEvent[] = [];
+    for (let i = 0; i < 5; i++) {
+      const id = `D-owned-${i}`;
+      ownedStarters.push(loadEvent([mkPlayer(id, 'D')]));
+      ownedStarters.push(scoreEvent(id, 90, 0.98));
+      ownedStarters.push(saleEvent(id, 'me', 30));
     }
-    const log: AuctionEvent[] = [
+    const stateCovered = reduce([
       { t: 'league.setup', config: league },
       ...poolD,
-      ...priceHistory,
-      loadEvent([bargain, pricey]),
-      scoreEvent(bargain.id, 60, 0.9), // punteggio grezzo medio-basso, ma titolarità alta
-      scoreEvent(pricey.id, 80, 0.8), // punteggio grezzo alto, titolarità comunque buona: myValue quasi pari a bargain
-    ];
-    const state = reduce(log);
-    const dBargain = computeDecisionForPlayer(state, bargain.id)!;
-    const dPricey = computeDecisionForPlayer(state, pricey.id)!;
+      ...ownedStarters,
+      ...loadCandidate,
+    ]);
 
-    // Se il valore per me è comparabile (entro un margine ragionevole) ma il prezzo atteso del
-    // "bargain" è nettamente più basso, il suo p* non deve essere inferiore a quello del costoso.
-    if (Math.abs(dBargain.myValue - dPricey.myValue) < dPricey.myValue * 0.15 && dBargain.pHat < dPricey.pHat * 0.7) {
-      expect(dBargain.pStar).toBeGreaterThanOrEqual(dPricey.pStar);
-    } else {
-      // il test non deve dipendere da una coincidenza numerica: se le premesse non si verificano,
-      // fallisce esplicitamente invece di passare per caso senza aver controllato nulla.
-      expect(true, `premesse non soddisfatte: myValue bargain=${dBargain.myValue} pricey=${dPricey.myValue}, pHat bargain=${dBargain.pHat} pricey=${dPricey.pHat}`).toBe(false);
-    }
+    const dUncovered = computeDecisionForPlayer(stateUncovered, candidate.id)!;
+    const dCovered = computeDecisionForPlayer(stateCovered, candidate.id)!;
+
+    expect(dUncovered.myValue).toBeGreaterThan(dCovered.myValue);
+    expect(dUncovered.pStar).toBeGreaterThan(dCovered.pStar);
   });
 
   it('7) stima interesse avversari: solo chi ha davvero uno slot libero conta, mai chi è già pieno nel ruolo (§7 Session 8, ispirazione 1)', () => {
@@ -259,7 +258,7 @@ describe('§7 Session 8 — scenari di integrazione "da metà asta"', () => {
     const state = reduce(log);
     const decision = computeDecisionForPlayer(state, target.id)!;
     const snapshot = computeMarketSnapshot(state);
-    const willingness = estimateOpponentWillingness(state, snapshot, 'D', target.id, decision.myValue, DEFAULT_VALUE_CURVES);
+    const willingness = estimateOpponentWillingness(state, snapshot, 'D', target.id, decision.myValue, DEFAULT_PRICE_CURVES);
 
     expect(willingness.managerId).not.toBe(fullOpponent);
     if (willingness.managerId) {
@@ -374,7 +373,7 @@ describe('§7 Session 8 — scenari di integrazione "da metà asta"', () => {
     const state = reduce(log);
     const decision = computeDecisionForPlayer(state, bargain.id)!;
     const snapshot = computeMarketSnapshot(state);
-    const willingness = estimateOpponentWillingness(state, snapshot, 'D', bargain.id, decision.myValue, DEFAULT_VALUE_CURVES);
+    const willingness = estimateOpponentWillingness(state, snapshot, 'D', bargain.id, decision.myValue, DEFAULT_PRICE_CURVES);
 
     expect(decision.pStar).toBeGreaterThan(0);
     // il tetto FISICO resta il vincolo vero: l'offerta operativa non lo supera mai, a prescindere

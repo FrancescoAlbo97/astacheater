@@ -14,7 +14,7 @@ import {
   makeDefaultLeagueConfig,
   DEFAULT_SLOT_WEIGHTS,
   DEFAULT_ROLE_WEIGHTS,
-  DEFAULT_VALUE_CURVES,
+  DEFAULT_PRICE_CURVES,
   normalizeSlotWeights,
 } from '../src/core/config.js';
 import { ROLES } from '../src/core/types.js';
@@ -272,8 +272,12 @@ describe('§7 Session 8 — 20 scenari di robustità al cambio di Setup', () => 
     const decision = computeDecisionForPlayer(reduce(log), second.id)!;
     // peso 0.02 sul secondo slot: anche un secondo portiere quasi identico deve valere una frazione
     // piccola del primo, non un'offerta comparabile a un titolare vero — QUI, con altre alternative
-    // reali per il budget, lo sconto di peso ha un vero costo-opportunità da rispettare.
-    expect(decision.pStar).toBeLessThan(15);
+    // reali per il budget, lo sconto di peso ha un vero costo-opportunità da rispettare. Soglia
+    // alzata da 15 a 25 dopo la Session 10 (playerValue = identità sul punteggio, niente più curva
+    // esponenziale): con valori più piccoli in assoluto lo sconto di peso si traduce in un numero
+    // di crediti leggermente più alto in proporzione, ma resta comunque una frazione piccola del
+    // valore "nudo" del candidato (88) — il meccanismo (sconto reale, non finto) continua a valere.
+    expect(decision.pStar).toBeLessThan(25);
   });
 
   it('14) contraltare del 13: con pesi di slot QUASI uguali ("due titolari comparabili"), lo stesso secondo portiere vale sensibilmente di più', () => {
@@ -352,7 +356,7 @@ describe('§7 Session 8 — 20 scenari di robustità al cambio di Setup', () => 
         const state = reduce(log);
         const decision = computeDecisionForPlayer(state, target.id)!;
         const snapshot = computeMarketSnapshot(state);
-        const willingness = estimateOpponentWillingness(state, snapshot, 'D', target.id, decision.myValue, DEFAULT_VALUE_CURVES);
+        const willingness = estimateOpponentWillingness(state, snapshot, 'D', target.id, decision.myValue, DEFAULT_PRICE_CURVES);
         if (!willingness.managerId) return true;
         const mgr = snapshot.managers.find((m) => m.manager.id === willingness.managerId)!;
         const physicalMax = mgr.creditsRemaining - (mgr.slotsRemaining.P + mgr.slotsRemaining.D + mgr.slotsRemaining.C + mgr.slotsRemaining.A - 1);
@@ -373,7 +377,7 @@ describe('§7 Session 8 — 20 scenari di robustità al cambio di Setup', () => 
     const state = reduce(log);
     const decision = computeDecisionForPlayer(state, target.id)!;
     const snapshot = computeMarketSnapshot(state);
-    const willingness = estimateOpponentWillingness(state, snapshot, 'D', target.id, decision.myValue, DEFAULT_VALUE_CURVES);
+    const willingness = estimateOpponentWillingness(state, snapshot, 'D', target.id, decision.myValue, DEFAULT_PRICE_CURVES);
     expect(willingness.managerId).not.toBe(opp);
   });
 

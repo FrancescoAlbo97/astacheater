@@ -7,7 +7,7 @@ import {
   DEFAULT_PRICE_MODEL_CONFIG,
   DEFAULT_ROLLOUT_CONFIG,
   DEFAULT_SLOT_WEIGHTS,
-  DEFAULT_VALUE_CURVES,
+  DEFAULT_PRICE_CURVES,
   makeDefaultLeagueConfig,
 } from '../src/core/config.js';
 import { ROLES } from '../src/core/types.js';
@@ -35,7 +35,7 @@ function baseConfig(seed: number, rho = 0.8): AuctionSimConfig {
     rho,
     archetypesByManager: MIX_ARCHETYPES,
     priceModelConfig: DEFAULT_PRICE_MODEL_CONFIG,
-    valueCurves: DEFAULT_VALUE_CURVES,
+    priceCurves: DEFAULT_PRICE_CURVES,
     slotWeights: DEFAULT_SLOT_WEIGHTS,
     priceNoiseSigma: DEFAULT_ROLLOUT_CONFIG.priceNoiseSigma,
     dualsRecalcEveryDraws: DEFAULT_ROLLOUT_CONFIG.dualsRecalcEveryDraws,

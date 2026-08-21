@@ -3,9 +3,9 @@
 // Math.random() non seminato, per permettere confronti appaiati (§10.1).
 
 import { ROLES, type LeagueConfig, type ManagerState, type Role, type SlotCounts } from '../core/types.js';
-import type { Manager, PriceModelConfig, RiskConfig, RoleWeights, RosterEntry, SlotWeights, ValueCurveConfig } from '../core/types.js';
-import { DEFAULT_ROLE_WEIGHTS } from '../core/config.js';
-import { playerValue, riskAdjustedPlayerValue } from '../core/value-model.js';
+import type { Manager, PriceCurveConfig, PriceModelConfig, RoleWeights, RosterEntry, SlotWeights } from '../core/types.js';
+import { DEFAULT_PRICE_CURVES, DEFAULT_ROLE_WEIGHTS } from '../core/config.js';
+import { applyCoverageBonus, playerValue, roleCoverageGapFraction, titolarita } from '../core/value-model.js';
 import { renormalize, type PoolPlayer } from '../core/price-model.js';
 import { maxSingleBid, totalSlotsRemaining } from '../core/ceiling.js';
 import type { RoleDPInput } from '../core/plan-dp.js';
@@ -28,26 +28,20 @@ export interface AuctionSimConfig {
   /** Un archetipo per manager, stesso ordine di league.managers. */
   readonly archetypesByManager: readonly ArchetypeId[];
   readonly priceModelConfig: PriceModelConfig;
-  /** Curve di valore "di mercato": usate per generare lo scenario e per come gli ARCHETIPI non
-   * razionali percepiscono il valore. Rappresentano una base neutra, non la mia propensione al
-   * rischio personale. */
-  readonly valueCurves: ValueCurveConfig;
-  /** Curve di valore usate SOLO dal manager con archetipo 'rational' per calcolare il proprio
-   * valore/offerta (§6.8: già corrette per `league.risk` a monte, se serve). Tenerle separate da
-   * `valueCurves` è voluto: se il rischio venisse applicato a TUTTI i manager simulati, l'intero
-   * mercato diventerebbe più aggressivo insieme a me e l'effetto sulla MIA competitività relativa
-   * si annullerebbe quasi del tutto. Default a `valueCurves` se non fornite. */
-  readonly myValueCurves?: ValueCurveConfig;
-  /** §6.8, meccanismo ALTERNATIVO a `myValueCurves`/`applyRiskToValueCurves`: propensione al
-   * rischio del manager 'rational' applicata via `riskAdjustedPlayerValue` (bonus/malus additivo
-   * di varianza) invece che distorcendo le curve. Serve principalmente agli script diagnostici per
-   * confrontare i due meccanismi sugli stessi identici seed — non pensato per essere usato insieme
-   * a `myValueCurves` risk-adjusted (si sommerebbero due approssimazioni dello stesso termine).
-   * Default 0 (neutro): `cli.ts bench/validate/calibrate` non lo impostano mai. */
-  readonly risk?: number;
-  readonly riskConfig?: RiskConfig;
+  /** Curve di prezzo "di mercato" (§6.3.1, §7 Session 9): usate come valore per come gli ARCHETIPI
+   * non razionali percepiscono il valore (`value()`, solo per l'archetipo 'ratio'). Rappresentano
+   * una base neutra, non la mia propensione al rischio personale. Default `DEFAULT_PRICE_CURVES`
+   * se non fornite. */
+  readonly priceCurves?: PriceCurveConfig;
+  /** Curve di prezzo usate SOLO dal manager con archetipo 'rational' per calcolare il proprio
+   * valore/offerta (§6.8: già corrette per `league.risk` a monte, se serve, via
+   * `applyRiskToPriceCurves`). Tenerle separate da `priceCurves` è voluto: se il rischio venisse
+   * applicato a TUTTI i manager simulati, l'intero mercato diventerebbe più aggressivo insieme a me
+   * e l'effetto sulla MIA competitività relativa si annullerebbe quasi del tutto. Default a
+   * `priceCurves` se non fornite. */
+  readonly myPriceCurves?: PriceCurveConfig;
   /** Peso personale per ruolo (§11 Setup), applicato SOLO al manager/i con archetipo 'rational' —
-   * stessa scelta di `myValueCurves`/`risk` sopra. Default nessuna preferenza se non fornito. */
+   * stessa scelta di `myPriceCurves` sopra. Default nessuna preferenza se non fornito. */
   readonly roleWeights?: RoleWeights;
   readonly slotWeights: SlotWeights;
   readonly priceNoiseSigma: number;
@@ -168,16 +162,31 @@ export function runAuctionSim(config: AuctionSimConfig): AuctionSimResult {
   }
 
   function value(role: Role, score: number): number {
-    return playerValue(role, score, { curves: config.valueCurves });
+    return playerValue(role, score, { priceCurves: config.priceCurves ?? DEFAULT_PRICE_CURVES });
   }
 
   // Curve usate SOLO per il calcolo di valore/offerta del manager 'rational' (v. commento sul
-  // campo `myValueCurves` sopra): separata da `value()` così il rischio non "trapela" agli
-  // archetipi non razionali, che devono restare una base di mercato stabile e indipendente.
+  // campo `myPriceCurves` sopra): separata da `value()` così il rischio non "trapela" agli
+  // archetipi non razionali, che devono restare una base di mercato stabile e indipendente. Non
+  // include il bonus di copertura-titolari (§11 Session 9): quello dipende dal roster GIÀ
+  // posseduto dal manager, applicato al punto di chiamata (vedi `computeWillingness` e
+  // `buildRoleInputsForManager` sotto), non qui dove non è disponibile.
   function myValue(role: Role, score: number): number {
-    const curves = config.myValueCurves ?? config.valueCurves;
+    const priceCurves = config.myPriceCurves ?? config.priceCurves ?? DEFAULT_PRICE_CURVES;
     const weight = (config.roleWeights ?? DEFAULT_ROLE_WEIGHTS)[role] ?? 1;
-    return riskAdjustedPlayerValue(role, score, config.risk ?? 0, { curves, riskConfig: config.riskConfig }) * weight;
+    return playerValue(role, score, { priceCurves }) * weight;
+  }
+
+  function ownedScoresInRole(m: number, role: Role): number[] {
+    const mgr = managers[m]!;
+    const scores = scenario.scoresByManager[m]!;
+    return mgr.roster
+      .filter((r) => roleByPlayer.get(r.player.id) === role)
+      .map((r) => scores.get(r.player.id) ?? 50);
+  }
+
+  function gapFractionFor(m: number, role: Role): number {
+    return roleCoverageGapFraction(role, ownedScoresInRole(m, role).map((score) => titolarita(role, score)), league.primaryFormation);
   }
 
   // Granularità del budget usata SOLO per la DP approssimata dei duali (§6.7): il costo della
@@ -188,13 +197,8 @@ export function runAuctionSim(config: AuctionSimConfig): AuctionSimResult {
 
   function buildRoleInputsForManager(m: number): Record<Role, RoleDPInput> {
     const scores = scenario.scoresByManager[m]!;
-    const mgr = managers[m]!;
-    const ownedScoresByRole = {} as Record<Role, number[]>;
-    for (const role of ROLES) ownedScoresByRole[role] = [];
-    for (const r of mgr.roster) {
-      const role = roleByPlayer.get(r.player.id);
-      if (role) ownedScoresByRole[role]!.push(scores.get(r.player.id) ?? 50);
-    }
+    const ownedScoresByRole = {} as Record<Role, readonly number[]>;
+    for (const role of ROLES) ownedScoresByRole[role] = ownedScoresInRole(m, role);
     const poolCandidatesByRole = {} as Record<Role, RationalCandidateInput[]>;
     for (const role of ROLES) {
       poolCandidatesByRole[role] = poolByRole(role).map((p) => ({
@@ -207,6 +211,7 @@ export function runAuctionSim(config: AuctionSimConfig): AuctionSimResult {
       poolCandidatesByRole,
       league.slots,
       config.slotWeights,
+      league.primaryFormation,
       myValue,
       MAX_OPTIONAL_CANDIDATES_FOR_DUALS,
       DUALS_BUDGET_GRANULARITY,
@@ -221,7 +226,8 @@ export function runAuctionSim(config: AuctionSimConfig): AuctionSimResult {
     let base: number;
     if (archetype === 'rational') {
       const cache = rationalCaches[m]!;
-      const v = myValue(role, scenario.scoresByManager[m]!.get(playerId) ?? 50);
+      const score = scenario.scoresByManager[m]!.get(playerId) ?? 50;
+      const v = applyCoverageBonus(myValue(role, score), titolarita(role, score), gapFractionFor(m, role));
       base = computeRationalBase({
         cache,
         creditsRemaining: mgr.creditsRemaining,

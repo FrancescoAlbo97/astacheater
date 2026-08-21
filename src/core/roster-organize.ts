@@ -4,10 +4,12 @@
 // ordine d'acquisto) e a separare titolari/panchina dentro un ruolo dato il numero di titolari
 // previsto dalla formazione. Non decide MAI da solo: segnala solo quando la gerarchia non torna
 // con i punteggi (vedi `findHierarchyWarning`), lasciando la scelta finale all'utente.
-import { FORMATION_SHAPES } from './config.js';
+import { startersCountFor } from './config.js';
 import { deriveManagerStates, slotOrderKey } from './state.js';
 import { ROLES } from './types.js';
 import type { AuctionState, Formation, Role, RosterEntry } from './types.js';
+
+export { startersCountFor };
 
 /** Ordine effettivo dei giocatori di `managerId` nel ruolo `role`: quello impostato esplicitamente
  * (§7, evento `roster.slot`), filtrato ai soli giocatori ANCORA posseduti e con in coda, in ordine
@@ -42,12 +44,6 @@ export interface RoleSlots {
   readonly startersCount: number;
   readonly totalSlots: number;
   readonly freeSlots: number;
-}
-
-/** Numero di titolari attesi in `role` per `formation` (§3.5: P sempre 1, non in FORMATION_SHAPES). */
-export function startersCountFor(role: Role, formation: Formation): number {
-  if (role === 'P') return 1;
-  return FORMATION_SHAPES[formation][role];
 }
 
 export function getRoleSlots(state: AuctionState, managerId: string, role: Role, formation: Formation): RoleSlots {

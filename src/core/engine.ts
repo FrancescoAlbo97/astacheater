@@ -4,7 +4,7 @@
 // ricalcolo "dopo ogni vendita" richiesto da §7.
 
 import { ROLES } from './types.js';
-import type { AuctionState, CeilingInfo, MaxBidResult, Player, Role, RoleWeights, SlotWeights } from './types.js';
+import type { AuctionState, CeilingInfo, Formation, MaxBidResult, Player, Role, RoleWeights, SlotWeights } from './types.js';
 import {
   DEFAULT_PRICE_CURVES,
   DEFAULT_PRICE_MODEL_CONFIG,
@@ -16,8 +16,15 @@ import {
   normalizeSlotWeights,
 } from './config.js';
 import { deriveManagerStates, getMyManagerId, getPool } from './state.js';
-import { applyRiskToValueCurves, roleWeightedPlayerValue } from './value-model.js';
-import type { ValueCurveConfig } from './types.js';
+import {
+  applyCoverageBonus,
+  applyRiskToPriceCurves,
+  applyRiskToValueCurves,
+  roleCoverageGapFraction,
+  roleWeightedPlayerValue,
+  titolarita,
+} from './value-model.js';
+import type { PriceCurveConfig, ValueCurveConfig } from './types.js';
 import {
   capByResidualDemand,
   fitOnlinePriceCurves,
@@ -33,10 +40,33 @@ import { approxMaxBid, computeDuals, weightAndMuForCandidate } from './base-poli
 import { getLeaguePriorCurves } from './league-prior.js';
 import type { RolloutInput } from './rollout.js';
 
-/** Curve di valore corrette per la propensione al rischio configurata (§6.8), o quelle di default
- * se manca una configurazione di lega. */
-function riskAdjustedCurves(state: AuctionState): ValueCurveConfig {
+/** VESTIGIALE dalla Session 10: `playerValue` ignora ormai `priceCurves` del tutto (è un'identità
+ * sul punteggio, vedi value-model.ts), quindi il risultato qui non ha più alcun effetto sul
+ * bidding — `risk` non influenza più il valore per nessuna via. Lasciata com'è (innocua, nessuna
+ * differenza rispetto a passare `DEFAULT_PRICE_CURVES` fisse) solo per non toccare le firme di
+ * `buildRoleInputsForManager`/`RolloutInput` che la accettano ancora; non aggiungere nuova logica
+ * qui pensando che faccia qualcosa. */
+function riskAdjustedPriceCurves(state: AuctionState): PriceCurveConfig {
+  return applyRiskToPriceCurves(DEFAULT_PRICE_CURVES, state.config?.risk ?? 0);
+}
+
+/** Curve di valore (fantamedia/titolarità) corrette per il rischio: usate SOLO per il "potential"
+ * (verità di riferimento) passato al rollout Monte Carlo — non per il bidding, vedi
+ * `riskAdjustedPriceCurves` sopra. */
+function riskAdjustedValueCurves(state: AuctionState): ValueCurveConfig {
   return applyRiskToValueCurves(DEFAULT_VALUE_CURVES, state.config?.risk ?? 0);
+}
+
+/** Formazione principale configurata (§11 Setup), o quella di default se manca una config —
+ * usata per la copertura-titolari per ruolo (§7 Session 9). */
+function primaryFormationOf(state: AuctionState): Formation {
+  return state.config?.primaryFormation ?? '4-3-3';
+}
+
+/** Titolarità (§6.1, o l'override) di ciascun giocatore già posseduto in `role`, dato il roster
+ * (già filtrato a quel ruolo): input di `roleCoverageGapFraction` (§7 Session 9). */
+function ownedPtsInRole(state: AuctionState, ownedInRole: readonly { player: Player }[], role: Role): number[] {
+  return ownedInRole.map((r) => myPtOverrideOf(state, r.player.id) ?? titolarita(role, myScoreOf(state, r.player.id)));
 }
 
 /** Peso per ruolo configurato (§11 Setup), o nessuna preferenza se la lega non lo ha (config
@@ -137,38 +167,38 @@ function buildRoleInputsForManager(
   snapshot: MarketSnapshot,
   managerId: string | null,
   excludePlayerId: string | null,
-  valueCurves: ValueCurveConfig,
+  priceCurves: PriceCurveConfig,
   roleWeights: RoleWeights,
 ): Record<Role, RoleDPInput> {
   const manager = snapshot.managers.find((m) => m.manager.id === managerId);
   const config = state.config!;
   const slotWeights = mySlotWeights(state);
+  const formation = primaryFormationOf(state);
   const roleInputs = {} as Record<Role, RoleDPInput>;
 
   for (const role of ROLES) {
-    const forced: DPCandidate[] = (manager?.roster ?? [])
-      .filter((r) => r.player.role === role)
-      .map((r) => ({
-        v: roleWeightedPlayerValue(role, myScoreOf(state, r.player.id), roleWeights, {
-          ptOverride: myPtOverrideOf(state, r.player.id),
-          curves: valueCurves,
-        }),
-        price: 0,
-        forced: true,
-      }));
+    const ownedInRole = (manager?.roster ?? []).filter((r) => r.player.role === role);
+    const forced: DPCandidate[] = ownedInRole.map((r) => ({
+      v: roleWeightedPlayerValue(role, myScoreOf(state, r.player.id), roleWeights, { priceCurves }),
+      price: 0,
+      forced: true,
+    }));
+    // §7 Session 9: copertura-titolari per ruolo — bonus SOLO sui candidati opzionali (non ancora
+    // posseduti), stesso principio di `rational-bidder.ts`'s `buildRationalRoleInputs` (i forzati
+    // sono già in rosa, non c'è più nulla da orientare per loro). `gapFraction` è costante per
+    // tutto il ruolo: dipende solo da chi possiedo già, non dal candidato specifico.
+    const gapFraction = roleCoverageGapFraction(role, ownedPtsInRole(state, ownedInRole, role), formation);
     const optional: DPCandidate[] = snapshot.pool
       .filter((p) => p.role === role && p.id !== excludePlayerId)
-      .map((p) => ({
-        v: roleWeightedPlayerValue(role, myScoreOf(state, p.id), roleWeights, {
-          ptOverride: myPtOverrideOf(state, p.id),
-          curves: valueCurves,
-        }),
-        price: Math.max(1, snapshot.pHat.get(p.id) ?? 1),
-        forced: false,
-      }));
+      .map((p) => {
+        const score = myScoreOf(state, p.id);
+        const pt = myPtOverrideOf(state, p.id) ?? titolarita(role, score);
+        const base = roleWeightedPlayerValue(role, score, roleWeights, { priceCurves });
+        return { v: applyCoverageBonus(base, pt, gapFraction), price: Math.max(1, snapshot.pHat.get(p.id) ?? 1), forced: false };
+      });
     roleInputs[role] = {
       candidates: [...forced, ...optional],
-      fillerValue: roleWeightedPlayerValue(role, percentile20Score(snapshot.pool, role, state), roleWeights, { curves: valueCurves }),
+      fillerValue: roleWeightedPlayerValue(role, percentile20Score(snapshot.pool, role, state), roleWeights, { priceCurves }),
       slotCount: config.slots[role],
       weights: slotWeights[role],
     };
@@ -181,9 +211,9 @@ function buildRoleInputsForMe(
   state: AuctionState,
   snapshot: MarketSnapshot,
   excludePlayerId: string | null,
-  valueCurves: ValueCurveConfig,
+  priceCurves: PriceCurveConfig,
 ): Record<Role, RoleDPInput> {
-  return buildRoleInputsForManager(state, snapshot, snapshot.myManagerId, excludePlayerId, valueCurves, myRoleWeights(state));
+  return buildRoleInputsForManager(state, snapshot, snapshot.myManagerId, excludePlayerId, priceCurves, myRoleWeights(state));
 }
 
 /**
@@ -215,7 +245,7 @@ export function estimateOpponentWillingness(
   role: Role,
   targetPlayerId: string,
   targetValue: number,
-  valueCurves: ValueCurveConfig,
+  priceCurves: PriceCurveConfig,
 ): OpponentWillingness {
   const opponents = snapshot.managers.filter(
     (m) => m.manager.id !== snapshot.myManagerId && m.slotsRemaining[role] > 0,
@@ -227,7 +257,7 @@ export function estimateOpponentWillingness(
       snapshot,
       opp.manager.id,
       targetPlayerId,
-      valueCurves,
+      priceCurves,
       DEFAULT_ROLE_WEIGHTS,
     );
     const duals = computeDuals({ budget: opp.creditsRemaining, roleInputs });
@@ -325,17 +355,21 @@ export function computeDecisionForPlayer(state: AuctionState, playerId: string):
   if (!meOrUndefined) return null;
   const me = meOrUndefined;
 
-  const valueCurves = riskAdjustedCurves(state);
+  const priceCurves = riskAdjustedPriceCurves(state);
   const role = player.role;
   const myScore = myScoreOf(state, playerId);
-  const myValue = roleWeightedPlayerValue(role, myScore, myRoleWeights(state), {
-    ptOverride: myPtOverrideOf(state, playerId),
-    curves: valueCurves,
-  });
+  const myPt = myPtOverrideOf(state, playerId) ?? titolarita(role, myScore);
+  const myOwnedInRole = me.roster.filter((r) => r.player.role === role);
+  const myGapFraction = roleCoverageGapFraction(role, ownedPtsInRole(state, myOwnedInRole, role), primaryFormationOf(state));
+  const myValueBase = roleWeightedPlayerValue(role, myScore, myRoleWeights(state), { priceCurves });
+  // §7 Session 9: bonus di copertura-titolari — vedi `applyCoverageBonus`/`roleCoverageGapFraction`
+  // in value-model.ts. Applicato QUI (non dentro `roleWeightedPlayerValue`) perché dipende dal MIO
+  // roster attuale in questo ruolo, non dal solo score del candidato.
+  const myValue = applyCoverageBonus(myValueBase, myPt, myGapFraction);
   const pHat = snapshot.pHat.get(playerId) ?? 1;
 
   const ceiling = ceilingForRole(snapshot.managers, myManagerId, role);
-  const roleInputsWithoutTarget = buildRoleInputsForMe(state, snapshot, playerId, valueCurves);
+  const roleInputsWithoutTarget = buildRoleInputsForMe(state, snapshot, playerId, priceCurves);
 
   const maxBidResult = computeMaxBid({
     budget: me.creditsRemaining,
@@ -361,7 +395,7 @@ export function computeDecisionForPlayer(state: AuctionState, playerId: string):
   // raro, capitava per un giocatore su dieci nel listone reale. auction-sim.ts già calcola questi
   // stessi duali sul pool COMPLETO, senza esclusioni per-candidato (ricalcolati periodicamente,
   // §6.7): qui si allinea allo stesso pattern, corretto e già in uso altrove.
-  const roleInputsForDuals = buildRoleInputsForMe(state, snapshot, null, valueCurves);
+  const roleInputsForDuals = buildRoleInputsForMe(state, snapshot, null, priceCurves);
   const duals = computeDuals({ budget: me.creditsRemaining, roleInputs: roleInputsForDuals });
   const lambda = duals.lambda;
   const { weight: nextSlotWeight, mu: muRole } = weightAndMuForCandidate(myValue, role, duals);
@@ -417,7 +451,7 @@ export function computeDecisionForPlayer(state: AuctionState, playerId: string):
         }, 0)
       : 1;
 
-  const opponentWillingness = estimateOpponentWillingness(state, snapshot, role, playerId, myValue, valueCurves);
+  const opponentWillingness = estimateOpponentWillingness(state, snapshot, role, playerId, myValue, priceCurves);
 
   return {
     playerId,
@@ -489,7 +523,9 @@ export function buildRolloutInput(state: AuctionState, playerId: string): Rollou
     minPrice: state.config.minPrice,
     slotWeights: mySlotWeights(state),
     rolloutConfig: DEFAULT_ROLLOUT_CONFIG,
-    valueCurves: riskAdjustedCurves(state),
+    priceCurves: riskAdjustedPriceCurves(state),
+    valueCurves: riskAdjustedValueCurves(state),
     roleWeights: myRoleWeights(state),
+    primaryFormation: primaryFormationOf(state),
   };
 }

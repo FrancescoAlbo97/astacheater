@@ -7,7 +7,7 @@
 // un self-play con mix realistico di archetipi (peso 0.35 / 0.65).
 
 import { ROLES, type LeagueConfig, type PriceCurveConfig, type Role, type BudgetShares } from '../core/types.js';
-import { DEFAULT_PRICE_MODEL_CONFIG, DEFAULT_ROLLOUT_CONFIG, DEFAULT_SLOT_WEIGHTS, DEFAULT_VALUE_CURVES } from '../core/config.js';
+import { DEFAULT_PRICE_CURVES, DEFAULT_PRICE_MODEL_CONFIG, DEFAULT_ROLLOUT_CONFIG, DEFAULT_SLOT_WEIGHTS } from '../core/config.js';
 import { runAuctionSim, type AuctionSimConfig } from './auction-sim.js';
 import type { ArchetypeId } from './archetypes.js';
 
@@ -115,7 +115,10 @@ export function runSelfPlayFixedPoint(mode: SelfPlayMode, options: SelfPlayOptio
         rho,
         archetypesByManager: archetypes,
         priceModelConfig: { ...DEFAULT_PRICE_MODEL_CONFIG, priorCurves: priceCurves, budgetShares },
-        valueCurves: DEFAULT_VALUE_CURVES,
+        // Percezione di valore degli archetipi NON razionali (`AuctionSimConfig.priceCurves`, solo
+        // per 'ratio'): fissa al default teorico, mai al `priceCurves` in calibrazione qui sopra —
+        // stesso comportamento di prima del rename (§7 Session 9).
+        priceCurves: DEFAULT_PRICE_CURVES,
         slotWeights: DEFAULT_SLOT_WEIGHTS,
         priceNoiseSigma: DEFAULT_ROLLOUT_CONFIG.priceNoiseSigma,
         dualsRecalcEveryDraws: DEFAULT_ROLLOUT_CONFIG.dualsRecalcEveryDraws,

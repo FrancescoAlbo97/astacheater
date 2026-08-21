@@ -4,7 +4,7 @@
 // la quota di gap colmata (§10.2, metrica principale del progetto).
 
 import { ROLES } from '../core/types.js';
-import type { Role, SlotCounts, SlotWeights, ValueCurveConfig } from '../core/types.js';
+import type { PriceCurveConfig, Role, SlotCounts, SlotWeights } from '../core/types.js';
 import { playerValue } from '../core/value-model.js';
 import { computeFullPlan, type DPCandidate, type RoleDPInput } from '../core/plan-dp.js';
 import type { SaleRecord } from './auction-sim.js';
@@ -16,7 +16,7 @@ export interface OracleInput {
   readonly leagueSlots: SlotCounts;
   readonly budget: number;
   readonly slotWeights: SlotWeights;
-  readonly valueCurves?: ValueCurveConfig;
+  readonly priceCurves?: PriceCurveConfig;
 }
 
 /**
@@ -30,7 +30,7 @@ export function computeOracleValue(input: OracleInput): number {
   for (const role of ROLES) {
     const roleSales = input.sales.filter((s) => s.role === role);
     const candidates: DPCandidate[] = roleSales.map((s) => ({
-      v: playerValue(role, input.scoresById.get(s.playerId) ?? 50, { curves: input.valueCurves }),
+      v: playerValue(role, input.scoresById.get(s.playerId) ?? 50, { priceCurves: input.priceCurves }),
       price: s.price,
       forced: false,
     }));
@@ -40,7 +40,7 @@ export function computeOracleValue(input: OracleInput): number {
     const p20 = scoresSorted[Math.floor(0.2 * scoresSorted.length)] ?? 20;
     roleInputs[role] = {
       candidates,
-      fillerValue: playerValue(role, p20, { curves: input.valueCurves }),
+      fillerValue: playerValue(role, p20, { priceCurves: input.priceCurves }),
       slotCount: input.leagueSlots[role],
       weights: input.slotWeights[role],
     };
