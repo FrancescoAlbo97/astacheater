@@ -143,8 +143,8 @@ export function solveKnapsack(
 export function calculateOpportunityCost(
   targetPlayer: Player,
   knapsackResult: KnapsackResult,
-  availablePlayers: Player[],
-  teamState: TeamState,
+  availablePlayers: EvaluatedPlayer[],
+  teamState: { getRemainingSlots(): Record<string, number> },
   budget: number
 ): number {
   // Se il giocatore è nel "Core", il costo opportunità è alto (shadow price)
@@ -154,7 +154,8 @@ export function calculateOpportunityCost(
   if (shadow === 0) {
     // Euristica: costo opportunità = (prezzo giocatore) * (valore medio per credito del miglior sostituibile)
     const avgValuePerCredit = knapsackResult.maxScore / budget;
-    return targetPlayer.expectedPrice * avgValuePerCredit * 0.5; // Fattore di smorzamento
+    const targetEvalPrice = (targetPlayer as Partial<EvaluatedPlayer>).expectedPrice ?? 1;
+    return targetEvalPrice * avgValuePerCredit * 0.5; // Fattore di smorzamento
   }
 
   return shadow;

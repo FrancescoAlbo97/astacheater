@@ -26,6 +26,12 @@ export interface Player {
   readonly name: string;
   readonly team: string;
   readonly role: Role;
+  // Campi opzionali per compatibilità con test e interfacce estese
+  readonly value?: number;
+  readonly expectedPrice?: number;
+  readonly totalValue?: number;
+  readonly probability?: number;
+  readonly isStarter?: boolean;
 }
 
 /** Un giocatore del listone con lo score (se assegnato) e l'eventuale override di titolarità. */
@@ -59,6 +65,11 @@ export interface LeagueConfig {
    * la FORMA all'interno del ruolo — es. due portieri "titolari" comparabili invece di uno solo
    * netto — non l'importanza del ruolo nel suo insieme (quella è `roleWeights` sopra). */
   readonly slotWeights: SlotWeights;
+  /** §11 Setup — Soglie personalizzate di copertura titolari per ruolo: sovrascrive completamente
+   * il default "formazione + 1 scorta". Esempio: {P: 1, D: 6, C: 5, A: 4} per richiedere
+   * specificamente quei minimi indipendentemente dalla formazione scelta. Usato da
+   * `requiredRoleCoverage` e dal calcolo del bonus di copertura in `value-model.ts`. */
+  readonly requiredRoleCoverageOverrides?: Partial<Record<Role, number>>;
 }
 
 // ---------------------------------------------------------------------------

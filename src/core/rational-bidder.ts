@@ -69,6 +69,7 @@ export function buildRationalRoleInputs(
   scoreToValue: (role: Role, score: number) => number,
   maxOptionalCandidates: number,
   budgetGranularity: number,
+  requiredRoleCoverageOverrides?: Partial<Record<Role, number>>,
 ): Record<Role, RoleDPInput> {
   const roleInputs = {} as Record<Role, RoleDPInput>;
   for (const role of ROLES) {
@@ -78,7 +79,12 @@ export function buildRationalRoleInputs(
       price: 0,
       forced: true,
     }));
-    const gapFraction = roleCoverageGapFraction(role, ownedScores.map((score) => titolarita(role, score)), formation);
+    const gapFraction = roleCoverageGapFraction(
+      role,
+      ownedScores.map((score) => titolarita(role, score)),
+      formation,
+      requiredRoleCoverageOverrides,
+    );
     const rolePool = poolByRole[role]!;
     const optional: DPCandidate[] = rolePool
       .map((c) => ({

@@ -134,6 +134,10 @@ export interface RolloutInput {
    * neutri per gli avversari, sopra). Default '4-3-3' se non fornita, come gli altri campi
    * opzionali di questa interfaccia. */
   readonly primaryFormation?: Formation;
+  /** §11 Setup — Soglie personalizzate di copertura titolari per ruolo: sovrascrive il default
+   * "formazione + 1 scorta". Usato da `buildRationalRoleInputs` per calcolare il bonus di
+   * copertura. Se non fornito, usa il default basato sulla formazione. */
+  readonly requiredRoleCoverageOverrides?: Partial<Record<Role, number>>;
 }
 
 const DEFAULT_ROLLOUT_FORMATION: Formation = '4-3-3';
@@ -202,6 +206,7 @@ function buildRoleInputsForSimManager(
     (role, score) => valueForManager(managerId, role, score, input),
     MAX_OPTIONAL_CANDIDATES_FOR_DUALS,
     DUALS_BUDGET_GRANULARITY,
+    input.requiredRoleCoverageOverrides,
   );
 }
 

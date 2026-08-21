@@ -283,12 +283,22 @@ export function startersCountFor(role: Role, formation: Formation): number {
   return FORMATION_SHAPES[formation][role];
 }
 
-/** Copertura-titolari richiesta per ruolo, richiesta dall'utente in modo esplicito (§11 Session 9):
- * titolari da formazione + 1 di scorta. Finché la titolarità attesa già posseduta in un ruolo non
- * raggiunge questa soglia, il modello premia i candidati con titolarità alta per quel ruolo; una
- * volta raggiunta, il bonus si annulla e conta solo il valore (vedi `coverageBonusFactor` in
- * value-model.ts). */
-export function requiredRoleCoverage(role: Role, formation: Formation): number {
+/** Copertura-titolari richiesta per ruolo, configurabile dall'utente (§11 Setup): di default usa
+ * titolari da formazione + 1 di scorta, MA può essere sovrascritta completamente da
+ * `requiredRoleCoverageOverrides` se specificata nella config. Questo permette all'utente di
+ * definire soglie personalizzate indipendenti dalla formazione (es. "voglio almeno 6 difensori
+ * titolari anche se la formazione ne richiede solo 4+1"). Finché la titolarità attesa già
+ * posseduta in un ruolo non raggiunge questa soglia, il modello premia i candidati con titolarità
+ * alta per quel ruolo; una volta raggiunta, il bonus si annulla e conta solo il valore (vedi
+ * `coverageBonusFactor` in value-model.ts). */
+export function requiredRoleCoverage(
+  role: Role,
+  formation: Formation,
+  overrides?: Partial<Record<Role, number>>,
+): number {
+  if (overrides && role in overrides) {
+    return overrides[role]!;
+  }
   return startersCountFor(role, formation) + 1;
 }
 
