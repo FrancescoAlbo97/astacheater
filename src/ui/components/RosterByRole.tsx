@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import { reorderWithInsertion } from '../../core/roster-organize.js';
 import { ROLES } from '../../core/types.js';
+import { useAuctionStore } from '../state/store.js';
 import type { RoleSlots } from '../../core/roster-organize.js';
 import type { AuctionState, Role } from '../../core/types.js';
 
@@ -21,7 +22,10 @@ export interface RosterByRoleProps {
 }
 
 export function RosterByRole({ state, slotsByRole, onReorder, footNoteByRole, warningByRole }: RosterByRoleProps) {
+  const { dispatch } = useAuctionStore();
   const [dragging, setDragging] = useState<{ role: Role; playerId: string } | null>(null);
+  const [editingPlayer, setEditingPlayer] = useState<{ id: string; name: string; team: string; role: Role } | null>(null);
+  const [editForm, setEditForm] = useState<{ name: string; team: string; role: Role }>({ name: '', team: '', role: 'A' });
 
   function currentOrderIds(role: Role): string[] {
     const slots = slotsByRole[role];
@@ -33,6 +37,23 @@ export function RosterByRole({ state, slotsByRole, onReorder, footNoteByRole, wa
     const newOrder = reorderWithInsertion(currentOrderIds(role), dragging.playerId, targetIndex);
     onReorder(role, newOrder);
     setDragging(null);
+  }
+
+  function handleEditClick(player: { id: string; name: string; team: string; role: Role }) {
+    setEditingPlayer(player);
+    setEditForm({ name: player.name, team: player.team, role: player.role });
+  }
+
+  function handleSaveEdit() {
+    if (!editingPlayer) return;
+    dispatch({ t: 'player.edit', playerId: editingPlayer.id, updates: editForm });
+    setEditingPlayer(null);
+  }
+
+  function handleDeleteClick(player: { id: string; name: string }, managerId: string) {
+    if (confirm(`Sei sicuro di voler eliminare ${player.name}? Questa azione rimuoverà il giocatore dalla rosa e libererà crediti e slot.`)) {
+      dispatch({ t: 'player.delete', playerId: player.id, managerId });
+    }
   }
 
   return (
@@ -70,6 +91,9 @@ export function RosterByRole({ state, slotsByRole, onReorder, footNoteByRole, wa
                         onDragStart={() => setDragging({ role, playerId: entry.player.id })}
                         onDragOver={(e) => e.preventDefault()}
                         onDrop={() => handleDrop(role, slotIndex)}
+                        onEdit={() => handleEditClick(entry.player)}
+                        onDelete={() => handleDeleteClick(entry.player, state.config!.managers.find((m) => m.isMe)!.id)}
+                        showActions={Boolean(onReorder)}
                       />
                     );
                   })}
@@ -101,6 +125,9 @@ export function RosterByRole({ state, slotsByRole, onReorder, footNoteByRole, wa
                         onDragStart={() => setDragging({ role, playerId: entry.player.id })}
                         onDragOver={(e) => e.preventDefault()}
                         onDrop={() => handleDrop(role, slotIndex)}
+                        onEdit={() => handleEditClick(entry.player)}
+                        onDelete={() => handleDeleteClick(entry.player, state.config!.managers.find((m) => m.isMe)!.id)}
+                        showActions={Boolean(onReorder)}
                       />
                     );
                   })}
@@ -126,6 +153,51 @@ export function RosterByRole({ state, slotsByRole, onReorder, footNoteByRole, wa
           </div>
         );
       })}
+
+      {editingPlayer && (
+        <div className="modal-overlay" onClick={() => setEditingPlayer(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>Modifica giocatore</h3>
+            <div className="form-group">
+              <label>Nome</label>
+              <input
+                type="text"
+                value={editForm.name}
+                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+              />
+            </div>
+            <div className="form-group">
+              <label>Squadra</label>
+              <input
+                type="text"
+                value={editForm.team}
+                onChange={(e) => setEditForm({ ...editForm, team: e.target.value })}
+              />
+            </div>
+            <div className="form-group">
+              <label>Ruolo</label>
+              <select
+                value={editForm.role}
+                onChange={(e) => setEditForm({ ...editForm, role: e.target.value as Role })}
+              >
+                {ROLES.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="modal-actions">
+              <button type="button" className="btn-secondary" onClick={() => setEditingPlayer(null)}>
+                Annulla
+              </button>
+              <button type="button" className="btn-primary" onClick={handleSaveEdit}>
+                Salva
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -139,8 +211,11 @@ function RosterRow({
   onDragStart,
   onDragOver,
   onDrop,
+  onEdit,
+  onDelete,
+  showActions,
 }: {
-  entry: { player: { id: string; name: string; team: string }; price: number };
+  entry: { player: { id: string; name: string; team: string; role: Role }; price: number };
   role: Role;
   slotLabel: string;
   score: number | null;
@@ -148,6 +223,9 @@ function RosterRow({
   onDragStart: () => void;
   onDragOver: (e: React.DragEvent) => void;
   onDrop: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  showActions: boolean;
 }) {
   return (
     <div
@@ -167,6 +245,16 @@ function RosterRow({
         </div>
       </div>
       <span className="roster-row-price mono">{entry.price}</span>
+      {showActions && (
+        <div className="roster-row-actions">
+          <button type="button" className="btn-icon" onClick={onEdit} title="Modifica">
+            ✏️
+          </button>
+          <button type="button" className="btn-icon btn-danger" onClick={onDelete} title="Elimina">
+            🗑️
+          </button>
+        </div>
+      )}
     </div>
   );
 }

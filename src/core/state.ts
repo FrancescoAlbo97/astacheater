@@ -109,6 +109,30 @@ function applyEvent(state: AuctionState, event: AuctionEvent): AuctionState {
         slotOrder: { ...state.slotOrder, [slotOrderKey(event.managerId, event.role)]: event.order },
       };
 
+    case 'player.edit': {
+      const player = state.players[event.playerId];
+      if (!player) return state;
+      const updatedPlayer = { ...player, ...event.updates };
+      return {
+        ...state,
+        players: { ...state.players, [event.playerId]: updatedPlayer },
+      };
+    }
+
+    case 'player.delete': {
+      const sales = state.sales.filter((s) => !(s.playerId === event.playerId && s.managerId === event.managerId));
+      const unsold = state.unsold.filter((id) => id !== event.playerId);
+      const players = { ...state.players };
+      delete players[event.playerId];
+      const scores = { ...state.scores };
+      delete scores[event.playerId];
+      const overrides = { ...state.overrides };
+      delete overrides[event.playerId];
+      const targets = { ...state.targets };
+      delete targets[event.playerId];
+      return { ...state, sales, unsold, players, scores, overrides, targets };
+    }
+
     case 'undo':
       // Non dovrebbe mai arrivare qui: resolveUndos() filtra gli 'undo' prima del fold.
       return state;

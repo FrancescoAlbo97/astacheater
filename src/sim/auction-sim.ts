@@ -51,6 +51,9 @@ export interface AuctionSimConfig {
   /** Se fornito, sostituisce lo scenario generato internamente (usato dalla prova a secco, F12,
    * per aste sulla lista/punteggi REALI dell'utente invece che su un pool sintetico). */
   readonly scenarioOverride?: Scenario;
+  /** Soglie personalizzate di copertura titolari per ruolo, usate dal calcolo del bonus di
+   * copertura e dall'ottimizzatore Knapsack. Default usa la formazione + 1 se non fornito. */
+  readonly requiredRoleCoverageOverrides?: Partial<Record<Role, number>>;
 }
 
 export interface SaleRecord {
