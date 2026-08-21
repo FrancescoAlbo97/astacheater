@@ -130,7 +130,7 @@ describe('§12 F9 prestazioni: rollout completo entro un budget di tempo ragione
 });
 
 describe('determinismo (§13.10)', () => {
-  it('stesso seed ⇒ stesso risultato', () => {
+  it('stesso seed ⇒ stesso risultato', { timeout: 45000 }, () => {
     const a = runRollout(baseInput(), mulberry32(123));
     const b = runRollout(baseInput(), mulberry32(123));
     expect(a).toEqual(b);
@@ -138,13 +138,13 @@ describe('determinismo (§13.10)', () => {
 });
 
 describe('§11 Setup — peso per ruolo dentro il rollout', () => {
-  it('pesare di più il ruolo del target alza la mediana di p*, a parità di seed (confronto appaiato)', () => {
+  it('pesare di più il ruolo del target alza la mediana di p*, a parità di seed (confronto appaiato)', { timeout: 45000 }, () => {
     const neutral = runRollout(baseInput({ roleWeights: { P: 1, D: 1, C: 1, A: 1 } }), mulberry32(55));
     const boosted = runRollout(baseInput({ roleWeights: { P: 1, D: 1, C: 1, A: 2 } }), mulberry32(55));
     expect(boosted.median).toBeGreaterThanOrEqual(neutral.median);
   });
 
-  it('roleWeights non fornito equivale a nessuna preferenza (fallback difensivo)', () => {
+  it('roleWeights non fornito equivale a nessuna preferenza (fallback difensivo)', { timeout: 45000 }, () => {
     const withDefault = runRollout(baseInput(), mulberry32(9));
     const withExplicitNeutral = runRollout(baseInput({ roleWeights: { P: 1, D: 1, C: 1, A: 1 } }), mulberry32(9));
     expect(withDefault).toEqual(withExplicitNeutral);

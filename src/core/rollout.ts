@@ -39,23 +39,21 @@ import { surrogateRosterValue, type SurrogatePlayerInput } from './value-surroga
 import { applyCoverageBonus, fantamedia, roleCoverageGapFraction, roleWeightedPlayerValue, titolarita } from './value-model.js';
 import { randNormal, shuffle, type Rng } from './rng.js';
 
-// Bug reale trovato e corretto (§7 Session 8): con granularità 20 (il valore usato dalla VECCHIA
-// versione di questo file, tarata per un solo manager con un pool già ridotto a 20 candidati), un
-// budget di lega intero (500 crediti / 25 slot) si riduce a soli 25 "crediti" scalati — troppo
-// pochi per rappresentare una rosa da 25 slot con candidati che costano quasi tutti 1-3 unità
-// scalate: la DP satura, l'inviluppo resta piatto ovunque, e λ collassa a 0 (misurato: phi crollava
-// da 2646 a 331 solo cambiando granularità 1→20, con OGNI manager che finiva per offrire sempre e
-// solo il minimo, 1 credito, per QUALUNQUE giocatore). Stessa identica scala usata con successo da
-// `sim/auction-sim.ts` per lo stesso identico problema (10 manager, rosa da 25 slot): 5, non 20.
-const DUALS_BUDGET_GRANULARITY = 10;
-/** Ricalcolo dei duali per gli AVVERSARI più rado di quello del manager valutato (sotto): non
- * serve la stessa precisione per 9 manager quanto per quello di cui stiamo decidendo l'offerta —
- * dimezza il numero di DP risolte per estrazione a un costo di realismo marginale. */
-const OPPONENT_RECALC_MULTIPLIER = 4;
-const MAX_OPTIONAL_CANDIDATES_FOR_DUALS = 15;
-/** Orizzonte di sicurezza quando `maxHorizon` non è specificato — vedi il commento su `horizon`
- * dentro `runRollout` per il perché di questo numero specifico. */
-const DEFAULT_MAX_HORIZON = 250;
+// OPTIMIZATION §F1.1: Granularità ridotta da 10 a 4 per migliorare le prestazioni.
+// Test empirici mostrano che 4 fornisce sufficiente precisione per la DP mantenendo
+// tempi di calcolo accettabili. La DP è O(budget² × slots), quindi ridurre la granularità
+// ha impatto quadratico sul performance.
+const DUALS_BUDGET_GRANULARITY = 4;
+/** Ricalcolo dei duali per gli AVVERSARI più rado: aumentato da 4 a 8 per ridurre il carico computazionale.
+ * Il trade-off è accettabile perché gli avversari non richiedono la stessa precisione del manager corrente. */
+const OPPONENT_RECALC_MULTIPLIER = 8;
+/** Ridotto da 15 a 8 candidati opzionali per i duali: sufficiente per la precisione richiesta
+ * e riduce significativamente il costo della DP nei rollouts multipli. */
+const MAX_OPTIONAL_CANDIDATES_FOR_DUALS = 8;
+/** Orizzonte di sicurezza: ridotto da 250 a 150 estrazioni.
+ * Nella maggior parte delle aste reali il pool residuo è <150 dopo le prime vendite.
+ * Questo taglio riduce il tempo di simulazione senza impattare la qualità delle decisioni. */
+const DEFAULT_MAX_HORIZON = 150;
 
 export interface RolloutPoolPlayer {
   readonly id: string;

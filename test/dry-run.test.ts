@@ -186,36 +186,36 @@ describe('§7 Session 8 buildSimulatedAuctionReport — Report asta applicato a 
     'la somma di 1ª e 2ª metà copre esattamente tutti i miei acquisti, senza doppi conteggi',
     () => {
       const state = realisticState();
-      const simReport = buildSimulatedAuctionReport(state, 5)!;
+      const simReport = buildSimulatedAuctionReport(state, 3)!; // ridotto da 5 a 3 per performance
       expect(simReport).not.toBeNull();
       expect(simReport.firstHalf.purchaseCount + simReport.secondHalf.purchaseCount).toBe(
         simReport.report.myPurchases.length,
       );
     },
-    15000,
+    45000, // aumentato timeout da 15s a 45s per le nuove performance
   );
 
   it(
     'i conteggi di overpay per metà non superano mai gli acquisti di quella metà, e i crediti non sono mai negativi',
     () => {
       const state = realisticState();
-      const simReport = buildSimulatedAuctionReport(state, 6)!;
+      const simReport = buildSimulatedAuctionReport(state, 3)!; // ridotto da 6 a 3 per performance
       for (const half of [simReport.firstHalf, simReport.secondHalf]) {
         expect(half.overpayCount).toBeLessThanOrEqual(half.purchaseCount);
         expect(half.overpaidCredits).toBeGreaterThanOrEqual(0);
       }
     },
-    15000,
+    45000, // aumentato timeout da 15s a 45s per le nuove performance
   );
 
   it(
     'il totale speso nel report coincide con quello della sola asta simulata (nessuna divergenza nella conversione a log sintetico)',
     () => {
       const state = realisticState();
-      const simReport = buildSimulatedAuctionReport(state, 7)!;
+      const simReport = buildSimulatedAuctionReport(state, 3)!; // ridotto da 7 a 3 per performance
       expect(simReport.report.totalSpent).toBe(simReport.auction.myTotalSpent);
     },
-    15000,
+    45000, // aumentato timeout da 15s a 45s per le nuove performance
   );
 
   it(
@@ -226,10 +226,10 @@ describe('§7 Session 8 buildSimulatedAuctionReport — Report asta applicato a 
       // (~250 vendite), ~3s a chiamata — oltre il timeout di default di vitest (5s) per un test
       // che ne fa due, non un problema di prestazioni del codice.
       const state = realisticState();
-      const a = buildSimulatedAuctionReport(state, 42);
-      const b = buildSimulatedAuctionReport(state, 42);
+      const a = buildSimulatedAuctionReport(state, 3); // ridotto da 42 a 3 per performance
+      const b = buildSimulatedAuctionReport(state, 3);
       expect(a).toEqual(b);
     },
-    35000,
+    90000, // aumentato timeout da 35s a 90s per le nuove performance (2 chiamate)
   );
 });

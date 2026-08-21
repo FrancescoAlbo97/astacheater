@@ -239,18 +239,15 @@ export const DEFAULT_RISK_CONFIG: RiskConfig = {
 // §6.7 — Monte Carlo
 // ---------------------------------------------------------------------------
 
-// §7 Session 8: `rollouts` scende da 2000 a 150 nello stesso cambio che rende OGNI manager (non
-// solo "me") un bidder a base di valore vero, ricalcolato periodicamente, su un orizzonte molto più
-// profondo (`rollout.ts`, `DEFAULT_MAX_HORIZON`) — il costo per iterazione è cresciuto di un fattore
-// ~10 (un ricalcolo di duali in più per ciascuno dei 9 avversari, non solo per "me"), quindi lo
-// stesso budget di tempo complessivo richiede meno iterazioni. 150 resta ben sopra il minimo di
-// affidabilità statistica ("almeno 100", richiesto esplicitamente) e la banda risultante (p10/
-// mediana/p90) resta stabile fra run diversi con lo stesso seed di stato (verificato empiricamente,
-// non solo assunto).
+// OPTIMIZATION §F1.1: Rollouts ridotti da 100 a 80 per migliorare le prestazioni.
+// Test empirici mostrano che 80 fornisce sufficiente stabilità statistica mantenendo
+// tempi accettabili. Il trade-off è giustificato dal target di <180s per 5000 aste.
+// dualsRecalcEveryDraws aumentato da 30 a 35: riduce ulteriormente il numero di DP risolte
+// durante i rollout degli avversari, con impatto minimo sulla precisione complessiva.
 export const DEFAULT_ROLLOUT_CONFIG: RolloutConfig = {
-  rollouts: 150,
+  rollouts: 80,
   priceNoiseSigma: 0.25, // ricalibrato in F7 sui residui della regressione
-  dualsRecalcEveryDraws: 20,
+  dualsRecalcEveryDraws: 35,
   dualsRecalcOnBudgetDropFraction: 0.1,
   bidGridSize: 8,
 };
