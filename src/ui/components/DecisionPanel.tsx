@@ -284,7 +284,6 @@ export function DecisionPanel({ state, playerId, mode, onOpenFull }: DecisionPan
             già in rosa: se poi trovi davvero di meglio, punterai su quello; se no, non hai perso l'occasione per niente.
           </p>
         )}
-      </section>
 
         <div className="stat-trio">
           <div className="stat-tile">
