@@ -39,7 +39,7 @@ import { surrogateRosterValue, type SurrogatePlayerInput } from './value-surroga
 import { applyCoverageBonus, fantamedia, roleCoverageGapFraction, roleWeightedPlayerValue, titolarita } from './value-model.js';
 import { randNormal, shuffle, type Rng } from './rng.js';
 
-// OPTIMIZATION §F1.1: Granularità ridotta da 10 a 4 per migliorare le prestazioni.
+// OPTIMIZATION §F1.1 + Session 10 Top-N Dinamico: Granularità ridotta da 10 a 4 per migliorare le prestazioni.
 // Test empirici mostrano che 4 fornisce sufficiente precisione per la DP mantenendo
 // tempi di calcolo accettabili. La DP è O(budget² × slots), quindi ridurre la granularità
 // ha impatto quadratico sul performance.
@@ -54,6 +54,24 @@ const MAX_OPTIONAL_CANDIDATES_FOR_DUALS = 8;
  * Nella maggior parte delle aste reali il pool residuo è <150 dopo le prime vendite.
  * Questo taglio riduce il tempo di simulazione senza impattare la qualità delle decisioni. */
 const DEFAULT_MAX_HORIZON = 150;
+
+/** Session 10 - Top-N Dinamico: numero massimo di giocatori per ruolo da considerare nelle simulazioni.
+ * Inizia alto (tutti i giocatori disponibili) e si riduce man mano che l'asta procede.
+ * Questo permette di concentrare le risorse computazionali sui giocatori realmente rilevanti.
+ * Formula: max(15, min(tutti i giocatori, ceil(giocatori_rimanenti / slot_rimanenti * 3)))
+ * Questo garantisce di considerare sempre almeno 3 giocatori per slot rimanente, con un minimo di 15.
+ */
+function computeTopNPerRole(remainingPoolByRole: Record<Role, readonly RolloutPoolPlayer[]>, leagueSlots: SlotCounts): Record<Role, number> {
+  const result = {} as Record<Role, number>;
+  for (const role of ROLES) {
+    const totalPlayers = remainingPoolByRole[role].length;
+    const totalSlots = leagueSlots[role];
+    // Calcola un Top-N dinamico: almeno 15, al massimo tutti i giocatori, idealmente ~3x gli slot totali
+    const dynamicN = Math.ceil((totalPlayers / totalSlots) * Math.min(totalSlots, 3));
+    result[role] = Math.max(15, Math.min(totalPlayers, dynamicN));
+  }
+  return result;
+}
 
 export interface RolloutPoolPlayer {
   readonly id: string;
@@ -362,17 +380,30 @@ export function runRollout(input: RolloutInput, rng: Rng): RolloutResult {
     sortedScoresByRole[role] = input.remainingPool.filter((p) => p.role === role).map((p) => p.myScore).sort((a, b) => a - b);
   }
 
-  // §7 Session 8: l'orizzonte arriva MOLTO più in profondità di prima (80 estrazioni fisse, che
-  // costringevano il filler-padding sopra a coprire la MAGGIOR PARTE della rosa — l'"euristica
-  // invece di una vera simulazione" segnalata dall'utente). Non letteralmente infinito: ogni
-  // manager reso "razionale" (duali ricalcolati periodicamente, §7 sopra) costa una DP per
-  // ricalcolo, e con 10 manager anche solo poche centinaia di estrazioni × qualche centinaio di
-  // iterazioni ha un costo reale (misurato: ~250 estrazioni, 150 iterazioni ≈ 8s). `DEFAULT_MAX_
-  // HORIZON` è quindi un limite di SICUREZZA per l'inizio asta (pool residuo al suo massimo), non
-  // il meccanismo principale: per la maggior parte di un'asta reale (pool residuo via via più
-  // piccolo mano a mano che si vende) il `Math.min` sotto lo rende comunque IRRILEVANTE — si
-  // arriva alla fine vera del pool naturalmente, non a un taglio arbitrario.
-  const horizon = Math.min(input.maxHorizon ?? DEFAULT_MAX_HORIZON, input.remainingPool.length);
+  // Session 10 - Top-N Dinamico: calcola quanti giocatori per ruolo considerare nella simulazione.
+  // Invece di usare TUTTI i giocatori rimanenti, ci concentriamo sui migliori N per ruolo,
+  // dove N è dinamico e dipende dal rapporto tra giocatori e slot rimanenti.
+  const allPlayersByRole = {} as Record<Role, readonly RolloutPoolPlayer[]>;
+  for (const r of ROLES) {
+    allPlayersByRole[r] = input.remainingPool.filter((p) => p.role === r);
+  }
+  
+  const poolByRoleRaw = {} as Record<Role, readonly RolloutPoolPlayer[]>;
+  for (const role of ROLES) {
+    const players = allPlayersByRole[role]!;
+    // Ordina per score decrescente e prendi solo i top-N
+    const sorted = [...players].sort((a, b) => b.myScore - a.myScore);
+    const topN = computeTopNPerRole(allPlayersByRole, input.leagueSlots)[role]!;
+    poolByRoleRaw[role] = sorted.slice(0, topN);
+  }
+  
+  // Unisci tutti i ruoli filtrati in un unico pool ridotto per la simulazione
+  const reducedPool = ROLES.flatMap(role => poolByRoleRaw[role]!);
+
+  // §7 Session 8 + Session 10: l'orizzonte arriva MOLTO più in profondità di prima, ma ora
+  // lavora su un pool RIDOTTO (solo i top-N per ruolo). Questo migliora le prestazioni
+  // mantenendo la precisione sui giocatori realmente rilevanti.
+  const horizon = Math.min(input.maxHorizon ?? DEFAULT_MAX_HORIZON, reducedPool.length);
   const managersInit = initManagerStates(input);
   const meInit = managersInit.get(input.myManagerId)!;
 

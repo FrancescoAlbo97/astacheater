@@ -1,3 +1,12 @@
-```ts
-
+```
+# Build artifacts
+dist/
+build/
+# Dependencies
+node_modules/
+# Temporary files
+*.tmp
+*.swp
+# Logs
+*.log
 ```

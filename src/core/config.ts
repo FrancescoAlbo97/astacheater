@@ -232,7 +232,9 @@ export const DEFAULT_RISK_CONFIG: RiskConfig = {
   // score <100 quando γ cresce, quindi non separa in modo affidabile "buono" da "ottimo" — separa
   // solo "perfetto" da "tutto il resto". Lasciato al valore di spec; limite documentato in
   // MANUALE.md invece di inseguire un'altra costante a caso.
-  gammaMultiplierPerRisk: 0.4,
+  // FIX Session 10: gammaMultiplierPerRisk ridotto da 0.4 a 0.15 per rendere la risposta al cursore
+  // più lineare e graduale. Il valore precedente causava salti bruschi intorno a 0.15.
+  gammaMultiplierPerRisk: 0.15,
 };
 
 // ---------------------------------------------------------------------------
