@@ -181,33 +181,88 @@ export function DecisionPanel({ state, playerId, mode, onOpenFull }: DecisionPan
         </div>
       )}
 
-      <section className="card risk-override-card">
-        <div className="risk-override-row">
-          <span className="eyebrow" style={{ margin: 0 }}>
-            Aggressività per questo giocatore: {(riskOverride ?? state.config.risk).toFixed(2)}
-            {riskOverride === null && <span className="dim"> (di lega)</span>}
-          </span>
+      {/* NUOVA INTERFACCIA: Range di prezzo visibile e pulsanti rapidi */}
+      <section className="card price-range-card">
+        <p className="eyebrow">Analisi Prezzo per {player.name}</p>
+        
+        {/* Visualizzazione chiara del range */}
+        <div className="price-range-display">
+          <div className="range-item">
+            <span className="range-label">Minimo ragionevole</span>
+            <span className="range-value">{formatNum(decision.expectedPrice * 0.7)}</span>
+          </div>
+          <div className="range-item range-center">
+            <span className="range-label">Prezzo atteso</span>
+            <span className="range-value highlight">{formatNum(decision.expectedPrice)}</span>
+          </div>
+          <div className="range-item">
+            <span className="range-label">Massimo ragionevole</span>
+            <span className="range-value">{formatNum(decision.expectedPrice * 1.3)}</span>
+          </div>
+        </div>
+
+        {/* Pulsanti rapidi di offerta */}
+        <div className="quick-bid-buttons">
+          <button 
+            type="button" 
+            className="bid-btn bid-conservative"
+            onClick={() => setRiskOverride(-0.5)}
+            title={`Offri circa ${formatNum(decision.expectedPrice * 0.8)}`}
+          >
+            🛡️ Conservativa
+            <span className="bid-amount">{formatNum(decision.expectedPrice * 0.8)}</span>
+          </button>
+          
+          <button 
+            type="button" 
+            className="bid-btn bid-balanced"
+            onClick={() => setRiskOverride(0)}
+            title={`Offri circa ${formatNum(decision.expectedPrice)}`}
+          >
+            ⚖️ Equilibrata
+            <span className="bid-amount">{formatNum(decision.expectedPrice)}</span>
+          </button>
+          
+          <button 
+            type="button" 
+            className="bid-btn bid-aggressive"
+            onClick={() => setRiskOverride(0.5)}
+            title={`Offri circa ${formatNum(decision.expectedPrice * 1.2)}`}
+          >
+            ⚡ Aggressiva
+            <span className="bid-amount">{formatNum(decision.expectedPrice * 1.2)}</span>
+          </button>
+        </div>
+
+        {/* Stato corrente */}
+        <div className="current-strategy">
+          <span className="dim">Strategia attuale: </span>
+          <strong>
+            {riskOverride === null 
+              ? 'Default di lega' 
+              : riskOverride < -0.2 
+                ? '🛡️ Conservativa' 
+                : riskOverride > 0.2 
+                  ? '⚡ Aggressiva' 
+                  : '⚖️ Equilibrata'}
+          </strong>
           {riskOverride !== null && (
-            <button type="button" className="link-button" onClick={() => setRiskOverride(null)}>
-              ripristina
+            <button 
+              type="button" 
+              className="link-button" 
+              onClick={() => setRiskOverride(null)}
+              style={{ marginLeft: '1rem' }}
+            >
+              ripristina default
             </button>
           )}
         </div>
-        <div className="risk-slider-wrap">
-          <input
-            type="range"
-            min={-1}
-            max={1}
-            step={0.05}
-            value={riskOverride ?? state.config.risk}
-            onChange={(e) => setRiskOverride(Number(e.target.value))}
-          />
-          <div className="risk-scale-labels">
-            <span>−1 più sicuro</span>
-            <span>+1 più aggressivo</span>
-          </div>
-        </div>
       </section>
+
+      {/* MANTENIAMO la scala dei prezzi esistente per visualizzazione */}
+      {!isNotUseful && (
+        <PriceScale expectedPrice={decision.expectedPrice} operationalMax={decision.operationalMax} ceiling={decision.ceiling.c1} />
+      )}
 
       <section className={`card decision-hero ${isNotUseful ? 'hero-bad' : 'hero-ok'}`}>
         <div className="hero-label">OFFRI FINO A</div>
@@ -229,10 +284,7 @@ export function DecisionPanel({ state, playerId, mode, onOpenFull }: DecisionPan
             già in rosa: se poi trovi davvero di meglio, punterai su quello; se no, non hai perso l'occasione per niente.
           </p>
         )}
-
-        {!isNotUseful && (
-          <PriceScale expectedPrice={decision.expectedPrice} operationalMax={decision.operationalMax} ceiling={decision.ceiling.c1} />
-        )}
+      </section>
 
         <div className="stat-trio">
           <div className="stat-tile">
