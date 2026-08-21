@@ -104,10 +104,10 @@ export interface RolePressure {
   readonly othersSlots: number;
 }
 
-/** §11 "Fantallenatori" — ruoli in cui `manager` ha ancora slot aperti ma il pool residuo in quel
- * ruolo è già insufficiente a coprire i suoi slot più quelli di tutti gli altri manager: stessa
- * condizione di scarsità di §6.6 (finora calcolata solo per "me" in `computeDecisionForPlayer`),
- * qui applicata a un manager qualunque. */
+/** §11 "Fantallenatori" — ruoli in cui `manager` ha ancora slot aperti e c'è scarsità di pool.
+ * La pressione si verifica quando il pool residuo è limitato rispetto alla domanda totale:
+ * si segnala quando poolRemaining <= 1.5 * (mySlots + othersSlots), cioè quando inizia a scarseggiare.
+ * Questo dà un avviso preventivo prima che diventi critico. */
 export function scarceRolesFor(
   managers: readonly ManagerState[],
   pool: readonly Player[],
@@ -122,5 +122,5 @@ export function scarceRolesFor(
       .filter((m) => m.manager.id !== managerId)
       .reduce((sum, m) => sum + m.slotsRemaining[role], 0);
     return { role, mySlots, poolRemaining, othersSlots };
-  }).filter((p) => p.mySlots > 0 && p.poolRemaining <= p.mySlots + p.othersSlots);
+  }).filter((p) => p.mySlots > 0 && p.poolRemaining > 0 && p.poolRemaining <= Math.ceil(1.5 * (p.mySlots + p.othersSlots)));
 }
