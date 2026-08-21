@@ -68,7 +68,8 @@ export function DecisionPanel({ state, playerId, mode, onOpenFull }: DecisionPan
   const [bidStrategy, setBidStrategy] = useState<'conservative' | 'balanced' | 'aggressive' | 'default'>('default');
 
   // Calcola il moltiplicatore di offerta in base alla strategia selezionata
-  const bidMultiplier = useMemo(() => {
+  // Questo moltiplicatore viene applicato al pStar (valore per te) prima di calcolare operationalMax
+  const pStarMultiplier = useMemo(() => {
     switch (bidStrategy) {
       case 'conservative': return 0.8;
       case 'balanced': return 1.0;
@@ -77,12 +78,39 @@ export function DecisionPanel({ state, playerId, mode, onOpenFull }: DecisionPan
     }
   }, [bidStrategy]);
 
+  // Ricalcola la decisione con il moltiplicatore di strategia applicato
   const decisionState = useMemo(() => {
-    // Non usiamo più riskOverride, la strategia di bidding è applicata direttamente
     return state;
   }, [state]);
 
-  const decision = computeDecisionForPlayer(decisionState, playerId);
+  const baseDecision = computeDecisionForPlayer(decisionState, playerId);
+  
+  // Applica la strategia di bidding modificando pStar prima di ricalcolare operationalMax
+  const decision = useMemo(() => {
+    if (!baseDecision || !state.config || bidStrategy === 'default') {
+      return baseDecision;
+    }
+    
+    // Modifica pStar secondo la strategia
+    const adjustedPStar = baseDecision.pStar * pStarMultiplier;
+    
+    // Ricalcola operationalMax con il pStar aggiustato usando la stessa logica del core
+    const adjustedOperationalMax = Math.min(
+      adjustedPStar,
+      Math.max(state.config.minPrice, baseDecision.ceiling.c1 + 1),
+      baseDecision.ceiling.myMax
+    );
+    
+    // Ricalcola anche expectedPrice in modo coerente
+    const adjustedExpectedPrice = Math.min(adjustedPStar, baseDecision.ceiling.c2 + 1);
+    
+    return {
+      ...baseDecision,
+      pStar: adjustedPStar,
+      operationalMax: adjustedOperationalMax,
+      expectedPrice: adjustedExpectedPrice,
+    };
+  }, [baseDecision, bidStrategy, pStarMultiplier, state.config?.minPrice]);
   const player = state.players[playerId];
   const myScore = state.scores[playerId]?.score ?? null;
 
@@ -211,36 +239,36 @@ export function DecisionPanel({ state, playerId, mode, onOpenFull }: DecisionPan
           </div>
         </div>
 
-        {/* Pulsanti rapidi di offerta */}
+        {/* Pulsanti rapidi di offerta - mostrano l'operationalMax risultante dalla strategia */}
         <div className="quick-bid-buttons">
           <button 
             type="button" 
             className="bid-btn bid-conservative"
             onClick={() => setBidStrategy('conservative')}
-            title={`Offri circa ${formatNum(decision.expectedPrice * 0.8)}`}
+            title={`Offri fino a ${formatNum(decision.operationalMax)}`}
           >
             🛡️ Conservativa
-            <span className="bid-amount">{formatNum(decision.expectedPrice * 0.8)}</span>
+            <span className="bid-amount">{formatNum(decision.operationalMax)}</span>
           </button>
           
           <button 
             type="button" 
             className="bid-btn bid-balanced"
             onClick={() => setBidStrategy('balanced')}
-            title={`Offri circa ${formatNum(decision.expectedPrice)}`}
+            title={`Offri fino a ${formatNum(decision.operationalMax)}`}
           >
             ⚖️ Equilibrata
-            <span className="bid-amount">{formatNum(decision.expectedPrice)}</span>
+            <span className="bid-amount">{formatNum(decision.operationalMax)}</span>
           </button>
           
           <button 
             type="button" 
             className="bid-btn bid-aggressive"
             onClick={() => setBidStrategy('aggressive')}
-            title={`Offri circa ${formatNum(decision.expectedPrice * 1.2)}`}
+            title={`Offri fino a ${formatNum(decision.operationalMax)}`}
           >
             ⚡ Aggressiva
-            <span className="bid-amount">{formatNum(decision.expectedPrice * 1.2)}</span>
+            <span className="bid-amount">{formatNum(decision.operationalMax)}</span>
           </button>
         </div>
 
