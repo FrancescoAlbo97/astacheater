@@ -39,6 +39,8 @@ import { combineRoles, computeRolePlan, type DPCandidate, type RoleDPInput } fro
 import { approxMaxBid, computeDuals, weightAndMuForCandidate } from './base-policy.js';
 import { getLeaguePriorCurves } from './league-prior.js';
 import type { RolloutInput } from './rollout.js';
+import { analyzeOpportunity, adjustMaxBidWithOpportunity } from './opportunity-cost.js';
+import { solveKnapsack } from './knapsack.js';
 
 /** VESTIGIALE dalla Session 10: `playerValue` ignora ormai `priceCurves` del tutto (è un'identità
  * sul punteggio, vedi value-model.ts), quindi il risultato qui non ha più alcun effetto sul
@@ -310,6 +312,8 @@ export interface PlayerDecision {
   /** true se `pHat`/`expectedPrice` partono da una prior calibrata via self-play su questa lega
    * invece che dalla curva teorica generica — vedi `MarketSnapshot.usingLeaguePrior`. */
   readonly usingLeaguePrior: boolean;
+  /** Analisi del costo opportunità integrata con Knapsack e Monte Carlo — vedi `opportunity-cost.ts`. */
+  readonly opportunityAnalysis?: import('./opportunity-cost.js').OpportunityAnalysis;
 }
 
 /**
@@ -453,6 +457,31 @@ export function computeDecisionForPlayer(state: AuctionState, playerId: string):
 
   const opponentWillingness = estimateOpponentWillingness(state, snapshot, role, playerId, myValue, priceCurves);
 
+  // Integrazione con il modulo opportunity-cost: calcolo del costo opportunità e aggiustamento dell'offerta
+  const evaluatedPlayers = snapshot.pool.map((p) => ({
+    ...p,
+    expectedPrice: snapshot.pHat.get(p.id) ?? 1,
+    totalValue: roleWeightedPlayerValue(p.role, myScoreOf(state, p.id), myRoleWeights(state), { priceCurves }),
+  }));
+  
+  // Aggiungi anche i giocatori già in rosa al pool per l'analisi
+  const allAvailablePlayers = [...evaluatedPlayers];
+  
+  const teamStateWrapper = {
+    getRemainingSlots: () => me.slotsRemaining,
+  };
+  
+  const targetEvaluatedPlayer = {
+    ...player,
+    expectedPrice: pHat,
+    totalValue: myValue,
+  };
+  
+  const oppAnalysis = analyzeOpportunity(targetEvaluatedPlayer, allAvailablePlayers, teamStateWrapper, me.creditsRemaining);
+  
+  // Aggiusta l'operationalMax basato sul costo opportunità
+  const adjustedOperationalMax = adjustMaxBidWithOpportunity(operationalMax, oppAnalysis.opportunityCost, oppAnalysis.absoluteValue);
+
   return {
     playerId,
     role,
@@ -461,7 +490,7 @@ export function computeDecisionForPlayer(state: AuctionState, playerId: string):
     pStar: effectiveMaxBidResult.pStar,
     reason: effectiveMaxBidResult.reason,
     ceiling,
-    operationalMax,
+    operationalMax: adjustedOperationalMax,
     expectedPrice,
     phiWinAtOperational,
     phiLose,
@@ -475,6 +504,7 @@ export function computeDecisionForPlayer(state: AuctionState, playerId: string):
     kappa,
     opponentWillingness,
     usingLeaguePrior: snapshot.usingLeaguePrior,
+    opportunityAnalysis: oppAnalysis,
   };
 }
 

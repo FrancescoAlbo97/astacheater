@@ -220,6 +220,7 @@ export function runAuctionSim(config: AuctionSimConfig): AuctionSimResult {
       myValue,
       MAX_OPTIONAL_CANDIDATES_FOR_DUALS,
       DUALS_BUDGET_GRANULARITY,
+      config.requiredRoleCoverageOverrides,
     );
   }
 

@@ -241,8 +241,9 @@ export function roleCoverageGapFraction(
   role: Role,
   ownedPts: readonly number[],
   formation: Formation,
+  requiredRoleCoverageOverrides?: Partial<Record<Role, number>>,
 ): number {
-  const target = requiredRoleCoverage(role, formation);
+  const target = requiredRoleCoverage(role, formation, requiredRoleCoverageOverrides);
   if (target <= 0) return 0;
   const coverage = ownedPts.reduce((s, pt) => s + pt, 0);
   const gap = Math.max(0, target - coverage);

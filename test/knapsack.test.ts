@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { solveKnapsack, calculateOpportunityCost } from '../src/core/knapsack';
+import { solveKnapsack, calculateOpportunityCost, type EvaluatedPlayer } from '../src/core/knapsack';
 import type { Player, ManagerState } from '../src/core/types';
 import { deriveManagerStates, reduce, appendEvent } from '../src/core/state';
 import type { AuctionState } from '../src/core/types';
@@ -13,12 +13,11 @@ function createMockTeamState(remainingSlots: Record<string, number>, budget: num
 }
 
 describe('Knapsack', () => {
-  const createPlayer = (id: string, role: any, value: number, price: number): Player => ({
+  const createPlayer = (id: string, role: any, value: number, price: number): EvaluatedPlayer => ({
     id,
     name: `Player ${id}`,
     role,
     team: 'Team',
-    value,
     expectedPrice: price,
     totalValue: value,
     probability: 0.5,
@@ -26,7 +25,7 @@ describe('Knapsack', () => {
   });
 
   it('risolve un caso semplice con vincolo di budget', () => {
-    const players: Player[] = [
+    const players: EvaluatedPlayer[] = [
       createPlayer('A', 'A', 80, 50),
       createPlayer('B', 'A', 60, 30),
       createPlayer('C', 'C', 70, 40)
@@ -41,7 +40,7 @@ describe('Knapsack', () => {
   });
 
   it('identifica core players correttamente', () => {
-    const players: Player[] = [
+    const players: EvaluatedPlayer[] = [
       createPlayer('STAR', 'A', 200, 100), // Giocatore insostituibile
       createPlayer('B1', 'A', 50, 30),
       createPlayer('B2', 'A', 50, 30)
@@ -56,7 +55,7 @@ describe('Knapsack', () => {
   });
 
   it('calcola shadow prices coerenti', () => {
-    const players: Player[] = [
+    const players: EvaluatedPlayer[] = [
       createPlayer('P1', 'C', 100, 50),
       createPlayer('P2', 'C', 90, 45)
     ];
@@ -73,12 +72,11 @@ describe('Knapsack', () => {
 });
 
 describe('Opportunity Cost', () => {
-  const createPlayer = (id: string, role: any, value: number, price: number): Player => ({
+  const createPlayer = (id: string, role: any, value: number, price: number): EvaluatedPlayer => ({
     id,
     name: `Player ${id}`,
     role,
     team: 'Team',
-    value,
     expectedPrice: price,
     totalValue: value,
     probability: 0.5,
@@ -87,7 +85,7 @@ describe('Opportunity Cost', () => {
 
   it('restituisce costo opportunità per giocatore core', () => {
     const target = createPlayer('TARGET', 'A', 150, 80);
-    const players: Player[] = [
+    const players: EvaluatedPlayer[] = [
       target,
       createPlayer('ALT1', 'A', 100, 50),
       createPlayer('ALT2', 'A', 100, 50)
