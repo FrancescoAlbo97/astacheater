@@ -12,9 +12,9 @@ import type { AuctionState, Formation, Role, RosterEntry } from './types.js';
 export { startersCountFor };
 
 /** Ordine effettivo dei giocatori di `managerId` nel ruolo `role`: quello impostato esplicitamente
- * (§7, evento `roster.slot`), filtrato ai soli giocatori ANCORA posseduti e con in coda, in ordine
- * d'acquisto, chi è stato comprato ma non è mai stato inserito in un ordine esplicito — questo fa
- * sì che un acquisto nuovo compaia sempre, anche se il manager non ha mai riordinato quel ruolo. */
+ * (§7, evento `roster.slot`), filtrato ai soli giocatori ANCORA posseduti e con in coda, ORDINATI PER SCORE,
+ * chi è stato comprato ma non è mai stato inserito in un ordine esplicito — questo fa
+ * sì che un acquisto nuovo compaia sempre nella posizione corretta per score, senza bisogno di riordinamento manuale. */
 export function getRosterOrder(state: AuctionState, managerId: string, role: Role): RosterEntry[] {
   const manager = deriveManagerStates(state).find((m) => m.manager.id === managerId);
   if (!manager) return [];
@@ -30,9 +30,19 @@ export function getRosterOrder(state: AuctionState, managerId: string, role: Rol
       byId.delete(playerId);
     }
   }
-  // Chi resta (mai ordinato esplicitamente, o appena comprato) va in coda, in ordine d'acquisto.
+  // Chi resta (mai ordinato esplicitamente, o appena comprato) va in coda, ORDINATO PER SCORE (decrescente).
+  // Questo assicura che i nuovi acquisti appaiano automaticamente nella posizione corretta rispetto al valore.
+  const remaining: RosterEntry[] = [];
   for (const entry of owned) {
-    if (byId.has(entry.player.id)) ordered.push(entry);
+    if (byId.has(entry.player.id)) remaining.push(entry);
+  }
+  remaining.sort((a, b) => {
+    const scoreA = state.scores[a.player.id]?.score ?? 50;
+    const scoreB = state.scores[b.player.id]?.score ?? 50;
+    return scoreB - scoreA; // decrescente: prima i migliori
+  });
+  for (const entry of remaining) {
+    ordered.push(entry);
   }
   return ordered;
 }

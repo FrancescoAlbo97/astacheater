@@ -87,12 +87,15 @@ export function buildPostAuctionReport(state: AuctionState, evalSeed = 4242): Po
             expectedPriceAtTime: decision?.expectedPrice ?? 0,
             overpaidBy: decision ? Math.max(0, sale.price - decision.operationalMax) : 0,
           });
-        } else if (decision && decision.reason !== 'not-useful' && sale.price <= decision.operationalMax) {
+        } else if (decision && decision.reason !== 'not-useful' && sale.price <= decision.operationalMax && decision.operationalMax >= 3) {
           // Un avversario ha preso un giocatore che, secondo IL TUO modello in quel momento,
-          // potevi permetterti senza peggiorare la tua rosa finale: un'occasione mancata concreta,
-          // non un rimpianto generico.
+          // potevi permetterti senza peggiorare la tua rosa finale E aveva un valore significativo.
+          // Filtro: operationalMax >= 3 (almeno 3 crediti) per escludere i "tappabuchi" da 1 credito
+          // che tecnicamente potevi permetterti ma non erano vere opportunità.
           const myScore = prevState.scores[sale.playerId]?.score;
-          if (myScore !== undefined) {
+          if (myScore !== undefined && myScore >= 55) {
+            // Filtro aggiuntivo: score >= 55 per escludere giocatori molto deboli
+            // che non sarebbero stati acquisti interessanti
             const managerName = curState.config?.managers.find((m) => m.id === sale.managerId)?.name ?? sale.managerId;
             missedOpportunities.push({
               playerId: sale.playerId,
