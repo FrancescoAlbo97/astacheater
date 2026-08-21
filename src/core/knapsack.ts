@@ -15,7 +15,7 @@ import type { Player, Role } from './types';
 import type { PlayerDecision } from './engine';
 
 // Interfaccia estesa per i giocatori con informazioni di valutazione
-interface EvaluatedPlayer extends Player {
+export interface EvaluatedPlayer extends Player {
   expectedPrice: number;
   totalValue: number;
 }

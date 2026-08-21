@@ -209,7 +209,13 @@ export type AuctionEvent =
   /** Ordine manuale dei giocatori di un manager in un ruolo (slot 1, 2, 3…): sostituisce sempre
    * l'intero ordine per quel manager+ruolo, non un singolo spostamento — più semplice da applicare
    * in modo puro, la UI calcola il nuovo array completo prima di inviare l'evento. */
-  | { readonly t: 'roster.slot'; readonly managerId: string; readonly role: Role; readonly order: readonly string[] };
+  | { readonly t: 'roster.slot'; readonly managerId: string; readonly role: Role; readonly order: readonly string[] }
+  /** Modifica i dati di un giocatore già acquisito (nome, squadra, ruolo). Usato per correggere
+   * errori di inserimento o assegnazioni errate durante l'asta. */
+  | { readonly t: 'player.edit'; readonly playerId: string; readonly updates: Partial<Pick<Player, 'name' | 'team' | 'role'>> }
+  /** Elimina definitivamente un giocatore dalla rosa di un manager, rimuovendo la vendita e
+   * liberando slot e crediti. Usato per correggere errori gravi di inserimento. */
+  | { readonly t: 'player.delete'; readonly playerId: string; readonly managerId: string };
 
 export interface ManualOverride {
   readonly maxBid: number;
