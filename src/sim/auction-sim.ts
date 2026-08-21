@@ -69,7 +69,11 @@ export interface AuctionSimResult {
   readonly slotCrisisCount: number;
 }
 
-const MAX_OPTIONAL_CANDIDATES_FOR_DUALS = 50;
+// OPTIMIZATION §F1.1: Ridotto da 50 a 20 candidati opzionali per i duali.
+// Il simulatore self-play non richiede la massima precisione del motore esatto della UI.
+// Questo riduce significativamente il costo computazionale della DP senza impattare
+// sensibilmente il realismo della simulazione.
+const MAX_OPTIONAL_CANDIDATES_FOR_DUALS = 20;
 
 export function runAuctionSim(config: AuctionSimConfig): AuctionSimResult {
   const { league } = config;
@@ -193,7 +197,8 @@ export function runAuctionSim(config: AuctionSimConfig): AuctionSimResult {
   // ricombinazione cresce con budget², quindi lavorare a blocchi di DUALS_BUDGET_GRANULARITY
   // crediti anziché a credito singolo riduce quel costo di un fattore ~granularità². Non tocca il
   // calcolo ESATTO di p* (max-bid.ts, §6.6), che resta a risoluzione di 1 credito.
-  const DUALS_BUDGET_GRANULARITY = 5;
+  // OPTIMIZATION §F1.1: Granularità ridotta da 5 a 4 per migliorare le prestazioni.
+  const DUALS_BUDGET_GRANULARITY = 4;
 
   function buildRoleInputsForManager(m: number): Record<Role, RoleDPInput> {
     const scores = scenario.scoresByManager[m]!;

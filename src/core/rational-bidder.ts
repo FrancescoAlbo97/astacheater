@@ -172,7 +172,15 @@ export function applyUrgencyAndNoise(input: UrgencyAndNoiseInput): number {
   const avgBudgetShare = 0.25; // media su 4 ruoli equipesati, per normalizzare il moltiplicatore
   const roleShareMultiplier = input.roleBudgetShare / avgBudgetShare;
 
-  const urgencyBoost = input.base > 0 ? excessPerSlot * 20 * roleShareMultiplier : 0;
-  const noisy = (input.base + urgencyBoost) * input.noiseFactor;
+  // OPTIMIZATION §F2: Aumentato il fattore di urgenza da 20 a 35 per migliorare il budget burning.
+  // Il valore precedente lasciava troppi crediti non spesi a fine asta (gap noto §9.5).
+  const urgencyBoost = input.base > 0 ? excessPerSlot * 35 * roleShareMultiplier : 0;
+  
+  // OPTIMIZATION §F2: Aggiunto un boost minimo assoluto quando i crediti sono molti e gli slot pochi.
+  // Questo aiuta a bruciare crediti residui nelle fasi finali dell'asta.
+  const endgameBoost = input.totalSlotsRemaining <= 3 && input.creditsRemaining > 50
+    ? Math.min(30, input.creditsRemaining / input.totalSlotsRemaining)
+    : 0;
+  const noisy = (input.base + urgencyBoost + endgameBoost) * input.noiseFactor;
   return Math.max(input.minPrice, Math.min(noisy, input.maxSingleBidForManager));
 }
